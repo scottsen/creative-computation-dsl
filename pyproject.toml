@@ -34,6 +34,9 @@ dependencies = [
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
+    "pytest-xdist>=3.0.0",  # Parallel testing
+    "pytest-benchmark>=4.0.0",  # Performance benchmarks
+    "hypothesis>=6.0.0",  # Property-based testing
     "black>=22.0.0",
     "mypy>=1.0.0",
     "ruff>=0.1.0",
@@ -69,3 +72,42 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+addopts = [
+    "--verbose",
+    "--strict-markers",
+    "--tb=short",
+    # Coverage options (uncomment when coverage is desired)
+    # "--cov=creative_computation",
+    # "--cov-report=html",
+    # "--cov-report=term-missing",
+    # "--cov-fail-under=80",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "benchmark: marks tests as performance benchmarks",
+    "determinism: marks tests that verify deterministic behavior",
+]
+
+[tool.coverage.run]
+source = ["creative_computation"]
+omit = [
+    "*/tests/*",
+    "*/examples/*",
+    "*/__pycache__/*",
+    "*/site-packages/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "\\.\\.\\.",
+]
+precision = 2
+show_missing = true
