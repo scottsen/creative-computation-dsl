@@ -93,9 +93,17 @@ class Parser:
         if token.type == TokenType.COMPOSE:
             return self.parse_compose()
 
-        # Assignment (with possible decorators)
+        # Assignment or expression statement
         if token.type == TokenType.IDENTIFIER:
-            return self.parse_assignment(decorators)
+            # Look ahead to determine if it's an assignment or expression statement
+            # Check if there's '=' or ':' after the identifier (for type annotation)
+            if (self.peek_token().type == TokenType.ASSIGN or
+                self.peek_token().type == TokenType.COLON):
+                return self.parse_assignment(decorators)
+            else:
+                # It's an expression statement (e.g., function call)
+                expr = self.parse_expression()
+                return ExpressionStatement(expr)
 
         # Type definition
         if token.type == TokenType.TYPE:
@@ -403,12 +411,34 @@ class Parser:
             self.advance()
             return Identifier(token.value)
 
-        # Parenthesized expression
+        # Parenthesized expression or tuple
         if token.type == TokenType.LPAREN:
             self.advance()
-            expr = self.parse_expression()
-            self.expect(TokenType.RPAREN)
-            return expr
+
+            # Check for empty tuple
+            if self.current_token().type == TokenType.RPAREN:
+                self.advance()
+                return Tuple([])
+
+            # Parse first element
+            first_expr = self.parse_expression()
+
+            # Check if it's a tuple (has comma) or just parenthesized expression
+            if self.current_token().type == TokenType.COMMA:
+                # It's a tuple
+                elements = [first_expr]
+                while self.current_token().type == TokenType.COMMA:
+                    self.advance()
+                    # Allow trailing comma
+                    if self.current_token().type == TokenType.RPAREN:
+                        break
+                    elements.append(self.parse_expression())
+                self.expect(TokenType.RPAREN)
+                return Tuple(elements)
+            else:
+                # Just a parenthesized expression
+                self.expect(TokenType.RPAREN)
+                return first_expr
 
         # List literal
         if token.type == TokenType.LBRACKET:

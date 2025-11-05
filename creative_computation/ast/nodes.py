@@ -14,9 +14,11 @@ class NodeType(Enum):
     UNARY_OP = "unary_op"
     CALL = "call"
     FIELD_ACCESS = "field_access"
+    TUPLE = "tuple"
 
     # Statements
     ASSIGNMENT = "assignment"
+    EXPRESSION_STATEMENT = "expression_statement"
     STEP = "step"
     SUBSTEP = "substep"
     MODULE = "module"
@@ -124,6 +126,16 @@ class FieldAccess(Expression):
         return visitor.visit_field_access(self)
 
 
+@dataclass
+class Tuple(Expression):
+    """Tuple expression (e.g., (1, 2, 3) or (128, 128))."""
+    elements: List[Expression]
+    node_type: NodeType = field(default=NodeType.TUPLE)
+
+    def accept(self, visitor: 'ASTVisitor') -> Any:
+        return visitor.visit_tuple(self)
+
+
 # ============================================================================
 # Statements
 # ============================================================================
@@ -145,6 +157,16 @@ class Assignment(Statement):
 
     def accept(self, visitor: 'ASTVisitor') -> Any:
         return visitor.visit_assignment(self)
+
+
+@dataclass
+class ExpressionStatement(Statement):
+    """Expression as a statement (e.g., function call without assignment)."""
+    expression: Expression
+    node_type: NodeType = field(default=NodeType.EXPRESSION_STATEMENT)
+
+    def accept(self, visitor: 'ASTVisitor') -> Any:
+        return visitor.visit_expression_statement(self)
 
 
 @dataclass

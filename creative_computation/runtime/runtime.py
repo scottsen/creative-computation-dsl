@@ -165,13 +165,15 @@ class Runtime:
             Result of statement execution (if any)
         """
         from ..ast.nodes import (
-            Assignment, Step, Substep, Module, Compose,
+            Assignment, ExpressionStatement, Step, Substep, Module, Compose,
             Call, Identifier, Literal, BinaryOp, UnaryOp, FieldAccess
         )
 
         # Handle different statement types
         if isinstance(stmt, Assignment):
             return self.execute_assignment(stmt)
+        elif isinstance(stmt, ExpressionStatement):
+            return self.execute_expression(stmt.expression)
         elif isinstance(stmt, Step):
             return self.execute_step(stmt)
         elif isinstance(stmt, Substep):
@@ -198,8 +200,8 @@ class Runtime:
         # Evaluate right-hand side
         value = self.execute_expression(assign.value)
 
-        # Store in context
-        self.context.set_variable(assign.target.name, value)
+        # Store in context (target is a string)
+        self.context.set_variable(assign.target, value)
 
     def execute_set_statement(self, call) -> None:
         """Execute a 'set' configuration statement.
@@ -266,7 +268,7 @@ class Runtime:
             Evaluated expression value
         """
         from ..ast.nodes import (
-            Literal, Identifier, BinaryOp, UnaryOp, Call, FieldAccess
+            Literal, Identifier, BinaryOp, UnaryOp, Call, FieldAccess, Tuple
         )
 
         if isinstance(expr, Literal):
@@ -286,6 +288,10 @@ class Runtime:
 
         elif isinstance(expr, FieldAccess):
             return self.execute_field_access(expr)
+
+        elif isinstance(expr, Tuple):
+            # Evaluate all elements and return as Python tuple
+            return tuple(self.execute_expression(elem) for elem in expr.elements)
 
         else:
             raise TypeError(f"Unknown expression type: {type(expr)}")
@@ -356,9 +362,9 @@ class Runtime:
         kwargs = {k: self.execute_expression(v) for k, v in call.kwargs.items()}
 
         # Handle method calls (e.g., field.alloc(...))
-        if isinstance(call.func, FieldAccess):
-            obj = self.execute_expression(call.func.object)
-            method_name = call.func.field
+        if isinstance(call.callee, FieldAccess):
+            obj = self.execute_expression(call.callee.object)
+            method_name = call.callee.field
 
             if hasattr(obj, method_name):
                 method = getattr(obj, method_name)
@@ -370,7 +376,7 @@ class Runtime:
                 raise AttributeError(f"Object has no method '{method_name}'")
 
         # Handle regular function calls
-        func = self.execute_expression(call.func)
+        func = self.execute_expression(call.callee)
 
         if callable(func):
             return func(*args, **kwargs)
