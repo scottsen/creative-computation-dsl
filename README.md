@@ -10,6 +10,7 @@ Creative Computation DSL is a unified language where simulations, agents, signal
 
 - **Pure per-step graphs, explicit cross-step state** — Clear separation of computation within a timestep and state that persists across timesteps
 - **Deterministic semantics** — Reproducible RNG (Philox 4×32-10) and stable ordering guarantees
+- **Interactive visualization** — Real-time display with pause, step, and speed controls for immediate feedback
 - **Composability + clarity** — Tiny vocabulary with maximal reuse across domains
 - **MLIR-oriented lowering** — Every operation maps cleanly to MLIR dialects for efficient compilation
 - **Live creativity** — Tunable solver profiles and hot-reload runtime for interactive development
@@ -81,6 +82,50 @@ visual.output( visual.layer([
   visual.points(agents, color="white")
 ]) )
 ```
+
+## Interactive Visualization (NEW! ✨)
+
+CCDSL now features real-time interactive visualization! Watch your simulations come alive with smooth playback and full control.
+
+### Quick Example
+
+```python
+from creative_computation.stdlib.field import field
+from creative_computation.stdlib.visual import visual
+
+def heat_diffusion():
+    """Generate frames showing heat spreading."""
+    temp = field.random((128, 128), seed=42, low=0.0, high=1.0)
+
+    while True:
+        temp = field.diffuse(temp, rate=0.2, dt=0.1, iterations=20)
+        yield visual.colorize(temp, palette="fire")
+
+# Display interactively
+gen = heat_diffusion()
+visual.display(lambda: next(gen), title="Heat Diffusion", target_fps=30, scale=4)
+```
+
+### Controls
+- **SPACE**: Pause/Resume
+- **→**: Step forward one frame (when paused)
+- **↑↓**: Adjust speed
+- **Q/ESC**: Quit
+
+### Try the Examples
+
+```bash
+# Interactive heat diffusion
+python examples/interactive_diffusion.py
+
+# Stunning smoke simulation (Navier-Stokes)
+python examples/smoke_simulation.py
+
+# Mesmerizing reaction-diffusion patterns (Gray-Scott)
+python examples/reaction_diffusion.py
+```
+
+See [Interactive Visualization Guide](docs/INTERACTIVE_VISUALIZATION.md) for full details.
 
 ## Documentation
 

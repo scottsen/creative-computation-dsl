@@ -31,6 +31,7 @@ setup(
         "numpy>=1.20.0",
         "scipy>=1.7.0",    # For ndimage operations
         "pillow>=9.0.0",   # For visual output (MVP requirement)
+        "pygame>=2.0.0",   # For interactive visualization
     ],
     extras_require={
         "dev": [

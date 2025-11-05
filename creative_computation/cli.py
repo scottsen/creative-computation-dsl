@@ -101,6 +101,7 @@ def cmd_run(args):
         from creative_computation.parser.parser import parse
         from creative_computation.ast.visitors import TypeChecker
         from creative_computation.runtime.runtime import Runtime, ExecutionContext
+        from creative_computation.ast.nodes import Step
 
         # 1. Parse source file
         source = args.file.read_text()
@@ -135,13 +136,64 @@ def cmd_run(args):
 
         runtime = Runtime(context)
 
-        # Execute program
-        max_steps = args.steps if args.steps else 1
-        for step in range(max_steps):
-            print(f"Step {step + 1}/{max_steps}")
-            runtime.execute_program(program)
+        # Separate initialization and step blocks
+        init_statements = []
+        step_blocks = []
+        for stmt in program.statements:
+            if isinstance(stmt, Step):
+                step_blocks.append(stmt)
+            else:
+                init_statements.append(stmt)
 
-        print("\nExecution completed successfully")
+        # Execute initialization statements once
+        print("Initializing...")
+        for stmt in init_statements:
+            runtime.execute_statement(stmt)
+
+        # If there are step blocks, run them repeatedly
+        if step_blocks:
+            if len(step_blocks) > 1:
+                print("Warning: Multiple step blocks found, executing all sequentially")
+
+            # Determine execution mode
+            max_steps = args.steps if args.steps else float('inf')
+
+            # Check if program uses visual.output for static output
+            # or should use interactive display
+            has_visual_output = False
+            for step_block in step_blocks:
+                # Simple check for visual.output calls (not perfect but works for MVP)
+                step_str = str(step_block)
+                if 'visual.output' in step_str or 'visual.display' in step_str:
+                    has_visual_output = True
+                    break
+
+            if max_steps == float('inf') and not has_visual_output:
+                print("Error: Infinite loop without visual output. Use --steps or add visual.output()")
+                sys.exit(1)
+
+            # Execute step blocks
+            step_count = 0
+            try:
+                while step_count < max_steps:
+                    if step_count % 10 == 0:  # Print progress every 10 steps
+                        print(f"Step {step_count + 1}...")
+
+                    for step_block in step_blocks:
+                        runtime.execute_step(step_block)
+
+                    step_count += 1
+
+            except KeyboardInterrupt:
+                print(f"\nInterrupted after {step_count} steps")
+
+            print(f"\nExecution completed ({step_count} steps)")
+
+        else:
+            # No step blocks, just run once
+            print("No step blocks found, executing program once")
+
+        print("Done!")
 
     except Exception as e:
         print(f"Runtime error: {e}", file=sys.stderr)

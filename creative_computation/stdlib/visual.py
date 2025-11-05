@@ -1,11 +1,12 @@
 """Visual operations implementation.
 
-This module provides visualization capabilities including field colorization
-and PNG output for the MVP.
+This module provides visualization capabilities including field colorization,
+PNG output, and interactive real-time display for the MVP.
 """
 
-from typing import Optional, Union
+from typing import Optional, Union, Callable
 import numpy as np
+import time
 
 
 class Visual:
@@ -217,6 +218,151 @@ class VisualOperations:
             1.055 * np.power(linear, 1.0 / 2.4) - 0.055
         )
         return np.clip(srgb, 0.0, 1.0)
+
+    @staticmethod
+    def display(frame_generator: Callable[[], Optional[Visual]],
+                title: str = "Creative Computation DSL",
+                target_fps: int = 30,
+                scale: int = 2) -> None:
+        """Display simulation in real-time interactive window.
+
+        Args:
+            frame_generator: Callable that generates frames. Should return Visual or None to quit.
+            title: Window title
+            target_fps: Target frames per second
+            scale: Scale factor for display (1 = native resolution)
+
+        Controls:
+            SPACE: Pause/Resume
+            RIGHT: Step forward (when paused)
+            UP/DOWN: Increase/decrease speed
+            Q/ESC: Quit
+
+        Example:
+            >>> def generate_frames():
+            ...     temp = field.random((128, 128), seed=42)
+            ...     while True:
+            ...         temp = field.diffuse(temp, rate=0.1, dt=0.1)
+            ...         yield visual.colorize(temp, palette="fire")
+            >>>
+            >>> gen = generate_frames()
+            >>> visual.display(lambda: next(gen))
+        """
+        try:
+            import pygame
+        except ImportError:
+            raise ImportError(
+                "pygame is required for interactive display. "
+                "Install with: pip install pygame"
+            )
+
+        # Initialize pygame
+        pygame.init()
+
+        # Get first frame to determine size
+        first_frame = frame_generator()
+        if first_frame is None:
+            return
+
+        if not isinstance(first_frame, Visual):
+            raise TypeError(f"frame_generator must return Visual, got {type(first_frame)}")
+
+        # Create display window
+        width, height = first_frame.width * scale, first_frame.height * scale
+        screen = pygame.display.set_mode((width, height))
+        pygame.display.set_caption(title)
+        clock = pygame.time.Clock()
+
+        # Create font for UI
+        font = pygame.font.Font(None, 24)
+
+        # State
+        paused = False
+        current_fps = target_fps
+        frame_count = 0
+        fps_timer = time.time()
+        actual_fps = 0.0
+        current_visual = first_frame
+
+        running = True
+        while running:
+            # Handle events
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    running = False
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        paused = not paused
+                    elif event.key == pygame.K_RIGHT and paused:
+                        # Step forward one frame
+                        new_frame = frame_generator()
+                        if new_frame is not None:
+                            current_visual = new_frame
+                            frame_count += 1
+                    elif event.key == pygame.K_UP:
+                        current_fps = min(current_fps + 5, 120)
+                    elif event.key == pygame.K_DOWN:
+                        current_fps = max(current_fps - 5, 1)
+                    elif event.key in (pygame.K_q, pygame.K_ESCAPE):
+                        running = False
+
+            # Generate next frame (if not paused)
+            if not paused:
+                new_frame = frame_generator()
+                if new_frame is None:
+                    running = False
+                    continue
+                current_visual = new_frame
+                frame_count += 1
+
+            # Convert visual to pygame surface
+            srgb = VisualOperations._linear_to_srgb(current_visual.data)
+            rgb_8bit = (srgb * 255).astype(np.uint8)
+
+            # Create surface and scale
+            surf = pygame.surfarray.make_surface(np.transpose(rgb_8bit, (1, 0, 2)))
+            if scale != 1:
+                surf = pygame.transform.scale(surf, (width, height))
+
+            # Draw to screen
+            screen.blit(surf, (0, 0))
+
+            # Draw UI overlay
+            now = time.time()
+            if now - fps_timer >= 1.0:
+                actual_fps = frame_count / (now - fps_timer)
+                frame_count = 0
+                fps_timer = now
+
+            # Status text
+            status_lines = [
+                f"FPS: {actual_fps:.1f} / {current_fps}",
+                f"Frame: {frame_count}" if paused else "",
+                "PAUSED" if paused else "RUNNING",
+                "",
+                "Controls:",
+                "SPACE: Pause/Resume",
+                "→: Step (paused)",
+                "↑↓: Speed",
+                "Q: Quit"
+            ]
+
+            y_offset = 10
+            for line in status_lines:
+                if line:
+                    # Draw with black background for readability
+                    text = font.render(line, True, (255, 255, 255))
+                    text_bg = pygame.Surface((text.get_width() + 10, text.get_height() + 4))
+                    text_bg.set_alpha(180)
+                    text_bg.fill((0, 0, 0))
+                    screen.blit(text_bg, (5, y_offset))
+                    screen.blit(text, (10, y_offset + 2))
+                y_offset += 22
+
+            pygame.display.flip()
+            clock.tick(current_fps)
+
+        pygame.quit()
 
 
 # Create singleton instance for use as 'visual' namespace

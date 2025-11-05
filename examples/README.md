@@ -2,12 +2,44 @@
 
 This directory contains example programs demonstrating various features of the Creative Computation DSL v0.2.2.
 
+## 🎬 Interactive Python Examples (NEW!)
+
+These examples showcase the new real-time interactive visualization:
+
+### `interactive_diffusion.py`
+Simple heat diffusion with live display. Perfect for getting started!
+```bash
+python examples/interactive_diffusion.py
+```
+**Features:** Real-time heat spreading, interactive controls, fire color palette
+
+### `smoke_simulation.py`
+Full Navier-Stokes fluid simulation with velocity and density fields.
+```bash
+python examples/smoke_simulation.py
+```
+**Features:** Incompressible flow, advection-diffusion-projection, swirling smoke patterns
+
+### `reaction_diffusion.py`
+Gray-Scott reaction-diffusion creating mesmerizing organic patterns.
+```bash
+python examples/reaction_diffusion.py
+```
+**Features:** Coral/maze patterns, self-organizing structures, stunning visuals
+
+**Interactive Controls:**
+- `SPACE` — Pause/Resume
+- `→` — Step forward (when paused)
+- `↑↓` — Adjust speed
+- `Q/ESC` — Quit
+
 ## Directory Structure
 
-- **fluids/** — Fluid dynamics and PDE-based simulations
-- **agents/** — Agent-based and particle simulations
-- **audio/** — Signal processing and audio synthesis
-- **hybrid/** — Combined systems using multiple domains
+- **fluids/** — Fluid dynamics and PDE-based simulations (DSL files)
+- **agents/** — Agent-based and particle simulations (DSL files)
+- **audio/** — Signal processing and audio synthesis (DSL files)
+- **hybrid/** — Combined systems using multiple domains (DSL files)
+- **Root directory** — Interactive Python examples (MVP-ready)
 
 ## Examples
 
