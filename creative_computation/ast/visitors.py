@@ -49,10 +49,19 @@ class ASTVisitor:
         obj = self.visit(node.object)
         return (obj, node.field)
 
+    def visit_tuple(self, node: Tuple) -> Any:
+        """Visit a tuple expression."""
+        elements = [self.visit(elem) for elem in node.elements]
+        return tuple(elements)
+
     def visit_assignment(self, node: Assignment) -> Any:
         """Visit an assignment."""
         value = self.visit(node.value)
         return (node.target, value)
+
+    def visit_expression_statement(self, node: ExpressionStatement) -> Any:
+        """Visit an expression statement."""
+        return self.visit(node.expression)
 
     def visit_step(self, node: Step) -> Any:
         """Visit a step block."""
@@ -187,6 +196,16 @@ class ASTPrinter(ASTVisitor):
     def _indent(self) -> str:
         return "  " * self.indent_level
 
+    def visit_literal(self, node: Literal) -> str:
+        """Format a literal value as a string."""
+        if isinstance(node.value, str):
+            return f'"{node.value}"'
+        return str(node.value)
+
+    def visit_identifier(self, node: Identifier) -> str:
+        """Format an identifier as a string."""
+        return node.name
+
     def visit_program(self, node: Program) -> str:
         lines = ["Program:"]
         self.indent_level += 1
@@ -207,6 +226,9 @@ class ASTPrinter(ASTVisitor):
         value = self.visit(node.value)
         return f"{decorators}{node.target}{type_ann} = {value}"
 
+    def visit_expression_statement(self, node: ExpressionStatement) -> str:
+        return self.visit(node.expression)
+
     def visit_call(self, node: Call) -> str:
         callee = self.visit(node.callee)
         args = ", ".join(self.visit(arg) for arg in node.args)
@@ -217,3 +239,7 @@ class ASTPrinter(ASTVisitor):
     def visit_field_access(self, node: FieldAccess) -> str:
         obj = self.visit(node.object)
         return f"{obj}.{node.field}"
+
+    def visit_tuple(self, node: Tuple) -> str:
+        elements = ", ".join(self.visit(elem) for elem in node.elements)
+        return f"({elements})"
