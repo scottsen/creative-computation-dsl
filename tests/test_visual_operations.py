@@ -123,6 +123,7 @@ class TestVisualOutput:
             from PIL import Image
             img = Image.open(tmp_path)
             assert img.size == (64, 128)  # PIL uses (width, height)
+            img.close()  # Close file handle before deletion (Windows compatibility)
         finally:
             if os.path.exists(tmp_path):
                 os.unlink(tmp_path)

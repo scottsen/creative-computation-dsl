@@ -195,8 +195,8 @@ class VisualOperations:
         # Convert to 8-bit
         rgb_8bit = (srgb * 255).astype(np.uint8)
 
-        # Save image
-        img = Image.fromarray(rgb_8bit, mode="RGB")
+        # Save image (Pillow auto-detects RGB from uint8 array shape)
+        img = Image.fromarray(rgb_8bit)
         img.save(path, pil_format)
 
         print(f"Saved visual to: {path}")
