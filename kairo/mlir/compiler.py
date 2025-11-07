@@ -68,17 +68,24 @@ class MLIRCompiler:
             Top-level code (assignments, expressions) is wrapped in a main() function.
             Function definitions are compiled as separate functions.
         """
-        # Separate function definitions from other statements
+        # Separate function/struct definitions from other statements
         function_defs = []
+        struct_defs = []
         top_level_stmts = []
 
         for stmt in program.statements:
             if isinstance(stmt, Function):
                 function_defs.append(stmt)
+            elif isinstance(stmt, Struct):
+                struct_defs.append(stmt)
             else:
                 top_level_stmts.append(stmt)
 
-        # Compile function definitions first
+        # Compile struct definitions first (needed for type system)
+        for struct_def in struct_defs:
+            self.compile_struct_def(struct_def)
+
+        # Compile function definitions
         for func_def in function_defs:
             self.compile_function_def(func_def)
 
@@ -589,13 +596,25 @@ class MLIRCompiler:
         for i, (param_name, param_type) in enumerate(func_node.params):
             ir_type = self.lower_type(param_type)
             arg_types.append(ir_type)
-            arg_value = IRValue(name=f"%arg{i}", type=ir_type)
+
+            # Handle struct types - use string representation
+            if param_type and param_type.base_type in self.struct_types:
+                # For struct parameters, use the struct type string
+                type_repr = self.struct_types[param_type.base_type]['mlir_type']
+                arg_value = IRValue(name=f"%arg{i}", type=type_repr)
+            else:
+                arg_value = IRValue(name=f"%arg{i}", type=ir_type)
             arg_values.append(arg_value)
 
         # Return types
         return_types = []
         if func_node.return_type:
-            return_types.append(self.lower_type(func_node.return_type))
+            ret_type = self.lower_type(func_node.return_type)
+            # Handle struct return types
+            if func_node.return_type.base_type in self.struct_types:
+                return_types.append(self.struct_types[func_node.return_type.base_type]['mlir_type'])
+            else:
+                return_types.append(ret_type)
 
         # Create function
         ir_func = self.builder.create_function(
@@ -722,25 +741,232 @@ class MLIRCompiler:
             # Return a dummy value (void functions don't have results)
             return None
 
-    def compile_field_access(self, field_access: FieldAccess) -> IRValue:
-        """Compile field access (Phase 2.4)."""
-        raise NotImplementedError("Field access - Phase 2.4")
+    # =========================================================================
+    # Phase 2.1: If/Else Expressions
+    # =========================================================================
 
     def compile_if_else(self, if_else: IfElse) -> IRValue:
-        """Compile if/else expression (Phase 2.1)."""
-        raise NotImplementedError("If/else expressions - Phase 2.1")
+        """Compile if/else expression using scf.if.
+
+        Args:
+            if_else: IfElse AST node
+
+        Returns:
+            Result value from then or else branch
+
+        Example:
+            result = if x > 0.0 then x * 2.0 else x / 2.0
+
+            Becomes:
+            %cond = arith.cmpf ogt, %x, %c0 : f32
+            %result = scf.if %cond -> (f32) {
+              %then_val = arith.mulf %x, %c2 : f32
+              scf.yield %then_val : f32
+            } else {
+              %else_val = arith.divf %x, %c2 : f32
+              scf.yield %else_val : f32
+            }
+        """
+        # Compile condition
+        condition = self.compile_expression(if_else.condition)
+
+        # Infer result type from then branch
+        result_type = self.infer_type(if_else.then_expr)
+
+        # Create scf.if operation
+        # Since we don't have real MLIR SCF, simulate it with a pseudo-operation
+        # In real MLIR, this would be: scf.if %cond -> (result_type) { ... } else { ... }
+
+        # Compile both branches
+        # Save current builder state
+        saved_current_block = self.builder.current_block
+
+        # Create then block (simulate)
+        then_block = IRBlock(label="then")
+        self.builder.current_block = then_block
+        then_value = self.compile_expression(if_else.then_expr)
+
+        # Create else block (simulate)
+        else_block = IRBlock(label="else")
+        self.builder.current_block = else_block
+        else_value = self.compile_expression(if_else.else_expr)
+
+        # Restore builder state
+        self.builder.current_block = saved_current_block
+
+        # Create scf.if operation with both branches
+        # This is a simplified representation
+        results = self.builder.add_operation(
+            "scf.if",
+            operands=[condition],
+            result_types=[result_type],
+            attributes={
+                "then_value": then_value.name,
+                "else_value": else_value.name
+            }
+        )
+
+        return results[0]
+
+    # =========================================================================
+    # Phase 2.2: Struct Type Definitions
+    # =========================================================================
+
+    def compile_struct_def(self, struct: Struct) -> None:
+        """Compile struct definition.
+
+        Args:
+            struct: Struct AST node
+
+        Note:
+            Structs are represented as LLVM struct types with metadata
+            tracking field names and types.
+
+        Example:
+            struct Point {
+                x: f32
+                y: f32
+            }
+
+            Creates metadata:
+            {
+                'mlir_type': 'struct<f32, f32>',
+                'fields': {'x': 0, 'y': 1},
+                'field_types': [f32, f32]
+            }
+        """
+        # Get field types
+        field_types = []
+        field_names = {}
+
+        for i, (field_name, field_type) in enumerate(struct.fields):
+            ir_type = self.lower_type(field_type)
+            field_types.append(ir_type)
+            field_names[field_name] = i
+
+        # Create struct type representation
+        # In simplified IR, represent as tuple type
+        type_repr = f"struct<{', '.join(str(t.value) for t in field_types)}>"
+
+        # Store struct metadata
+        self.struct_types[struct.name] = {
+            'mlir_type': type_repr,
+            'fields': field_names,
+            'field_types': field_types
+        }
+
+        # Add struct definition to module (for documentation)
+        struct_def = f"// struct {struct.name} = {type_repr}"
+        self.builder.module.structs.append(struct_def)
+
+    # =========================================================================
+    # Phase 2.3: Struct Literals
+    # =========================================================================
+
+    def compile_struct_literal(self, struct_lit: StructLiteral) -> IRValue:
+        """Compile struct literal instantiation.
+
+        Args:
+            struct_lit: StructLiteral AST node
+
+        Returns:
+            Struct value (aggregate)
+
+        Example:
+            p = Point { x: 3.0, y: 4.0 }
+
+            Becomes:
+            %x_val = arith.constant 3.0 : f32
+            %y_val = arith.constant 4.0 : f32
+            %p = struct.construct { fields: [%x_val, %y_val] } : struct<f32, f32>
+        """
+        # Look up struct metadata
+        if struct_lit.struct_name not in self.struct_types:
+            raise KeyError(f"Undefined struct type: {struct_lit.struct_name}")
+
+        struct_meta = self.struct_types[struct_lit.struct_name]
+
+        # Compile field values in order
+        field_values = []
+        for field_name, field_index in sorted(struct_meta['fields'].items(),
+                                              key=lambda x: x[1]):
+            if field_name not in struct_lit.field_values:
+                raise ValueError(f"Missing field '{field_name}' in struct literal")
+
+            field_expr = struct_lit.field_values[field_name]
+            field_value = self.compile_expression(field_expr)
+            field_values.append(field_value)
+
+        # Create struct construction operation
+        results = self.builder.add_operation(
+            "struct.construct",
+            operands=field_values,
+            result_types=[struct_meta['mlir_type']],
+            attributes={"struct_name": struct_lit.struct_name}
+        )
+
+        return results[0]
+
+    # =========================================================================
+    # Phase 2.4: Field Access
+    # =========================================================================
+
+    def compile_field_access(self, field_access: FieldAccess) -> IRValue:
+        """Compile struct field access.
+
+        Args:
+            field_access: FieldAccess AST node
+
+        Returns:
+            Field value
+
+        Example:
+            x_val = p.x
+
+            Becomes:
+            %x_val = struct.extract %p[0] : struct<f32, f32> -> f32
+        """
+        # Compile struct expression
+        struct_value = self.compile_expression(field_access.object)
+
+        # Determine struct type from value
+        # In simplified IR, we need to track this via type annotations
+        # For now, extract from the type representation
+        if not isinstance(struct_value.type, str) or not struct_value.type.startswith('struct<'):
+            raise TypeError(f"Cannot access field on non-struct type: {struct_value.type}")
+
+        # Find the struct definition that matches this type
+        struct_name = None
+        field_index = None
+        field_type = None
+
+        for name, meta in self.struct_types.items():
+            if meta['mlir_type'] == struct_value.type:
+                struct_name = name
+                if field_access.field in meta['fields']:
+                    field_index = meta['fields'][field_access.field]
+                    field_type = meta['field_types'][field_index]
+                break
+
+        if field_index is None:
+            raise ValueError(f"Unknown field: {field_access.field}")
+
+        # Extract field value
+        results = self.builder.add_operation(
+            "struct.extract",
+            operands=[struct_value],
+            result_types=[field_type],
+            attributes={
+                "field_index": field_index,
+                "field_name": field_access.field
+            }
+        )
+
+        return results[0]
 
     def compile_lambda(self, lambda_expr: Lambda) -> IRValue:
         """Compile lambda expression (Phase 4.1)."""
         raise NotImplementedError("Lambda expressions - Phase 4.1")
-
-    def compile_struct_def(self, struct: Struct) -> None:
-        """Compile struct definition (Phase 2.2)."""
-        raise NotImplementedError("Struct definitions - Phase 2.2")
-
-    def compile_struct_literal(self, struct_lit: StructLiteral) -> IRValue:
-        """Compile struct literal (Phase 2.3)."""
-        raise NotImplementedError("Struct literals - Phase 2.3")
 
     def compile_tuple(self, tuple_expr: Tuple) -> IRValue:
         """Compile tuple expression."""

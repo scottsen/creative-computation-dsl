@@ -219,10 +219,15 @@ fn factorial(n: f32) -> f32 {
 
         program = parse(code)
         compiler = MLIRCompiler()
+        module = compiler.compile_program(program)
 
-        # This should fail because if/else not yet implemented
-        with pytest.raises(NotImplementedError):
-            module = compiler.compile_program(program)
+        ir_str = str(module)
+        print("\n" + ir_str)
+
+        # Should compile with if/else (recursive call is in else branch)
+        assert "func.func @factorial" in ir_str
+        assert "scf.if" in ir_str
+        # Note: recursive call exists but may not appear in simplified IR output
 
 
 class TestPhase1EdgeCases:

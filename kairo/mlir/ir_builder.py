@@ -199,8 +199,9 @@ class IRModule:
             ValueError: If module has errors
         """
         # Basic verification (can be extended)
-        if not self.functions:
-            raise ValueError("Module has no functions")
+        # Allow modules with only struct definitions (no functions required)
+        if not self.functions and not self.structs:
+            raise ValueError("Module is empty (no functions or structs)")
 
         # Check each function has at least one block
         for func in self.functions:
