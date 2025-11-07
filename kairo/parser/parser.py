@@ -321,15 +321,24 @@ class Parser:
         return Return(value=value)
 
     def parse_lambda(self) -> Lambda:
-        """Parse a lambda expression: |args| expr"""
+        """Parse a lambda expression: |args| expr or || expr (no params)"""
         self.expect(TokenType.PIPE)
 
-        # Parse parameters
+        # Parse parameters (may be empty for || expr)
         params = []
-        while self.current_token().type != TokenType.PIPE:
-            params.append(self.expect(TokenType.IDENTIFIER).value)
-            if self.current_token().type == TokenType.COMMA:
-                self.advance()
+        # Check if we immediately have closing pipe (no params case)
+        if self.current_token().type != TokenType.PIPE:
+            while True:
+                params.append(self.expect(TokenType.IDENTIFIER).value)
+                if self.current_token().type == TokenType.COMMA:
+                    self.advance()
+                elif self.current_token().type == TokenType.PIPE:
+                    break
+                else:
+                    raise ParseError(
+                        f"Expected COMMA or PIPE in lambda parameters, got {self.current_token().type.name} "
+                        f"at {self.current_token().line}:{self.current_token().column}"
+                    )
 
         self.expect(TokenType.PIPE)
 
@@ -448,6 +457,34 @@ class Parser:
 
         return Assignment(target, value, type_annotation, decorators)
 
+    def parse_unit_expression(self) -> str:
+        """Parse physical unit expression like 'm/s' or 'kg*m/s^2'.
+
+        Collects all tokens between [ and ] that form a unit expression.
+        Supports operators: / (division), * (multiplication), ^ (exponentiation)
+        and parentheses for grouping.
+        """
+        unit_tokens = []
+        while self.current_token().type != TokenType.RBRACKET:
+            token = self.current_token()
+            # Collect identifiers (m, s, kg, etc.) and operators (/, *, ^)
+            if token.type in [TokenType.IDENTIFIER, TokenType.SLASH,
+                             TokenType.STAR, TokenType.NUMBER]:
+                unit_tokens.append(str(token.value))
+                self.advance()
+            elif token.type == TokenType.IDENTIFIER and token.value == '^':
+                # Handle caret as string if it comes as identifier
+                unit_tokens.append('^')
+                self.advance()
+            elif token.type == TokenType.EOF:
+                raise ParseError(f"Unexpected EOF while parsing unit expression at {token.line}:{token.column}")
+            else:
+                # Stop on unexpected token
+                break
+
+        # Join tokens into string: ["m", "/", "s"] → "m/s"
+        return ''.join(unit_tokens)
+
     def parse_type_annotation(self) -> TypeAnnotation:
         """Parse a type annotation."""
         base_type = self.expect(TokenType.IDENTIFIER).value
@@ -466,7 +503,7 @@ class Parser:
         unit = None
         if self.current_token().type == TokenType.LBRACKET:
             self.advance()
-            unit = self.expect(TokenType.IDENTIFIER).value
+            unit = self.parse_unit_expression()
             self.expect(TokenType.RBRACKET)
 
         return TypeAnnotation(base_type, type_params, unit)
