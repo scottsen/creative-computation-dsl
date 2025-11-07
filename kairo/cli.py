@@ -265,10 +265,46 @@ def cmd_mlir(args):
         print(f"Error: File not found: {args.file}", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Lowering {args.file} to MLIR...")
-    print("Note: MLIR lowering not yet implemented")
+    print(f"Lowering {args.file} to MLIR...\n")
 
-    # TODO: Implement MLIR lowering
+    try:
+        from kairo.parser.parser import parse
+        from kairo.mlir.compiler import MLIRCompiler
+        from kairo.mlir.optimizer import optimize_module, create_default_pipeline
+
+        # Parse source file
+        source = args.file.read_text()
+        program = parse(source)
+
+        # Compile to MLIR
+        compiler = MLIRCompiler()
+        ir_module = compiler.compile_program(program)
+
+        # Verify module
+        try:
+            ir_module.verify()
+        except ValueError as e:
+            print(f"Warning: IR verification failed: {e}")
+
+        # Optimize (Phase 5)
+        print("Applying optimizations...")
+        pipeline = create_default_pipeline()
+        optimized_module = pipeline.optimize(ir_module)
+
+        # Display MLIR
+        print("\n" + "=" * 60)
+        print("MLIR IR (optimized)")
+        print("=" * 60)
+        print(str(optimized_module))
+        print("=" * 60)
+
+        print("\n✓ MLIR compilation successful")
+
+    except Exception as e:
+        print(f"MLIR compilation error: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
 
 
 def cmd_version(args):
