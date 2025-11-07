@@ -1,5 +1,5 @@
 """MLIR lowering for Creative Computation DSL."""
 
-from .lowering import MLIRLowering
+from .compiler import MLIRCompiler
 
-__all__ = ["MLIRLowering"]
+__all__ = ["MLIRCompiler"]
