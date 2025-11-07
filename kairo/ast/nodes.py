@@ -165,6 +165,17 @@ class IfElse(Expression):
         return visitor.visit_if_else(self)
 
 
+@dataclass
+class StructLiteral(Expression):
+    """Struct literal instantiation (Point { x: 3.0, y: 4.0 })."""
+    struct_name: str  # Name of the struct type
+    field_values: dict[str, Expression]  # Field name -> expression mapping
+    node_type: NodeType = field(default=NodeType.LITERAL)
+
+    def accept(self, visitor: 'ASTVisitor') -> Any:
+        return visitor.visit_struct_literal(self)
+
+
 # ============================================================================
 # Statements
 # ============================================================================

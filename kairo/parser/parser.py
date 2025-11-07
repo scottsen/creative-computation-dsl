@@ -582,14 +582,75 @@ class Parser:
         return self.parse_postfix()
 
     def parse_postfix(self) -> Expression:
-        """Parse postfix expression (function calls, field access)."""
+        """Parse postfix expression (function calls, field access, struct literals)."""
         expr = self.parse_primary()
 
         while True:
             token = self.current_token()
 
+            # Struct literal: Identifier { field: value, ... }
+            # Only parse as struct literal if expr is an Identifier
+            # AND after { (possibly with newlines), we see field: pattern or }
+            # This disambiguates from if/else block syntax: if cond { expr }
+            if isinstance(expr, Identifier) and token.type == TokenType.LBRACE:
+                # Look ahead past the { and any newlines to check the pattern
+                # without modifying parser state
+                lookahead_pos = self.pos + 1  # Position after '{'
+
+                # Skip newlines in lookahead
+                while lookahead_pos < len(self.tokens) and self.tokens[lookahead_pos].type == TokenType.NEWLINE:
+                    lookahead_pos += 1
+
+                # Check if it matches struct literal pattern
+                if lookahead_pos < len(self.tokens):
+                    next_token = self.tokens[lookahead_pos]
+                    next_next_token = self.tokens[lookahead_pos + 1] if lookahead_pos + 1 < len(self.tokens) else self.tokens[-1]
+
+                    is_struct_literal = (
+                        next_token.type == TokenType.RBRACE or  # Empty struct
+                        (next_token.type == TokenType.IDENTIFIER and
+                         next_next_token.type == TokenType.COLON)
+                    )
+                else:
+                    is_struct_literal = False
+
+                if is_struct_literal:
+                    struct_name = expr.name
+                    self.advance()  # Skip '{'
+                    self.skip_newlines()
+
+                    field_values = {}
+                    while self.current_token().type != TokenType.RBRACE:
+                        # Parse field name
+                        field_name = self.expect(TokenType.IDENTIFIER).value
+                        self.expect(TokenType.COLON)
+
+                        # Parse field value expression
+                        field_value = self.parse_expression()
+                        field_values[field_name] = field_value
+
+                        # Handle comma or end of fields
+                        if self.current_token().type == TokenType.COMMA:
+                            self.advance()
+                            self.skip_newlines()
+                        elif self.current_token().type == TokenType.RBRACE:
+                            break
+                        else:
+                            self.skip_newlines()
+                            if self.current_token().type != TokenType.RBRACE:
+                                raise ParseError(
+                                    f"Expected COMMA or RBRACE in struct literal, got {self.current_token().type.name} "
+                                    f"at {self.current_token().line}:{self.current_token().column}"
+                                )
+
+                    self.expect(TokenType.RBRACE)
+                    expr = StructLiteral(struct_name=struct_name, field_values=field_values)
+                else:
+                    # Not a struct literal, { is not a valid postfix operator
+                    break
+
             # Function call
-            if token.type == TokenType.LPAREN:
+            elif token.type == TokenType.LPAREN:
                 self.advance()
                 args = []
                 kwargs = {}

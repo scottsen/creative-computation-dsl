@@ -189,6 +189,30 @@ class StructInstance:
             return self.fields[name]
         raise AttributeError(f"Struct {self.struct_type.name} has no field '{name}'")
 
+    def __repr__(self) -> str:
+        """Return string representation of struct instance.
+
+        Returns:
+            String like "Point { x: 3.0, y: 4.0 }"
+        """
+        field_strs = [f"{k}: {v}" for k, v in self.fields.items()]
+        return f"{self.struct_type.name} {{ {', '.join(field_strs)} }}"
+
+    def __eq__(self, other) -> bool:
+        """Check equality with another struct instance.
+
+        Args:
+            other: Another object to compare with
+
+        Returns:
+            True if both are instances of the same struct type with equal field values
+        """
+        if not isinstance(other, StructInstance):
+            return False
+        if self.struct_type.name != other.struct_type.name:
+            return False
+        return self.fields == other.fields
+
 
 class ExecutionContext:
     """Manages execution state across timesteps.
@@ -464,7 +488,7 @@ class Runtime:
         """
         from ..ast.nodes import (
             Literal, Identifier, BinaryOp, UnaryOp, Call, FieldAccess, Tuple,
-            Lambda, IfElse
+            Lambda, IfElse, StructLiteral
         )
 
         if isinstance(expr, Literal):
@@ -494,6 +518,9 @@ class Runtime:
 
         elif isinstance(expr, IfElse):
             return self.execute_if_else(expr)
+
+        elif isinstance(expr, StructLiteral):
+            return self.execute_struct_literal(expr)
 
         else:
             raise TypeError(f"Unknown expression type: {type(expr)}")
@@ -695,6 +722,56 @@ class Runtime:
             fields=struct_node.fields
         )
         self.context.set_variable(struct_node.name, struct_type)
+
+    def execute_struct_literal(self, struct_literal) -> StructInstance:
+        """Execute a struct literal instantiation.
+
+        Args:
+            struct_literal: StructLiteral AST node
+
+        Returns:
+            StructInstance with initialized fields
+
+        Raises:
+            RuntimeError: If struct type is undefined or fields are invalid
+
+        Example:
+            Point { x: 3.0, y: 4.0 } creates a Point instance
+        """
+        # Look up struct type
+        struct_name = struct_literal.struct_name
+        if not self.context.has_variable(struct_name):
+            raise RuntimeError(f"Undefined struct type: '{struct_name}'")
+
+        struct_type = self.context.get_variable(struct_name)
+
+        if not isinstance(struct_type, StructType):
+            raise RuntimeError(f"'{struct_name}' is not a struct type")
+
+        # Evaluate field values
+        field_values = {}
+        for field_name, field_expr in struct_literal.field_values.items():
+            # Validate field exists in struct definition
+            if field_name not in struct_type.field_names:
+                raise RuntimeError(
+                    f"Struct '{struct_name}' has no field '{field_name}'. "
+                    f"Available fields: {', '.join(struct_type.field_names)}"
+                )
+
+            # Evaluate field expression
+            field_values[field_name] = self.execute_expression(field_expr)
+
+        # Validate all required fields provided
+        missing_fields = set(struct_type.field_names) - set(field_values.keys())
+        if missing_fields:
+            raise RuntimeError(
+                f"Missing required fields in '{struct_name}' literal: {{{', '.join(sorted(missing_fields))}}}. "
+                f"Provided: {{{', '.join(sorted(field_values.keys()))}}}. "
+                f"Required: {{{', '.join(struct_type.field_names)}}}"
+            )
+
+        # Create struct instance
+        return StructInstance(struct_type, field_values)
 
     def execute_flow(self, flow_node) -> None:
         """Execute a flow block with temporal semantics.
