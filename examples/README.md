@@ -1,6 +1,68 @@
-# Creative Computation DSL Examples
+# Kairo Examples
 
-This directory contains example programs demonstrating various features of the Creative Computation DSL v0.2.2.
+This directory contains example programs demonstrating Kairo's features across multiple versions and complexity levels.
+
+## 🎯 Kairo v0.3.1 Portfolio Examples (NEW!)
+
+These examples showcase the latest Kairo v0.3.1 syntax with `flow()` blocks, `@state` declarations, and field operations.
+
+### Tier 1: Beginner Examples
+Perfect for getting started - simple, clear, and immediately rewarding!
+
+#### `01_hello_heat.kairo` ⭐ **START HERE**
+Your first Kairo program! Watch heat diffuse from a hot center.
+```bash
+kairo run examples/01_hello_heat.kairo
+```
+**Demonstrates:** Field initialization, diffusion operation, visual output
+**Visual:** Colorful heat spreading from center (fire palette)
+**Lines:** ~60
+
+#### `02_pulsing_circle.kairo`
+Hypnotic animation of a circle that smoothly grows and shrinks.
+```bash
+kairo run examples/02_pulsing_circle.kairo
+```
+**Demonstrates:** Lambda expressions, coordinate math, time-based animation
+**Visual:** Pulsing circular region
+**Lines:** ~55
+
+#### `03_wave_ripples.kairo`
+Drop a stone in water - watch realistic wave ripples spread outward.
+```bash
+kairo run examples/03_wave_ripples.kairo
+```
+**Demonstrates:** Wave equation (2 fields), Laplacian operator, physics simulation
+**Visual:** Concentric circular waves with interference patterns
+**Lines:** ~65
+
+### Tier 2: Intermediate Examples
+Real simulations demonstrating multiple Kairo features working together.
+
+#### `10_heat_equation.kairo`
+Complete heat diffusion with hot sources and cold sinks.
+```bash
+kairo run examples/10_heat_equation.kairo
+```
+**Demonstrates:** Boundary conditions, physical units, thermal physics
+**Visual:** Temperature gradient from hot (top) to cold (bottom)
+**Lines:** ~70
+
+#### `11_gray_scott.kairo` ⭐ **MUST SEE**
+Stunning organic patterns from reaction-diffusion chemistry.
+```bash
+kairo run examples/11_gray_scott.kairo
+```
+**Demonstrates:** Coupled PDEs, Laplacian operator, emergent complexity
+**Visual:** Mesmerizing spots, stripes, spirals, or maze patterns
+**Lines:** ~75
+**Tip:** Experiment with F and K parameters for different patterns!
+
+---
+
+## 🎬 Creative Computation DSL v0.2.2 Examples
+
+These examples showcase the previous DSL version with interactive Python implementations.
 
 ## 🎬 Interactive Python Examples (NEW!)
 
