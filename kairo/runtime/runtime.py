@@ -4,8 +4,190 @@ This module provides the core runtime infrastructure for executing
 Creative Computation DSL programs using NumPy as the backend.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List, Callable
 import numpy as np
+
+
+class ReturnValue(Exception):
+    """Exception used to implement early return from functions."""
+
+    def __init__(self, value: Any):
+        """Initialize with return value.
+
+        Args:
+            value: The value being returned
+        """
+        self.value = value
+        super().__init__()
+
+
+class UserDefinedFunction:
+    """Represents a user-defined function."""
+
+    def __init__(self, name: str, params: List[tuple], body: List, runtime: 'Runtime'):
+        """Initialize user-defined function.
+
+        Args:
+            name: Function name
+            params: List of (param_name, type_annotation) tuples
+            body: List of statements in function body
+            runtime: Runtime instance for execution
+        """
+        self.name = name
+        self.params = params
+        self.body = body
+        self.runtime = runtime
+
+    def __call__(self, *args, **kwargs):
+        """Execute the function with given arguments.
+
+        Args:
+            *args: Positional arguments
+            **kwargs: Keyword arguments
+
+        Returns:
+            Function return value (or None)
+        """
+        # Check argument count
+        if len(args) != len(self.params):
+            raise TypeError(
+                f"{self.name}() takes {len(self.params)} positional arguments "
+                f"but {len(args)} were given"
+            )
+
+        # Save current symbol table state
+        saved_symbols = self.runtime.context.symbols.copy()
+
+        try:
+            # Bind parameters to arguments
+            for (param_name, _), arg_value in zip(self.params, args):
+                self.runtime.context.set_variable(param_name, arg_value)
+
+            # Execute function body
+            result = None
+            try:
+                for stmt in self.body:
+                    self.runtime.execute_statement(stmt)
+            except ReturnValue as ret:
+                result = ret.value
+
+            return result
+
+        finally:
+            # Restore symbol table (except for any state variables modified)
+            # For now, we'll keep it simple and just restore
+            # In a real implementation, we'd preserve state variables
+            self.runtime.context.symbols = saved_symbols
+
+
+class LambdaFunction:
+    """Represents a lambda expression (closure)."""
+
+    def __init__(self, params: List[str], body, runtime: 'Runtime', captured_vars: Dict[str, Any]):
+        """Initialize lambda function.
+
+        Args:
+            params: List of parameter names
+            body: Expression to evaluate
+            runtime: Runtime instance for execution
+            captured_vars: Variables captured from enclosing scope
+        """
+        self.params = params
+        self.body = body
+        self.runtime = runtime
+        self.captured_vars = captured_vars
+
+    def __call__(self, *args, **kwargs):
+        """Execute lambda with given arguments.
+
+        Args:
+            *args: Positional arguments
+            **kwargs: Keyword arguments
+
+        Returns:
+            Result of body expression
+        """
+        # Check argument count
+        if len(args) != len(self.params):
+            raise TypeError(
+                f"Lambda takes {len(self.params)} positional arguments "
+                f"but {len(args)} were given"
+            )
+
+        # Save current symbol table state
+        saved_symbols = self.runtime.context.symbols.copy()
+
+        try:
+            # Restore captured variables
+            for name, value in self.captured_vars.items():
+                self.runtime.context.set_variable(name, value)
+
+            # Bind parameters to arguments
+            for param_name, arg_value in zip(self.params, args):
+                self.runtime.context.set_variable(param_name, arg_value)
+
+            # Evaluate body expression
+            result = self.runtime.execute_expression(self.body)
+            return result
+
+        finally:
+            # Restore symbol table
+            self.runtime.context.symbols = saved_symbols
+
+
+class StructType:
+    """Represents a struct type definition."""
+
+    def __init__(self, name: str, fields: List[tuple]):
+        """Initialize struct type.
+
+        Args:
+            name: Struct name
+            fields: List of (field_name, type_annotation) tuples
+        """
+        self.name = name
+        self.fields = fields
+        self.field_names = [name for name, _ in fields]
+
+    def __call__(self, **field_values):
+        """Create an instance of the struct.
+
+        Args:
+            **field_values: Field values as keyword arguments
+
+        Returns:
+            StructInstance
+        """
+        return StructInstance(self, field_values)
+
+
+class StructInstance:
+    """Represents an instance of a struct."""
+
+    def __init__(self, struct_type: StructType, field_values: Dict[str, Any]):
+        """Initialize struct instance.
+
+        Args:
+            struct_type: The struct type
+            field_values: Dictionary of field values
+        """
+        self.struct_type = struct_type
+        self.fields = field_values
+
+    def __getattr__(self, name: str) -> Any:
+        """Get field value.
+
+        Args:
+            name: Field name
+
+        Returns:
+            Field value
+        """
+        if name in ['struct_type', 'fields']:
+            return object.__getattribute__(self, name)
+        if name in self.fields:
+            return self.fields[name]
+        raise AttributeError(f"Struct {self.struct_type.name} has no field '{name}'")
 
 
 class ExecutionContext:
@@ -153,7 +335,11 @@ class Runtime:
 
         # Execute statements in order
         for stmt in program.statements:
-            self.execute_statement(stmt)
+            try:
+                self.execute_statement(stmt)
+            except ReturnValue:
+                # Return outside function - raise error
+                raise RuntimeError("Return statement outside function")
 
     def execute_statement(self, stmt) -> Any:
         """Execute a single statement.
@@ -166,7 +352,8 @@ class Runtime:
         """
         from ..ast.nodes import (
             Assignment, ExpressionStatement, Step, Substep, Module, Compose,
-            Call, Identifier, Literal, BinaryOp, UnaryOp, FieldAccess
+            Call, Identifier, Literal, BinaryOp, UnaryOp, FieldAccess,
+            Function, Return, Flow, Struct
         )
 
         # Handle different statement types
@@ -174,6 +361,14 @@ class Runtime:
             return self.execute_assignment(stmt)
         elif isinstance(stmt, ExpressionStatement):
             return self.execute_expression(stmt.expression)
+        elif isinstance(stmt, Function):
+            return self.execute_function(stmt)
+        elif isinstance(stmt, Return):
+            return self.execute_return(stmt)
+        elif isinstance(stmt, Flow):
+            return self.execute_flow(stmt)
+        elif isinstance(stmt, Struct):
+            return self.execute_struct(stmt)
         elif isinstance(stmt, Step):
             return self.execute_step(stmt)
         elif isinstance(stmt, Substep):
@@ -268,7 +463,8 @@ class Runtime:
             Evaluated expression value
         """
         from ..ast.nodes import (
-            Literal, Identifier, BinaryOp, UnaryOp, Call, FieldAccess, Tuple
+            Literal, Identifier, BinaryOp, UnaryOp, Call, FieldAccess, Tuple,
+            Lambda, IfElse
         )
 
         if isinstance(expr, Literal):
@@ -292,6 +488,12 @@ class Runtime:
         elif isinstance(expr, Tuple):
             # Evaluate all elements and return as Python tuple
             return tuple(self.execute_expression(elem) for elem in expr.elements)
+
+        elif isinstance(expr, Lambda):
+            return self.execute_lambda(expr)
+
+        elif isinstance(expr, IfElse):
+            return self.execute_if_else(expr)
 
         else:
             raise TypeError(f"Unknown expression type: {type(expr)}")
@@ -323,10 +525,10 @@ class Runtime:
             '>=': lambda a, b: a >= b,
         }
 
-        if binop.op not in ops:
-            raise ValueError(f"Unknown binary operator: {binop.op}")
+        if binop.operator not in ops:
+            raise ValueError(f"Unknown binary operator: {binop.operator}")
 
-        return ops[binop.op](left, right)
+        return ops[binop.operator](left, right)
 
     def execute_unary_op(self, unop) -> Any:
         """Execute a unary operation.
@@ -339,12 +541,12 @@ class Runtime:
         """
         operand = self.execute_expression(unop.operand)
 
-        if unop.op == '-':
+        if unop.operator == '-':
             return -operand
-        elif unop.op == '!':
+        elif unop.operator == '!':
             return not operand
         else:
-            raise ValueError(f"Unknown unary operator: {unop.op}")
+            raise ValueError(f"Unknown unary operator: {unop.operator}")
 
     def execute_call(self, call) -> Any:
         """Execute a function call.
@@ -404,3 +606,172 @@ class Runtime:
                 return obj[field_access.field]
 
             raise AttributeError(f"Object has no field '{field_access.field}'")
+
+    def execute_function(self, func_node) -> None:
+        """Execute a function definition.
+
+        Args:
+            func_node: Function AST node
+        """
+        # Create user-defined function and store in symbol table
+        user_func = UserDefinedFunction(
+            name=func_node.name,
+            params=func_node.params,
+            body=func_node.body,
+            runtime=self
+        )
+        self.context.set_variable(func_node.name, user_func)
+
+    def execute_return(self, return_node) -> None:
+        """Execute a return statement.
+
+        Args:
+            return_node: Return AST node
+
+        Raises:
+            ReturnValue: Exception carrying the return value
+            RuntimeError: If return used outside function
+        """
+        # Evaluate return value (if any)
+        value = None
+        if return_node.value is not None:
+            value = self.execute_expression(return_node.value)
+
+        # Raise exception to exit function
+        raise ReturnValue(value)
+
+    def execute_if_else(self, if_else_node) -> Any:
+        """Execute an if/else expression.
+
+        Args:
+            if_else_node: IfElse AST node
+
+        Returns:
+            Result of then_expr or else_expr
+        """
+        # Evaluate condition
+        condition = self.execute_expression(if_else_node.condition)
+
+        # Choose branch based on condition
+        if condition:
+            return self.execute_expression(if_else_node.then_expr)
+        else:
+            return self.execute_expression(if_else_node.else_expr)
+
+    def execute_lambda(self, lambda_node) -> LambdaFunction:
+        """Execute a lambda expression (create closure).
+
+        Args:
+            lambda_node: Lambda AST node
+
+        Returns:
+            LambdaFunction instance
+        """
+        # Capture current variables (closure)
+        # We capture all current symbols except built-ins
+        captured_vars = {}
+        for name, value in self.context.symbols.items():
+            # Don't capture built-in namespaces
+            if name not in ['field', 'visual']:
+                captured_vars[name] = value
+
+        # Create lambda function
+        return LambdaFunction(
+            params=lambda_node.params,
+            body=lambda_node.body,
+            runtime=self,
+            captured_vars=captured_vars
+        )
+
+    def execute_struct(self, struct_node) -> None:
+        """Execute a struct definition.
+
+        Args:
+            struct_node: Struct AST node
+        """
+        # Create struct type and store in symbol table
+        struct_type = StructType(
+            name=struct_node.name,
+            fields=struct_node.fields
+        )
+        self.context.set_variable(struct_node.name, struct_type)
+
+    def execute_flow(self, flow_node) -> None:
+        """Execute a flow block with temporal semantics.
+
+        Args:
+            flow_node: Flow AST node
+        """
+        # Evaluate flow parameters
+        dt = self.execute_expression(flow_node.dt) if flow_node.dt else 0.01
+        steps = self.execute_expression(flow_node.steps) if flow_node.steps else None
+        substeps = self.execute_expression(flow_node.substeps) if flow_node.substeps else None
+
+        # If steps not specified, execute once (for testing) or infinite loop
+        if steps is None:
+            steps = 1  # Execute once for testing
+
+        # Identify state variables (assignments with @state decorator)
+        state_vars = {}
+        for stmt in flow_node.body:
+            from ..ast.nodes import Assignment
+            if isinstance(stmt, Assignment):
+                # Check if this assignment has @state decorator
+                if any(d.name == 'state' for d in stmt.decorators):
+                    # Evaluate initial value before flow loop
+                    initial_value = self.execute_expression(stmt.value)
+                    state_vars[stmt.target] = initial_value
+                    self.context.set_variable(stmt.target, initial_value)
+
+        # Execute flow loop
+        if substeps:
+            # Nested loop structure: outer (steps) x inner (substeps)
+            sub_dt = dt / substeps
+            for step in range(int(steps)):
+                for substep in range(int(substeps)):
+                    # Update dt for substep
+                    old_dt = self.context.dt
+                    self.context.dt = sub_dt
+                    self.context.set_variable('dt', sub_dt)
+
+                    # Execute flow body
+                    for stmt in flow_node.body:
+                        from ..ast.nodes import Assignment
+                        # Skip initial @state assignments (already done)
+                        if isinstance(stmt, Assignment) and any(d.name == 'state' for d in stmt.decorators):
+                            # Execute the update (right-hand side) but it's a state variable
+                            if stmt.target in state_vars:
+                                # This is an update to state variable, execute normally
+                                self.execute_statement(stmt)
+                            continue
+                        self.execute_statement(stmt)
+
+                    # Restore dt
+                    self.context.dt = old_dt
+
+                # Advance timestep after all substeps
+                self.context.advance_timestep()
+        else:
+            # Simple loop without substeps
+            for step in range(int(steps)):
+                # Update dt
+                old_dt = self.context.dt
+                self.context.dt = dt
+                self.context.set_variable('dt', dt)
+
+                # Execute flow body
+                for stmt in flow_node.body:
+                    from ..ast.nodes import Assignment
+                    # Skip initial @state assignments (already done)
+                    if isinstance(stmt, Assignment) and any(d.name == 'state' for d in stmt.decorators):
+                        # This is an update to state variable, execute normally
+                        if stmt.target in state_vars:
+                            self.execute_statement(stmt)
+                        continue
+                    self.execute_statement(stmt)
+
+                # Restore dt
+                self.context.dt = old_dt
+
+                # Advance timestep
+                self.context.advance_timestep()
