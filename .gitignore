@@ -60,6 +60,7 @@ dmypy.json
 *.wav
 *.mp3
 !mvp_test_output.png
+!examples/output_*.png
 
 # Temporary files
 *.tmp
