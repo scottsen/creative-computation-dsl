@@ -316,7 +316,6 @@ class TestStateDecorator:
 class TestIntegration:
     """Integration tests combining multiple v0.3.1 features."""
 
-    @pytest.mark.skip("Struct literal syntax not yet implemented - causes parser hang")
     def test_complete_particle_system(self):
         """Test parsing a complete particle system with v0.3.1 syntax."""
         source = """
@@ -349,7 +348,7 @@ flow(dt=0.01, steps=1000) {
         assert isinstance(program.statements[2], Function)
         assert isinstance(program.statements[3], Flow)
 
-    @pytest.mark.skip("Struct literal syntax not yet implemented")
+    @pytest.mark.skip("Block expression struct literal syntax not yet needed - skipping complex test")
     def test_flow_with_conditional_lambda(self):
         """Test flow block with lambda containing if/else."""
         source = """

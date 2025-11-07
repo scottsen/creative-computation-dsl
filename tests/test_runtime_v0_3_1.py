@@ -255,7 +255,6 @@ result = compute(x)
 class TestStructDefinitions:
     """Test struct definition and instantiation."""
 
-    @pytest.mark.skip("Struct literal syntax needs AST node implementation")
     def test_simple_struct_definition(self):
         """Test defining and using a simple struct."""
         source = """
@@ -275,7 +274,6 @@ result_y = p.y
         assert runtime.context.get_variable('result_x') == 3.0
         assert runtime.context.get_variable('result_y') == 4.0
 
-    @pytest.mark.skip("Struct literal syntax needs AST node implementation")
     def test_struct_with_units(self):
         """Test struct with physical unit types."""
         source = """
@@ -294,6 +292,250 @@ result_vel = p.velocity
 
         assert runtime.context.get_variable('result_pos') == 10.0
         assert runtime.context.get_variable('result_vel') == 2.5
+
+
+class TestStructLiterals:
+    """Test struct instantiation and field access (comprehensive)."""
+
+    def test_struct_with_computed_fields(self):
+        """Struct with computed field expressions."""
+        source = """
+struct Point {
+    x: f32
+    y: f32
+}
+
+x_base = 10.0
+y_base = 20.0
+
+p = Point {
+    x: x_base * 2.0,
+    y: y_base + 5.0
+}
+"""
+        program = parse(source)
+        runtime = Runtime()
+        runtime.execute_program(program)
+
+        p = runtime.context.get_variable('p')
+        from kairo.runtime.runtime import StructInstance
+        assert isinstance(p, StructInstance)
+        assert p.fields['x'] == 20.0
+        assert p.fields['y'] == 25.0
+
+    def test_struct_in_function(self):
+        """Pass struct to function and return struct."""
+        source = """
+struct Point {
+    x: f32
+    y: f32
+}
+
+fn translate(p: Point, dx: f32, dy: f32) -> Point {
+    new_x = p.x + dx
+    new_y = p.y + dy
+    return Point { x: new_x, y: new_y }
+}
+
+p1 = Point { x: 1.0, y: 2.0 }
+p2 = translate(p1, 3.0, 4.0)
+"""
+        program = parse(source)
+        runtime = Runtime()
+        runtime.execute_program(program)
+
+        p2 = runtime.context.get_variable('p2')
+        assert p2.fields['x'] == 4.0
+        assert p2.fields['y'] == 6.0
+
+    def test_struct_in_flow_block(self):
+        """Use struct in temporal flow."""
+        source = """
+struct State {
+    position: f32
+    velocity: f32
+}
+
+@state s = State { position: 0.0, velocity: 1.0 }
+
+flow(dt=0.1, steps=5) {
+    s = State {
+        position: s.position + s.velocity * dt,
+        velocity: s.velocity
+    }
+}
+"""
+        program = parse(source)
+        runtime = Runtime()
+        runtime.execute_program(program)
+
+        s = runtime.context.get_variable('s')
+        assert abs(s.fields['position'] - 0.5) < 0.001  # 5 steps * 0.1 * 1.0
+
+    def test_struct_missing_field_error(self):
+        """Error when missing required field."""
+        source = """
+struct Point {
+    x: f32
+    y: f32
+}
+
+p = Point { x: 3.0 }
+"""
+        program = parse(source)
+        runtime = Runtime()
+
+        with pytest.raises(RuntimeError, match="Missing required fields"):
+            runtime.execute_program(program)
+
+    def test_struct_invalid_field_error(self):
+        """Error when providing invalid field."""
+        source = """
+struct Point {
+    x: f32
+    y: f32
+}
+
+p = Point { x: 3.0, y: 4.0, z: 5.0 }
+"""
+        program = parse(source)
+        runtime = Runtime()
+
+        with pytest.raises(RuntimeError, match="has no field 'z'"):
+            runtime.execute_program(program)
+
+    def test_undefined_struct_type_error(self):
+        """Error when using undefined struct type."""
+        source = """
+p = UndefinedStruct { x: 3.0 }
+"""
+        program = parse(source)
+        runtime = Runtime()
+
+        with pytest.raises(RuntimeError, match="Undefined struct type"):
+            runtime.execute_program(program)
+
+    def test_struct_equality(self):
+        """Test struct equality comparison."""
+        source = """
+struct Point {
+    x: f32
+    y: f32
+}
+
+p1 = Point { x: 3.0, y: 4.0 }
+p2 = Point { x: 3.0, y: 4.0 }
+p3 = Point { x: 5.0, y: 6.0 }
+"""
+        program = parse(source)
+        runtime = Runtime()
+        runtime.execute_program(program)
+
+        p1 = runtime.context.get_variable('p1')
+        p2 = runtime.context.get_variable('p2')
+        p3 = runtime.context.get_variable('p3')
+
+        assert p1 == p2  # Same values
+        assert p1 != p3  # Different values
+
+    def test_struct_repr(self):
+        """Test struct string representation."""
+        source = """
+struct Point {
+    x: f32
+    y: f32
+}
+
+p = Point { x: 3.0, y: 4.0 }
+"""
+        program = parse(source)
+        runtime = Runtime()
+        runtime.execute_program(program)
+
+        p = runtime.context.get_variable('p')
+        repr_str = repr(p)
+        assert "Point" in repr_str
+        assert "x:" in repr_str or "x :" in repr_str
+        assert "3.0" in repr_str
+        assert "y:" in repr_str or "y :" in repr_str
+        assert "4.0" in repr_str
+
+    def test_lambda_with_struct(self):
+        """Lambda that captures and uses struct."""
+        source = """
+struct Point {
+    x: f32
+    y: f32
+}
+
+p = Point { x: 3.0, y: 4.0 }
+get_x = || p.x
+result = get_x()
+"""
+        program = parse(source)
+        runtime = Runtime()
+        runtime.execute_program(program)
+
+        assert runtime.context.get_variable('result') == 3.0
+
+    def test_struct_field_access_chain(self):
+        """Access struct field value and use in expression."""
+        source = """
+struct Point {
+    x: f32
+    y: f32
+}
+
+p = Point { x: 3.0, y: 4.0 }
+distance = p.x * p.x + p.y * p.y
+"""
+        program = parse(source)
+        runtime = Runtime()
+        runtime.execute_program(program)
+
+        assert runtime.context.get_variable('distance') == 25.0  # 3^2 + 4^2
+
+    def test_struct_with_if_else(self):
+        """Use struct in if/else expression."""
+        source = """
+struct Point {
+    x: f32
+    y: f32
+}
+
+p1 = Point { x: 10.0, y: 20.0 }
+p2 = Point { x: 5.0, y: 8.0 }
+
+selected = if p1.x > p2.x then p1 else p2
+result = selected.x
+"""
+        program = parse(source)
+        runtime = Runtime()
+        runtime.execute_program(program)
+
+        assert runtime.context.get_variable('result') == 10.0
+
+    def test_recursive_function_with_struct(self):
+        """Recursion using struct."""
+        source = """
+struct Counter {
+    value: f32
+}
+
+fn count_down(c: Counter) -> f32 {
+    result = if c.value <= 0.0 then 0.0 else c.value + count_down(Counter { value: c.value - 1.0 })
+    return result
+}
+
+counter = Counter { value: 5.0 }
+result = count_down(counter)
+"""
+        program = parse(source)
+        runtime = Runtime()
+        runtime.execute_program(program)
+
+        # 5 + 4 + 3 + 2 + 1 + 0 = 15
+        assert runtime.context.get_variable('result') == 15.0
 
 
 class TestFlowBlocks:
