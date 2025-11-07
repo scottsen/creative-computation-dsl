@@ -703,10 +703,54 @@ class MLIRCompiler:
             → %0 = arith.constant 3.0 : f32
             → %1 = arith.constant 4.0 : f32
             → %result = func.call @add(%0, %1) : (f32, f32) -> f32
+
+        Phase 4: Also handles lambda calls:
+            double = |x| x * 2.0
+            result = double(5.0)
+            → Calls the generated __lambda_0 function with captured vars
         """
-        # Get function name
+        # Get function name or lambda
         if isinstance(call.callee, Identifier):
-            func_name = call.callee.name
+            callee_name = call.callee.name
+
+            # Check if this is a lambda variable (Phase 4)
+            if callee_name in self.symbols:
+                callee_value = self.symbols[callee_name]
+                if hasattr(callee_value, '_lambda_meta'):
+                    # This is a lambda call
+                    lambda_meta = callee_value._lambda_meta
+                    lambda_func_name = lambda_meta['function']
+                    captured_values = lambda_meta['captured_values']
+
+                    # Compile explicit arguments
+                    args = [self.compile_expression(arg) for arg in call.args]
+
+                    # Add captured values as additional arguments
+                    all_args = args + captured_values
+
+                    # Get lambda function
+                    ir_func = self.functions[lambda_func_name]
+
+                    # Call the lambda function
+                    if ir_func.return_types:
+                        results = self.builder.add_operation(
+                            "func.call",
+                            operands=all_args,
+                            result_types=ir_func.return_types,
+                            attributes={"callee": f"@{lambda_func_name}"}
+                        )
+                        return results[0]
+                    else:
+                        self.builder.add_operation(
+                            "func.call",
+                            operands=all_args,
+                            result_types=[],
+                            attributes={"callee": f"@{lambda_func_name}"}
+                        )
+                        return None
+
+            # Regular function call
+            func_name = callee_name
         else:
             raise NotImplementedError("Only simple function calls supported in Phase 1")
 
@@ -964,9 +1008,173 @@ class MLIRCompiler:
 
         return results[0]
 
+    def _find_free_variables(self, expr: Expression, bound_vars: set) -> set:
+        """Find free variables in an expression (variables not in bound_vars).
+
+        Args:
+            expr: Expression to analyze
+            bound_vars: Set of variable names that are bound (in scope)
+
+        Returns:
+            Set of free variable names (captured variables)
+        """
+        free_vars = set()
+
+        if isinstance(expr, Identifier):
+            if expr.name not in bound_vars:
+                free_vars.add(expr.name)
+        elif isinstance(expr, BinaryOp):
+            free_vars.update(self._find_free_variables(expr.left, bound_vars))
+            free_vars.update(self._find_free_variables(expr.right, bound_vars))
+        elif isinstance(expr, UnaryOp):
+            free_vars.update(self._find_free_variables(expr.operand, bound_vars))
+        elif isinstance(expr, Call):
+            if isinstance(expr.callee, Identifier):
+                # Don't count function names or lambda names as captured variables
+                # They can be called directly through the symbol table
+                callee_name = expr.callee.name
+                is_function = callee_name in self.functions
+                is_lambda = (callee_name in self.symbols and
+                           hasattr(self.symbols.get(callee_name), '_lambda_meta'))
+
+                if not is_function and not is_lambda and callee_name not in bound_vars:
+                    free_vars.add(callee_name)
+            for arg in expr.args:
+                free_vars.update(self._find_free_variables(arg, bound_vars))
+        elif isinstance(expr, IfElse):
+            free_vars.update(self._find_free_variables(expr.condition, bound_vars))
+            free_vars.update(self._find_free_variables(expr.then_expr, bound_vars))
+            free_vars.update(self._find_free_variables(expr.else_expr, bound_vars))
+        elif isinstance(expr, FieldAccess):
+            free_vars.update(self._find_free_variables(expr.object, bound_vars))
+        elif isinstance(expr, StructLiteral):
+            for field_expr in expr.fields.values():
+                free_vars.update(self._find_free_variables(field_expr, bound_vars))
+        elif isinstance(expr, Lambda):
+            # Nested lambda: its params are bound within its body
+            nested_bound = bound_vars | set(expr.params)
+            free_vars.update(self._find_free_variables(expr.body, nested_bound))
+
+        return free_vars
+
     def compile_lambda(self, lambda_expr: Lambda) -> IRValue:
-        """Compile lambda expression (Phase 4.1)."""
-        raise NotImplementedError("Lambda expressions - Phase 4.1")
+        """Compile lambda expression (Phase 4.1).
+
+        Lambdas are compiled to regular MLIR functions with closure capture.
+        Each lambda gets a unique function name and captures free variables
+        from the enclosing scope.
+
+        Args:
+            lambda_expr: Lambda AST node
+
+        Returns:
+            IRValue representing the lambda (stored as function reference)
+
+        Example:
+            multiplier = 3.0
+            scale = |x| x * multiplier
+
+            Generates:
+            func.func @__lambda_0(%arg0: f32, %captured_multiplier: f32) -> f32 {
+                %0 = arith.mulf %arg0, %captured_multiplier : f32
+                func.return %0 : f32
+            }
+        """
+        # Generate unique lambda name
+        lambda_name = f"__lambda_{self.lambda_counter}"
+        self.lambda_counter += 1
+
+        # Find captured variables (free variables in lambda body)
+        bound_vars = set(lambda_expr.params)
+        captured_vars = self._find_free_variables(lambda_expr.body, bound_vars)
+
+        # Filter to only variables that exist in current scope
+        captured_vars = {v for v in captured_vars if v in self.symbols}
+        captured_var_list = sorted(list(captured_vars))  # Sort for deterministic order
+
+        # Build function signature
+        arg_types = []
+        arg_values = []
+
+        # Add lambda parameters
+        for i, param_name in enumerate(lambda_expr.params):
+            # Infer type from usage (default to f32)
+            param_type = IRType.F32  # TODO: Better type inference
+            arg_types.append(param_type)
+            arg_values.append(IRValue(name=f"%arg{i}", type=param_type))
+
+        # Add captured variables as additional parameters
+        for i, captured_var in enumerate(captured_var_list):
+            captured_val = self.symbols[captured_var]
+            param_idx = len(lambda_expr.params) + i
+            arg_types.append(captured_val.type)
+            arg_values.append(IRValue(name=f"%arg{param_idx}", type=captured_val.type))
+
+        # Save current context
+        saved_symbols = self.symbols.copy()
+        saved_function = self.current_function
+
+        # Infer return type from body
+        # For now, we'll determine it after compiling the body
+        # Create function with placeholder return type
+        ir_func = self.builder.create_function(
+            name=lambda_name,
+            args=arg_values,
+            return_types=[]  # Will be set after compiling body
+        )
+
+        # Store function
+        self.functions[lambda_name] = ir_func
+        self.current_function = lambda_name
+
+        # Create entry block
+        self.builder.create_block(label="entry")
+
+        # Create new symbol table for lambda body
+        # Start with saved symbols to allow lambdas to reference other lambdas
+        self.symbols = saved_symbols.copy()
+
+        # Override with lambda parameters
+        for param_name, arg_value in zip(lambda_expr.params, arg_values[:len(lambda_expr.params)]):
+            self.symbols[param_name] = arg_value
+
+        # Override captured variables to use their parameter slots
+        for captured_var, arg_value in zip(captured_var_list, arg_values[len(lambda_expr.params):]):
+            self.symbols[captured_var] = arg_value
+
+        # Compile lambda body
+        result = self.compile_expression(lambda_expr.body)
+
+        # Update function return type now that we know it
+        ir_func.return_types = [result.type]
+
+        # Add return statement
+        self.builder.add_operation(
+            "func.return",
+            operands=[result],
+            result_types=[]
+        )
+
+        # Restore context
+        self.symbols = saved_symbols
+        self.current_function = saved_function
+
+        # Create a lambda value that stores the function name and captured values
+        # For now, we'll store it as a special dictionary in the symbol table
+        # When the lambda is called, we'll look up this info
+        lambda_value = IRValue(
+            name=f"%{lambda_name}",
+            type=IRType.F32  # Placeholder type
+        )
+
+        # Store lambda metadata (function name and captured values)
+        lambda_value._lambda_meta = {
+            'function': lambda_name,
+            'captured_vars': captured_var_list,
+            'captured_values': [self.symbols[v] for v in captured_var_list]
+        }
+
+        return lambda_value
 
     def compile_tuple(self, tuple_expr: Tuple) -> IRValue:
         """Compile tuple expression."""
