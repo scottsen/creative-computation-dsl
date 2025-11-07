@@ -973,5 +973,267 @@ class MLIRCompiler:
         raise NotImplementedError("Tuple expressions")
 
     def compile_flow_block(self, flow: Flow) -> None:
-        """Compile flow block (Phase 3.1)."""
-        raise NotImplementedError("Flow blocks - Phase 3.1")
+        """Compile flow block to scf.for loop (Phase 3).
+
+        Args:
+            flow: Flow statement AST node
+
+        Flow blocks are temporal iteration constructs that update state variables
+        over time. They compile to scf.for loops with iteration arguments threading
+        state through loop iterations.
+
+        Example:
+            @state x = 0.0
+
+            flow(dt=0.1, steps=10) {
+                x = x + dt
+            }
+
+            Compiles to:
+            %dt = arith.constant 0.1 : f32
+            %steps = arith.constant 10 : i32
+            %c0 = arith.constant 0 : index
+            %c1 = arith.constant 1 : index
+            %end = arith.index_cast %steps : i32 to index
+
+            %final_x = scf.for %iv = %c0 to %end step %c1
+                iter_args(%x = %initial_x) -> (f32) {
+                %new_x = arith.addf %x, %dt : f32
+                scf.yield %new_x : f32
+            }
+        """
+        # Determine number of iterations
+        if flow.steps is not None:
+            # Step-based flow: explicit number of steps
+            num_steps_expr = self.compile_expression(flow.steps)
+        elif flow.dt is not None and flow.steps is not None:
+            # Time-based flow would need duration, but current syntax uses explicit steps
+            num_steps_expr = self.compile_expression(flow.steps)
+        else:
+            raise ValueError("Flow block must specify 'steps' parameter")
+
+        # Compile dt if provided (for time-based flow)
+        dt_value = None
+        if flow.dt is not None:
+            dt_value = self.compile_expression(flow.dt)
+
+        # Convert steps to index type for loop bounds
+        # Create loop bounds: for i = 0 to num_steps step 1
+        zero = self.builder.add_operation(
+            "arith.constant",
+            operands=[],
+            result_types=[IRType.INDEX],
+            attributes={"value": 0}
+        )[0]
+
+        one = self.builder.add_operation(
+            "arith.constant",
+            operands=[],
+            result_types=[IRType.INDEX],
+            attributes={"value": 1}
+        )[0]
+
+        # Convert num_steps to index type
+        if num_steps_expr.type in [IRType.I32, IRType.I64]:
+            end = self.builder.add_operation(
+                "arith.index_cast",
+                operands=[num_steps_expr],
+                result_types=[IRType.INDEX]
+            )[0]
+        else:
+            # If it's a float, convert to int first
+            num_steps_int = self.builder.add_operation(
+                "arith.fptosi",
+                operands=[num_steps_expr],
+                result_types=[IRType.I32]
+            )[0]
+            end = self.builder.add_operation(
+                "arith.index_cast",
+                operands=[num_steps_int],
+                result_types=[IRType.INDEX]
+            )[0]
+
+        # Identify state variables that need to be threaded through the loop
+        # For now, track all variables assigned in the body
+        state_vars = self._identify_state_variables(flow.body)
+
+        # Prepare iteration arguments (initial values for state variables)
+        iter_args = []
+        iter_types = []
+        state_var_names = []
+
+        for var_name in state_vars:
+            if var_name in self.symbols:
+                var_value = self.symbols[var_name]
+                iter_args.append(var_value)
+                iter_types.append(var_value.type)
+                state_var_names.append(var_name)
+
+        # Handle substeps (nested loops)
+        if flow.substeps is not None:
+            # Compile with nested loop structure
+            self._compile_flow_with_substeps(
+                zero, end, one, flow.substeps,
+                iter_args, iter_types, state_var_names,
+                flow.body, dt_value
+            )
+        else:
+            # Single loop
+            with self.builder.create_for_loop(zero, end, one, iter_args, iter_types) as loop:
+                # Save current symbol table
+                saved_symbols = self.symbols.copy()
+
+                # Map iteration arguments to variable names in loop body
+                for i, var_name in enumerate(state_var_names):
+                    self.symbols[var_name] = loop.iter_arg_values[i]
+
+                # Add dt to symbol table if present
+                if dt_value is not None:
+                    # dt is a loop-invariant value, use the compiled value
+                    self.symbols['dt'] = dt_value
+
+                # Compile body statements
+                new_state_values = []
+                for stmt in flow.body:
+                    self.compile_statement(stmt)
+
+                # Collect updated state variable values
+                for var_name in state_var_names:
+                    new_state_values.append(self.symbols[var_name])
+
+                # Yield updated values
+                loop.yield_values(new_state_values)
+
+            # Restore symbol table but keep final values of state variables
+            for var_name in saved_symbols:
+                if var_name not in state_var_names:
+                    self.symbols[var_name] = saved_symbols[var_name]
+
+            # Update symbol table with final values after loop
+            for i, var_name in enumerate(state_var_names):
+                self.symbols[var_name] = loop.result_values[i]
+
+    def _identify_state_variables(self, body: List[Statement]) -> List[str]:
+        """Identify variables that are modified in the flow body.
+
+        Args:
+            body: Flow block body statements
+
+        Returns:
+            List of variable names that are assigned in the body
+        """
+        state_vars = []
+        for stmt in body:
+            if isinstance(stmt, Assignment):
+                if stmt.target not in state_vars:
+                    state_vars.append(stmt.target)
+            # Could also check for other statement types that modify variables
+        return state_vars
+
+    def _compile_flow_with_substeps(self, start: IRValue, end: IRValue, step: IRValue,
+                                    substeps_expr: Expression,
+                                    iter_args: List[IRValue], iter_types: List[Union[IRType, str]],
+                                    state_var_names: List[str],
+                                    body: List[Statement], dt_value: Optional[IRValue]):
+        """Compile flow block with substeps (nested loops).
+
+        Args:
+            start, end, step: Outer loop bounds
+            substeps_expr: Expression for number of substeps
+            iter_args: Initial iteration argument values
+            iter_types: Types of iteration arguments
+            state_var_names: Names of state variables
+            body: Flow body statements
+            dt_value: Timestep value (if time-based)
+        """
+        # Compile substeps expression
+        num_substeps_expr = self.compile_expression(substeps_expr)
+
+        # Convert to index type
+        if num_substeps_expr.type in [IRType.I32, IRType.I64]:
+            substeps_end = self.builder.add_operation(
+                "arith.index_cast",
+                operands=[num_substeps_expr],
+                result_types=[IRType.INDEX]
+            )[0]
+        else:
+            substeps_int = self.builder.add_operation(
+                "arith.fptosi",
+                operands=[num_substeps_expr],
+                result_types=[IRType.I32]
+            )[0]
+            substeps_end = self.builder.add_operation(
+                "arith.index_cast",
+                operands=[substeps_int],
+                result_types=[IRType.INDEX]
+            )[0]
+
+        zero_inner = self.builder.add_operation(
+            "arith.constant",
+            operands=[],
+            result_types=[IRType.INDEX],
+            attributes={"value": 0}
+        )[0]
+
+        one_inner = self.builder.add_operation(
+            "arith.constant",
+            operands=[],
+            result_types=[IRType.INDEX],
+            attributes={"value": 1}
+        )[0]
+
+        # Outer loop (main steps)
+        with self.builder.create_for_loop(start, end, step, iter_args, iter_types) as outer_loop:
+            # Save symbol table
+            saved_symbols = self.symbols.copy()
+
+            # Map iteration arguments to variable names
+            for i, var_name in enumerate(state_var_names):
+                self.symbols[var_name] = outer_loop.iter_arg_values[i]
+
+            # Add dt to symbol table if present
+            if dt_value is not None:
+                self.symbols['dt'] = dt_value
+
+            # Inner loop (substeps)
+            with self.builder.create_for_loop(
+                zero_inner, substeps_end, one_inner,
+                outer_loop.iter_arg_values, iter_types
+            ) as inner_loop:
+                # Map inner iteration arguments
+                for i, var_name in enumerate(state_var_names):
+                    self.symbols[var_name] = inner_loop.iter_arg_values[i]
+
+                # Keep dt in symbol table
+                if dt_value is not None:
+                    self.symbols['dt'] = dt_value
+
+                # Compile body in inner loop
+                for stmt in body:
+                    self.compile_statement(stmt)
+
+                # Collect updated values
+                inner_new_values = []
+                for var_name in state_var_names:
+                    inner_new_values.append(self.symbols[var_name])
+
+                # Yield from inner loop
+                inner_loop.yield_values(inner_new_values)
+
+            # After inner loop, use its results for outer loop yield
+            outer_new_values = inner_loop.result_values
+
+            # Yield from outer loop
+            outer_loop.yield_values(outer_new_values)
+
+            # Restore non-state variables
+            for var_name in saved_symbols:
+                if var_name not in state_var_names:
+                    self.symbols[var_name] = saved_symbols[var_name]
+
+        # Store outer loop results before exiting context
+        final_results = outer_loop.result_values
+
+        # Update symbol table with final values
+        for i, var_name in enumerate(state_var_names):
+            self.symbols[var_name] = final_results[i]

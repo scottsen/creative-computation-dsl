@@ -211,6 +211,106 @@ class IRModule:
         return True
 
 
+class IRForLoop:
+    """Helper for constructing scf.for loops.
+
+    This class manages the construction of for loops with iteration arguments,
+    providing a simple interface for loop body construction and yielding.
+    """
+
+    def __init__(self, builder: 'IRBuilder', start: IRValue, end: IRValue,
+                 step: IRValue, iter_args: List[IRValue], iter_types: List[Union[IRType, str]]):
+        """Initialize for loop builder.
+
+        Args:
+            builder: Parent IR builder
+            start: Loop start bound
+            end: Loop end bound
+            step: Loop step
+            iter_args: Initial iteration argument values
+            iter_types: Types of iteration arguments
+        """
+        self.builder = builder
+        self.start = start
+        self.end = end
+        self.step = step
+        self.iter_args = iter_args
+        self.iter_types = iter_types
+        self.result_values: List[IRValue] = []
+        self.loop_var: Optional[IRValue] = None
+        self.body_block: Optional[IRBlock] = None
+        self.iter_arg_values: List[IRValue] = []  # Block arguments for iteration values
+
+    def __enter__(self) -> 'IRForLoop':
+        """Enter loop context - sets up loop header and body block."""
+        # Create result values for the loop
+        self.result_values = [self.builder.create_value(t) for t in self.iter_types]
+
+        # Create loop variable (induction variable)
+        self.loop_var = self.builder.create_value(IRType.INDEX)
+
+        # Create body block with iteration arguments
+        self.iter_arg_values = [self.builder.create_value(t) for t in self.iter_types]
+
+        # Save current block
+        self.saved_block = self.builder.current_block
+
+        # Create loop body block (simulated - operations go to parent block)
+        self.body_block = IRBlock(label="loop_body", args=[self.loop_var] + self.iter_arg_values)
+        self.builder.current_block = self.body_block
+
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Exit loop context - generates the scf.for operation."""
+        # Restore original block
+        self.builder.current_block = self.saved_block
+
+        # Generate scf.for operation with the body
+        # Note: This is a simplified representation
+        # In real MLIR, this would use regions and blocks properly
+        if self.result_values:
+            # Format: %results = scf.for %iv = %start to %end step %step iter_args(...) -> (...) { body }
+            result_names = ', '.join(r.name for r in self.result_values)
+            iter_arg_names = ', '.join(a.name for a in self.iter_args)
+            type_strs = ', '.join(t.value if isinstance(t, IRType) else str(t) for t in self.iter_types)
+
+            op_str = f"{result_names} = scf.for {self.loop_var.name} = {self.start.name} to {self.end.name} step {self.step.name}"
+            if self.iter_args:
+                op_str += f" iter_args({iter_arg_names}) -> ({type_strs})"
+
+            # Create the operation with the body block embedded
+            op = IROperation(
+                opcode="scf.for",
+                operands=[self.start, self.end, self.step] + self.iter_args,
+                results=self.result_values,
+                attributes={
+                    "loop_var": self.loop_var.name,
+                    "body_operations": self.body_block.operations
+                }
+            )
+
+            if self.builder.current_block:
+                self.builder.current_block.operations.append(op)
+
+    def yield_values(self, values: List[IRValue]):
+        """Yield values at end of loop iteration.
+
+        Args:
+            values: Values to yield (must match iter_types)
+        """
+        # Create scf.yield operation
+        op = IROperation(
+            opcode="scf.yield",
+            operands=values,
+            results=[],
+            attributes={}
+        )
+
+        if self.body_block:
+            self.body_block.operations.append(op)
+
+
 class IRBuilder:
     """Builder for constructing IR operations and blocks.
 
@@ -305,6 +405,28 @@ class IRBuilder:
             self.current_block.operations.append(op)
 
         return results
+
+    def create_for_loop(self, start: IRValue, end: IRValue, step: IRValue,
+                       iter_args: Optional[List[IRValue]] = None,
+                       iter_types: Optional[List[Union[IRType, str]]] = None) -> 'IRForLoop':
+        """Create an scf.for loop structure.
+
+        Args:
+            start: Loop start bound (index type)
+            end: Loop end bound (index type)
+            step: Loop step (index type)
+            iter_args: Initial values for iteration arguments (optional)
+            iter_types: Types of iteration arguments (optional)
+
+        Returns:
+            IRForLoop context manager for building loop body
+
+        Example:
+            loop = builder.create_for_loop(start, end, step, [init_val], [IRType.F32])
+            # Add operations to loop.body_block
+            # End with yield operation
+        """
+        return IRForLoop(self, start, end, step, iter_args or [], iter_types or [])
 
     def get_module(self) -> IRModule:
         """Get the constructed IR module.
