@@ -36,6 +36,26 @@ kairo run examples/03_wave_ripples.kairo
 **Visual:** Concentric circular waves with interference patterns
 **Lines:** ~65
 
+#### `04_random_walk.kairo`
+Watch random walkers create beautiful diffusion patterns from simple stochastic rules.
+```bash
+kairo run examples/04_random_walk.kairo
+```
+**Demonstrates:** Random number generation, state accumulation, emergent behavior
+**Visual:** Gaussian distribution emerging from Brownian motion (viridis palette)
+**Lines:** ~80
+**Tip:** Experiment with NUM_WALKERS to see different diffusion patterns!
+
+#### `05_gradient_flow.kairo`
+Mesmerizing color gradients swirl and mix under a rotating velocity field.
+```bash
+kairo run examples/05_gradient_flow.kairo
+```
+**Demonstrates:** Advection operation, vector fields, multi-channel visualization
+**Visual:** Colorful swirling patterns reminiscent of paint mixing in water
+**Lines:** ~75
+**Tip:** Try different ROTATION_SPEED values for faster or slower mixing!
+
 ### Tier 2: Intermediate Examples
 Real simulations demonstrating multiple Kairo features working together.
 
