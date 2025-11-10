@@ -1,3 +1,19 @@
+---
+project: kairo
+type: software
+status: active
+beth_topics:
+- kairo
+- creative-computation
+- dsl
+- mlir
+tags:
+- compiler
+- simulation
+- generative
+- deterministic
+---
+
 # Kairo v0.3.1
 
 **A Language of Creative Determinism**
