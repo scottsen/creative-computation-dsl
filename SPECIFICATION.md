@@ -28,7 +28,7 @@
 8. [Determinism and RNG](#8-determinism-and-rng)
 9. [Field Dialect](#9-field-dialect)
 10. [Agent Dialect](#10-agent-dialect)
-11. [Signal Dialect](#11-signal-dialect)
+11. [Audio Dialect (Kairo.Audio)](#11-audio-dialect-kairoaudio)
 12. [Visual Dialect](#12-visual-dialect)
 13. [Profile System](#13-profile-system)
 14. [Module System](#14-module-system)
@@ -1156,129 +1156,83 @@ flow(dt=0.01, steps=1000) {
 
 ---
 
-## 11. Signal Dialect
+## 11. Audio Dialect (Kairo.Audio)
 
-Signals represent time-domain functions for audio and control.
+**Kairo.Audio** is a compositional, deterministic audio language built as a first-class dialect of the Kairo kernel. It provides stream-based audio computation with physical modeling primitives, expressive control, and deterministic execution semantics.
 
-### 11.1 Oscillators
+### 11.1 Core Concepts
 
-```kairo
-use signal
+Kairo.Audio extends Kairo with audio-specific types and constructs:
 
-# Sine wave
-sine(freq=440.0, phase=0.0)                    # Returns: Signal<f32>
+- **Stream Types**: `Sig` (audio-rate), `Ctl` (control-rate), `Evt<A>` (events)
+- **Compositional Structure**: `scene` and `module` constructs
+- **Physical Modeling**: Waveguides, resonant bodies, amplification
+- **Deterministic Polyphony**: Reproducible voice allocation and scheduling
+- **Profile-Based Quality**: Tunable precision and oversampling
 
-# Other waveforms
-triangle(freq=440.0, phase=0.0)
-sawtooth(freq=440.0, phase=0.0)
-square(freq=440.0, phase=0.0, duty=0.5)
-
-# Frequency modulation
-sine(freq=carrier + modulator * depth, phase=0.0)
-```
-
-### 11.2 Noise Generators
+### 11.2 Quick Example
 
 ```kairo
-# White noise
-white_noise(seed=42)
-
-# Pink noise (1/f)
-pink_noise(seed=42)
-
-# Brown noise (1/f²)
-brown_noise(seed=42)
-```
-
-### 11.3 Envelopes
-
-```kairo
-# ADSR envelope
-env = adsr(
-    attack=0.01,           # Attack time (seconds)
-    decay=0.1,             # Decay time
-    sustain=0.7,           # Sustain level (0-1)
-    release=0.3,           # Release time
-    gate=trigger_signal    # Gate/trigger input
-)
-
-# Apply envelope
-output = signal * env
-```
-
-### 11.4 Filters
-
-```kairo
-# Low-pass filter
-lowpass(signal, cutoff=1000.0, resonance=0.7)
-
-# High-pass filter
-highpass(signal, cutoff=1000.0, resonance=0.7)
-
-# Band-pass filter
-bandpass(signal, center=1000.0, bandwidth=100.0)
-
-# Notch filter
-notch(signal, freq=1000.0, q=10.0)
-```
-
-### 11.5 Signal Mixing
-
-```kairo
-# Mix multiple signals
-mix([signal1, signal2, signal3])
-
-# Weighted mix
-mix([
-    (signal1, 1.0),
-    (signal2, 0.5),
-    (signal3, 0.3)
-])
-
-# With clipping
-mix([signal1, signal2], clip=true)
-```
-
-### 11.6 Signal Transformations
-
-```kairo
-# Map
-signal.map(|x| x * 2.0)
-signal.map(|x| tanh(x))              # Soft clipping
-
-# Clamp
-clamp(signal, min=-1.0, max=1.0)
-
-# Delay
-delay(signal, time=0.1)              # Delay by seconds
-delay(signal, samples=4410)          # Delay by samples
-```
-
-### 11.7 Example: Simple Synthesizer
-
-```kairo
-use signal
-
-const SAMPLE_RATE : f32 = 44100.0
-
-flow(dt=1.0 / SAMPLE_RATE) {
-    # Oscillators
-    let carrier = sine(freq=440.0, phase=0.0)
-    let modulator = sine(freq=5.0, phase=0.0)
-
-    # Frequency modulation
-    let fm = sine(freq=440.0 + modulator * 50.0, phase=0.0)
-
-    # Filter
-    let filtered = lowpass(fm, cutoff=2000.0, resonance=0.5)
-
-    # Envelope
-    let env = adsr(attack=0.01, decay=0.1, sustain=0.7, release=0.3, gate=gate)
-
-    # Output
-    output filtered * env
+scene PluckDemo {
+  let note = note("D3")
+  let env  = adsr(5ms, 60ms, 0.6, 200ms)
+  let exc  = noise(seed=1) |> lpf(6kHz) |> envexp(10ms)
+  out stereo = string(note, 1.2s) exc |> reverb(0.1)
 }
 ```
+
+### 11.3 Key Features
+
+**Oscillators and Synthesis:**
+```kairo
+sine(freq=440Hz, phase=0)
+saw(freq=440Hz, blep=true)
+square(freq=440Hz, pwm=0.5)
+noise(type="white", seed=0)
+```
+
+**Filters and Effects:**
+```kairo
+lpf(cutoff=2kHz, q=0.707)
+reverb(mix=0.12, size=0.8)
+delay(time=300ms, feedback=0.3)
+drive(amount=0.5, shape="tanh")
+```
+
+**Physical Modeling:**
+```kairo
+string(freq, t60=1.5s, damp=0.3) (exc: Sig)
+amp(model="brown", drive=0.6)
+cab(ir="4x12.ir", mic="sm57")
+```
+
+**Event Scheduling:**
+```kairo
+let seq = score [
+  at 0s note("A3",1,0.5s),
+  at 0.5s note("C4",0.8,0.5s)
+] |> loop(2s)
+let poly = spawn(seq, voice, max_voices=8)
+```
+
+### 11.4 Complete Specification
+
+For the complete Kairo.Audio language specification, including:
+- Detailed type system and rate model
+- Comprehensive operator reference
+- Physical modeling extensions
+- MLIR lowering details
+- Conformance tests and examples
+
+See **[AUDIO_SPECIFICATION.md](AUDIO_SPECIFICATION.md)**
+
+### 11.5 Integration with Kairo Core
+
+Kairo.Audio seamlessly integrates with other Kairo dialects:
+- Audio can drive visual parameters via cross-rate sampling
+- Field data can modulate audio parameters
+- Agent systems can trigger audio events
+- Unified deterministic execution across all domains
 
 ---
 

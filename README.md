@@ -191,28 +191,27 @@ flow(dt=0.01) {
 }
 ```
 
-### 3. Signal Dialect - Audio and Time-Domain
+### 3. Audio Dialect (Kairo.Audio) - Sound Synthesis and Processing
+
+Kairo.Audio is a compositional, deterministic audio language with physical modeling, synthesis, and expressive control.
 
 ```kairo
-use signal
+use audio
 
-flow(dt=1.0 / 44100.0) {
-    # Oscillators
-    let carrier = sine(freq=440.0)
-    let modulator = sine(freq=5.0)
-
-    # Frequency modulation
-    let fm = sine(freq=440.0 + modulator * 50.0)
-
-    # Filters
-    let filtered = lowpass(fm, cutoff=2000.0, resonance=0.5)
-
-    # Envelope
-    let env = adsr(attack=0.01, decay=0.1, sustain=0.7, release=0.3, gate=gate)
-
-    output filtered * env
+scene PluckDemo {
+  let note = note("D3")
+  let env  = adsr(5ms, 60ms, 0.6, 200ms)
+  let exc  = noise(seed=1) |> lpf(6kHz) |> envexp(10ms)
+  out stereo = string(note, 1.2s) exc |> reverb(0.1)
 }
 ```
+
+**Key Features:**
+- Stream-based computation (audio-rate, control-rate, events)
+- Physical modeling (waveguides, resonant bodies, amps)
+- Deterministic polyphony and event scheduling
+- Profile-based quality control
+- Complete specification: [AUDIO_SPECIFICATION.md](AUDIO_SPECIFICATION.md)
 
 ### 4. Visual Dialect - Rendering and Composition
 
@@ -326,11 +325,11 @@ See `examples/` directory for more!
 - PyPI release preparation
 
 ### 📋 Next Up
-- Agent dialect
-- Signal dialect
+- Agent dialect implementation
+- Audio dialect (Kairo.Audio) implementation
 - Real MLIR bindings integration
 - LLVM lowering and native code generation
-- Profile system
+- Profile system implementation
 
 **Next Milestone**: v0.4.0 Public Release (3-4 weeks)
 
@@ -339,6 +338,7 @@ See `examples/` directory for more!
 ## Documentation
 
 - **[Complete Specification](SPECIFICATION.md)** - Full language reference
+- **[Audio Specification](AUDIO_SPECIFICATION.md)** - Kairo.Audio dialect specification
 - **[MLIR Pipeline Status](MLIR_PIPELINE_STATUS.md)** - Complete compilation pipeline details
 - **[Evolution Summary](docs/KAIRO_v0.3.1_SUMMARY.md)** - Why Kairo v0.3.1
 - **[Project Review](PROJECT_REVIEW_AND_NEXT_STEPS.md)** - Comprehensive assessment & roadmap
@@ -360,9 +360,9 @@ See [docs/KAIRO_v0.3.1_SUMMARY.md](docs/KAIRO_v0.3.1_SUMMARY.md) for detailed ev
 
 ## Related Projects
 
-**[RiffStack](https://github.com/scottsen/riffstack)** - Audio-focused sibling project
+**[RiffStack](https://github.com/scottsen/riffstack)** - Live performance shell for Kairo.Audio
 
-While Kairo is a multi-domain creative computation platform, RiffStack focuses specifically on audio synthesis and live performance. Both share design principles around composability and declarative configuration, but serve different creative domains.
+RiffStack is a stack-based, YAML-driven performance environment that serves as the live interface to Kairo.Audio. While Kairo.Audio provides the compositional language layer, RiffStack offers real-time interaction and performance capabilities. Together they form a complete audio synthesis and performance ecosystem built on Kairo's deterministic execution kernel.
 
 ---
 
