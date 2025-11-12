@@ -1,0 +1,34 @@
+# StreamTone Example: Plucked String Synthesis
+#
+# This example demonstrates Kairo's audio dialect (StreamTone) with:
+# - Event-driven synthesis (sample-accurate timing)
+# - Physical modeling (waveguide string)
+# - Audio processing chain (body resonance, reverb)
+# - Stereo output with panning
+#
+# NOTE: This is a proposed syntax (RFC). Implementation pending.
+
+use audio  # Kairo.Audio (StreamTone dialect)
+
+flow audio(dt=1/48000 @rate=audio) {
+  # Event stream: single pluck at time 0
+  let gate = event.from_list([at(0s, bang)])
+
+  # Fundamental frequency
+  let freq = 220Hz
+
+  # Envelope for the pluck
+  let env = adsr(5ms, 80ms, 0.7, 200ms) gate
+
+  # Excitation: filtered noise burst
+  let exc = noise(seed=1) |> lpf(8kHz) |> envexp(20ms)
+
+  # Waveguide delay line (string model)
+  let body = delay(1/freq, feedback=exp(-6.91/1s))
+
+  # Combine envelope and resonant body
+  let tone = (sine(freq)*env + body(exc)*0.4) |> conv("acoustic_body.ir")
+
+  # Stereo output with slight pan and reverb
+  output stereo = pan(0.1) (tone |> reverb(0.2))
+}

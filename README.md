@@ -22,6 +22,18 @@ tags:
 
 ---
 
+> **Kairo is a semantic kernel** for deterministic creative & scientific computation.
+> It sits between domain DSLs (audio/visual/astro/physics) and execution backends
+> (MLIR→LLVM/GPU/Async), providing **meaning**: time/space/rate/units/state/profiles,
+> deterministic scheduling, boundaries & interfaces, and introspection.
+
+**Start with the Kernel Architecture**: [`docs/ARCH-KERNEL.md`](docs/ARCH-KERNEL.md)
+**Then see Streams & Events**: [`docs/SPEC-STREAM.md`](docs/SPEC-STREAM.md)
+**Multirate Scheduler**: [`docs/SPEC-SCHEDULER-MULTIRATE.md`](docs/SPEC-SCHEDULER-MULTIRATE.md)
+**For audio, check**: [`docs/DIALECT-AUDIO-STREAMTONE.md`](docs/DIALECT-AUDIO-STREAMTONE.md)
+
+---
+
 ## What is Kairo?
 
 **Kairo** is a typed, deterministic domain-specific language for creative computation. It unifies **simulation**, **sound**, **visualization**, and **procedural design** within a single, reproducible execution model.
@@ -338,7 +350,19 @@ See `examples/` directory for more!
 
 ## Documentation
 
-- **[Complete Specification](SPECIFICATION.md)** - Full language reference
+### Core Specifications
+- **[Kernel Architecture](docs/ARCH-KERNEL.md)** - Kairo as a semantic kernel (RFC)
+- **[Streams & Events](docs/SPEC-STREAM.md)** - Unified stream types and event handling (RFC)
+- **[Multirate Scheduler](docs/SPEC-SCHEDULER-MULTIRATE.md)** - Deterministic multi-rate execution (RFC)
+- **[Boundaries & Interfaces](docs/SPEC-BOUNDARY-INTERFACE.md)** - First-class coupling (RFC)
+- **[Profiles](docs/SPEC-PROFILES.md)** - Determinism & precision policies (RFC)
+- **[Roadmap](docs/ROADMAP.md)** - Milestones and issue tracking
+
+### Dialects
+- **[Kairo.Audio (StreamTone)](docs/DIALECT-AUDIO-STREAMTONE.md)** - Audio synthesis & processing dialect (RFC)
+
+### Current Implementation
+- **[Complete Specification](SPECIFICATION.md)** - Full language reference (v0.3.1)
 - **[MLIR Pipeline Status](MLIR_PIPELINE_STATUS.md)** - Complete compilation pipeline details
 - **[Evolution Summary](docs/KAIRO_v0.3.1_SUMMARY.md)** - Why Kairo v0.3.1
 - **[Project Review](PROJECT_REVIEW_AND_NEXT_STEPS.md)** - Comprehensive assessment & roadmap
