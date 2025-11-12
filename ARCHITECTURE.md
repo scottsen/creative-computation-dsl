@@ -1,0 +1,273 @@
+# The Kairo Stack — Finalized Architecture & Specs (v1.0 Draft)
+
+> Goal: keep what's great, shed historical baggage, and define the **cleanest possible layering** for deterministic, creative, multi-domain computation — with audio first, visuals/fields next.
+
+---
+
+## 0) Design Tenets
+
+1. **Semantic kernel, not a monolith** — one place defines time/space/rate/units/state/profiles/determinism.
+2. **Transforms as a first-class grammar** — FFT is not special; *domain changes* are core operations.
+3. **Typed, reproducible computation** — every stream/field/event has type, units, domain, and a determinism tier.
+4. **Thin, pluggable backends** — CPU/GPU/Audio/FFT providers are replaceable modules.
+5. **Two user surfaces** — *Composer* (Kairo.Audio) and *Performer* (RiffStack) share the same kernel and operator registry.
+
+---
+
+## 1) Layering (crisp separation of concerns)
+
+```
+┌───────────────────────────────────────────────────────┐
+│                   Applications / IDEs                 │
+└───────────────▲───────────────────────▲───────────────┘
+                │                       │
+        (A) RiffStack               (B) Kairo.Audio
+        Live YAML/RPN               Typed declarative DSL
+        • patches, loopers          • scenes, modules, events
+        • performance UX            • composition & rendering
+                └───────────────▲──────┘
+                                │  (Graph IR)
+┌───────────────────────────────┴────────────────────────┐
+│                     Kairo Kernel                       │
+│  • Types & Units (Stream<T,D,R>, Evt<A>, Space/Boundary)│
+│  • Deterministic Multirate Scheduler                    │
+│  • Transform Dialect (to/from/reparam)                  │
+│  • Profiles (strict/repro/live)                         │
+│  • Operator Registry (single source of truth)           │
+│  • State & Snapshot ABI, Introspection                  │
+└───────────────────────▲─────────▲──────────────────────┘
+                        │         │
+               Kairo Compiler   Runtime Backends
+               (MLIR dialects   (CPU/GPU/Audio/FFT/Convolution/
+                & lowering)       Storage providers)
+```
+
+**Contract:** RiffStack and Kairo.Audio *both* emit **Kairo Graph IR** (typed node/edge JSON). Kernel validates, compiles, schedules, and runs.
+
+---
+
+## 2) Kernel: Responsibilities & APIs
+
+### 2.1 Types & Units
+
+* `Stream<T,Domain,Rate>` — unified supertype (signals, fields, images).
+* `Evt<A>` — totally ordered, timestamped events.
+* `Space/Grid` — dimension, spacing, centering.
+* `Boundary/Interface` — domain couplers (Dirichlet/Neumann/periodic/reflect; flux_match/insulated).
+* Units: SI + domain aliases (`Hz`, `dB`, `cents`, `px`, `k` wavenumber). Lossy casts require `@allow_unit_cast`.
+
+### 2.2 Deterministic Multirate Scheduler
+
+* Rates: `audio`, `control`, `visual`, `sim` with explicit `dt` or `sample_rate`.
+* Partitions time by LCM/hop sizes; sample-accurate **event fences**.
+* Cross-rate ops are explicit: `resample(to=rate, mode=nearest|linear|cubic)`.
+* State consistency: double-buffering; hot-reload barriers.
+
+### 2.3 Transform Dialect (Core Grammar)
+
+* `transform.to(x, domain, method, attrs...)`
+* `transform.from(x, domain, method, attrs...)`
+* `transform.reparam(x, mapping)` (coordinate changes)
+* Normalization policies & windowing are profile-driven, explicit in metadata.
+
+**Minimum transforms (v1):** FFT/iFFT (time↔frequency), STFT/ISTFT, DCT/IDCT, Wavelet/IWavelet (family param), Space↔k-space, Graph Laplacian spectral, Mel/Inverse-Mel.
+
+### 2.4 Profiles & Determinism
+
+* Tiers: `strict` (bit-exact), `repro` (deterministic within FP), `live` (replayable, low-latency).
+* Precedence: per-op > module > scene > profile > global.
+* Profiles tune precision, oversampling, block size, convolution partitioning, FFT normalization.
+
+### 2.5 Operator Registry (Single Source of Truth)
+
+* Declarative metadata for all ops used by both frontends (and docs/CLI generated from it).
+
+**Schema (excerpt):**
+
+```json
+{
+  "name": "lpf",
+  "category": "filter",
+  "inputs": [{"name":"sig","type":"Sig"}],
+  "params": {
+    "cutoff": {"type":"Ctl[Hz]", "default":"2kHz", "range":[20, 24000]},
+    "q": {"type":"Ctl", "default":0.707, "range":[0.1, 20]}
+  },
+  "determinism": "strict",
+  "profile_defaults": {"live":{}, "repro":{}, "strict":{}},
+  "lowering": {"dialect":"kairo.signal", "template":"lpf_svf"}
+}
+```
+
+### 2.6 State, Snapshot, Introspection
+
+* Snapshot ABI: buffers, seeds, profiles, graph hash.
+* Hot-reload: patch graph at barriers (scene add/remove, parameter rebind).
+* `introspect(graph) -> JSON` (nodes, edges, rates, counters).
+
+---
+
+## 3) Kairo Compiler (MLIR)
+
+* Dialects: `kairo.stream`, `kairo.signal`, `kairo.field`, `kairo.visual`, `kairo.transform`, `kairo.agent`.
+* Passes: type/units, event fencing, fusion, vectorization, tiling, async I/O.
+* Lowering targets: `linalg/affine/vector/gpu/async` → LLVM/SPIR-V/Metal.
+* External calls: FFT/Conv providers (FFTW/MKL/cuFFT/rocFFT), device audio.
+
+---
+
+## 4) Runtime Backends (Providers)
+
+* **CPU** (LLVM JIT), **GPU** (SPIR-V/Metal/CUDA), **Audio Device** (block push/pull), **FFT/Conv** (pluggable).
+* Provider ABI (C/Python): `init()`, `load(module)`, `run(block)`, `event_inject(evt)`, `shutdown()`.
+
+---
+
+## 5) Kairo Graph IR (frontend-facing JSON)
+
+**Purpose:** a neutral, typed graph that both RiffStack and Kairo.Audio can emit.
+
+```json
+{
+  "version": "1.0",
+  "profile": "repro",
+  "nodes": [
+    {"id":"osc1","op":"sine","out":["s1"],"params":{"freq":"440Hz"}},
+    {"id":"lpf1","op":"lpf","in":["s1"],"out":["s2"],"params":{"cutoff":"2kHz","q":0.8}},
+    {"id":"pan","op":"pan","in":["s2"],"out":["L","R"],"params":{"pos":0.1}}
+  ],
+  "outputs": {"stereo":["L","R"]}
+}
+```
+
+Kernel validates (types/units/domains), attaches rates, compiles, runs.
+
+---
+
+## 6) Kairo.Audio (Composer Surface)
+
+* **Types:** `Sig` ≡ `Stream<f32,1D,audio>`, `Ctl` ≡ `Stream<f32,0D,control>`, `Evt<A>`, `Note`.
+* **Structure:** `scene`, `module`, `out stereo`, `score/at/loop`, `spawn`.
+* **Ops:** oscillators, filters, envelopes, FX, physical (waveguide/membrane/bodyIR/pickup/amp/cab), transforms.
+* **Determinism & profiles** respected by default.
+
+*Example (declarative, fun-first, fully overridable):*
+
+```kairo
+scene Duo {
+  let seq = score [
+    at 0s   note("A3",1,0.5s),
+    at 0.5s note("C4",0.9,0.5s),
+    at 1.0s note("E4",0.8,1.0s)
+  ] |> loop(2s)
+
+  module Guitar(n: Note): Sig {
+    let exc = noise(seed=7) |> lpf(6kHz) |> envexp(5ms) * n.vel
+    let str = string(n.pitch, 1.2s) exc
+    mix( bodyIR("acoustic.ir")(str)*0.8,
+         str |> pickup("humbucker",0.25) |> amp("brown",0.7) |> cab("4x12.ir")*0.7 )
+  }
+
+  out stereo = spawn(seq, (n)=>Guitar(n), max_voices=12) |> reverb(0.12) |> limiter(-1dB)
+}
+```
+
+---
+
+## 7) RiffStack (Performer Surface)
+
+* **YAML patches + RPN expressions**, loopers, controls; compiles to Kairo Graph IR.
+* Uses kernel profiles (`live` default) and injects controls as `Evt<Control>`.
+
+*Example:*
+
+```yaml
+version: 0.3
+tracks:
+  - id: lead
+    expr: "saw 220 0.7 lowpass 1200 0.9 reverb 0.1 play"
+loopers:
+  - id: main
+    input: lead
+    length: 4 bars
+controls:
+  - trigger: space
+    action: toggle_record main
+```
+
+---
+
+## 8) Transform Mindset — baked into Kernel
+
+**Minimal v1 transform set** (strict & repro):
+
+* Time↔Frequency: `fft/ifft`, `stft/istft` (window/overlap explicit).
+* Space↔k-space (2D/3D Fourier) for fields/visuals.
+* DCT/IDCT (cosine basis) for compression/cepstrum.
+* Wavelet/IWavelet (family param) for multi-scale.
+* Graph spectral (Laplacian eigenbasis) for topology analysis.
+* Mel/Inverse-Mel for perceptual audio.
+
+All exposed uniformly:
+
+```kairo
+let spec = transform.to(sig, domain="frequency", method="fft", window="hann")
+let shaped = spec * pink_shelf
+let out = transform.from(shaped, domain="time")
+```
+
+---
+
+## 9) Extension & Customization
+
+* **New ops**: add to registry (metadata + lowering template or kernel hook).
+* **New domains**: register name, coordinates, basis, default transforms.
+* **New backends**: implement provider ABI & advertise capabilities.
+* **New DSLs**: emit Graph IR or call kernel SDK; reuse registry.
+
+---
+
+## 10) Diagnostics & Conformance
+
+* Lints: NaN/Inf, DC offset, clipping risk, unit mismatches.
+* Golden artifacts per profile (WAV/PNG/NPY).
+* Event fence tests (off-by-one proof).
+* Deterministic RNG: Philox 4×32-10 seeded with `(graph_hash, id, tick, user_seed)`.
+
+---
+
+## 11) Migration Plan (from "what exists" to "this")
+
+**Week 1–2 — Boundaries**
+
+* Extract **Operator Registry** (JSON + codegen), retrofit a subset of ops.
+* Move MLIR dialects/passes into `compiler/` module.
+
+**Week 3–4 — Core additions**
+
+* Implement **Transform Dialect** (fft/stft/dct/wavelet + space↔k-space).
+* Expose **Kairo Graph IR** loader/validator (JSON schema + CLI).
+
+**Week 5 — Runtime bridges**
+
+* Provider ABI for **audio** & **FFT/conv**; plan caching.
+* Python SDK: `compile(graph)`, `play(profile)`, `inject(evt)`.
+
+**Week 6 — Frontends**
+
+* Kairo.Audio emits Graph IR; RiffStack transpiles YAML/RPN → Graph IR.
+* Golden tests and first public examples.
+
+---
+
+## 12) Why this is "the best version" of the stack
+
+* **Conceptually minimal**: one kernel, one registry, one graph, one transform grammar.
+* **Practically maximal**: supports deterministic audio today, PDE/visuals tomorrow, ML and geometry later — without revisiting fundamentals.
+* **Friendly by default**: RiffStack stays playful; Kairo.Audio stays expressive; both inherit safety and quality from the kernel.
+
+---
+
+### One-liner
+
+> Kairo is a **semantic, deterministic transform kernel** with two human-friendly faces: **Kairo.Audio** for composition and **RiffStack** for performance — all powered by a single operator registry, a neutral graph IR, and first-class domain transforms.

@@ -16,9 +16,13 @@ tags:
 
 # Kairo v0.3.1
 
-**A Language of Creative Determinism**
+**A semantic, deterministic transform kernel with two human-friendly faces:**
+- **Kairo.Audio** for composition
+- **RiffStack** for performance
 
 *Where computation becomes composition*
+
+> 📐 **Architecture**: See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the complete Kairo Stack design (kernel, frontends, Graph IR, transforms)
 
 ---
 
@@ -337,9 +341,18 @@ See `examples/` directory for more!
 
 ## Documentation
 
+### Architecture & Design
+- **[Architecture](ARCHITECTURE.md)** ⭐ - Finalized Kairo Stack architecture (v1.0 Draft)
+- **[Transform Dialect](docs/SPEC-TRANSFORM.md)** - First-class domain transforms (FFT, STFT, wavelets, etc.)
+- **[Graph IR](docs/SPEC-GRAPH-IR.md)** - Frontend-kernel boundary specification
+- **[Architecture Analysis](ARCHITECTURE_ANALYSIS.md)** - Historical architectural review
+
+### Language Reference
 - **[Complete Specification](SPECIFICATION.md)** - Full language reference
-- **[Audio Specification](AUDIO_SPECIFICATION.md)** - Kairo.Audio dialect specification
+- **[Audio Specification](AUDIO_SPECIFICATION.md)** - Kairo.Audio dialect specification (composer surface)
 - **[MLIR Pipeline Status](MLIR_PIPELINE_STATUS.md)** - Complete compilation pipeline details
+
+### Project History
 - **[Evolution Summary](docs/KAIRO_v0.3.1_SUMMARY.md)** - Why Kairo v0.3.1
 - **[Project Review](PROJECT_REVIEW_AND_NEXT_STEPS.md)** - Comprehensive assessment & roadmap
 - **[Legacy Docs](docs/legacy/)** - v0.2.2 CCDSL documentation
