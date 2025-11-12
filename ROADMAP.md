@@ -226,64 +226,88 @@ v0.2.2-mvp  →  v0.3.0  →  v0.4.0  →  v0.5.0  →  v0.6.0  →  v1.0.0
 
 ---
 
-## v0.5.0 — Audio & Signal Processing
+## v0.5.0 — Kairo.Audio Implementation
 **Target:** Q4 2025 (8 weeks)
-**Focus:** Real-time audio synthesis and processing
+**Focus:** Implement Kairo.Audio dialect specification
 
 ### Goals
-- Signal domain works
-- Audio synthesis
-- Audio-reactive visuals
-- Real-time performance
+- Kairo.Audio dialect fully implemented
+- Compositional audio synthesis
+- Physical modeling primitives
+- Deterministic polyphony
+- RiffStack integration
 
 ### Features
 
-**Signal System (P0)**
-- [ ] Signal data structure (time-varying values)
-- [ ] signal.osc() — Oscillators (sin, saw, square, tri)
-- [ ] signal.noise() — Noise generators
-- [ ] signal.env() — ADSR envelopes
-- [ ] signal.filter() — Filters (LP, HP, BP, notch)
-- [ ] signal.mix() — Signal mixing
-- [ ] signal.map() — Signal transformations
+**Core Audio Types (P0)**
+- [ ] Sig (audio-rate stream) type
+- [ ] Ctl (control-rate stream) type
+- [ ] Evt<A> (event stream) type
+- [ ] scene and module constructs
+- [ ] Rate model and cross-rate communication
+
+**Oscillators & Synthesis (P0)**
+- [ ] sine, saw, square, tri oscillators
+- [ ] Band-limited synthesis (BLEP/PolyBLEP)
+- [ ] Noise generators (white, pink, brown)
+- [ ] Deterministic RNG (Philox)
+
+**Filters & Effects (P0)**
+- [ ] lpf, hpf, bpf, svf filters
+- [ ] delay, reverb, chorus, flanger
+- [ ] drive, limiter effects
+- [ ] Convolution (IR-based)
+
+**Envelopes & Control (P0)**
+- [ ] adsr, ar envelope generators
+- [ ] envexp, linseg envelopes
+- [ ] Expressive control (vibrato, bend)
+
+**Physical Modeling (P1)**
+- [ ] string — Karplus-Strong waveguide
+- [ ] membrane — 2D waveguide
+- [ ] bodyIR — Resonant body modeling
+- [ ] pickup — Pickup simulation
+- [ ] amp, cab — Amplification modeling
+
+**Event System (P0)**
+- [ ] score — Event sequences
+- [ ] loop — Deterministic looping
+- [ ] spawn — Polyphonic voice allocation
+- [ ] Sample-accurate event timing
 
 **Audio I/O (P0)**
-- [ ] io.output(signal, target="audio")
-- [ ] Real-time audio output (PyAudio)
-- [ ] Sample rate handling
+- [ ] Real-time audio output
+- [ ] Profile-based quality control
 - [ ] Buffer management
+- [ ] Latency handling
 
-**Signal Processing (P1)**
-- [ ] signal.fft() — FFT/IFFT
-- [ ] signal.block() — Block processing
-- [ ] signal.delay() — Delay lines
-- [ ] signal.integrate() — Integration
-- [ ] Frequency analysis
-
-**Audio-Reactive (P1)**
-- [ ] Audio input streams
-- [ ] Spectrum analysis
-- [ ] Beat detection
-- [ ] Audio → visual coupling
+**RiffStack Integration (P1)**
+- [ ] YAML patch import/export
+- [ ] Operator registry sharing
+- [ ] Live performance mode
 
 **Examples (P0)**
+- [ ] Simple pluck synthesis
 - [ ] FM synthesis
-- [ ] Additive synthesis
-- [ ] Granular synthesis
-- [ ] Audio-reactive particles
-- [ ] Algorithmic composition
+- [ ] Polyphonic sequencer
+- [ ] Physical modeling demo
+- [ ] Audio-reactive visuals
 
 ### Success Criteria
-✅ Clean audio output (no clicks/pops)
-✅ Real-time synthesis at 48kHz
-✅ Audio-reactive visuals synchronized
-✅ Low latency (<10ms)
+✅ Deterministic audio rendering (bit-exact)
+✅ Real-time synthesis at 44.1-96kHz
+✅ Polyphonic voice allocation works
+✅ Physical models sound realistic
+✅ RiffStack integration functional
 
 ### Deliverables
-- Signal processing system
+- Complete Kairo.Audio implementation
 - Audio synthesis examples
-- Audio-reactive examples
-- Signal processing tutorial
+- Physical modeling examples
+- RiffStack integration
+- Audio dialect tutorial
+- AUDIO_SPECIFICATION.md (complete)
 
 ---
 
@@ -493,7 +517,7 @@ v0.2.2-mvp  →  v0.3.0  →  v0.4.0  →  v0.5.0  →  v0.6.0  →  v1.0.0
 | v0.2.2-mvp | Fields work | 3 weeks | Smoke simulation |
 | v0.3.0 | Performance | 8 weeks | GPU support |
 | v0.4.0 | Multi-domain | 8 weeks | Agent-field coupling |
-| v0.5.0 | Audio | 8 weeks | Real-time synthesis |
+| v0.5.0 | Kairo.Audio | 8 weeks | Audio synthesis & physical modeling |
 | v0.6.0 | MLIR | 12 weeks | Production compiler |
 | v1.0.0 | Production | 12 weeks | Complete system |
 | **Total** | | **~1 year** | Production DSL |
