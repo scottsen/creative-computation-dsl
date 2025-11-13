@@ -129,6 +129,18 @@ arith + math ops
 Vectorized waveform generation
 ```
 
+**GPU Lowering Principles**
+
+Kairo's MLIR lowering follows structured patterns that ensure efficient GPU execution while maintaining determinism. The compiler pipeline implements:
+
+1. **Structured Parallelism** — All operations expose explicit iteration spaces for GPU block/thread mapping
+2. **Memory Hierarchy Management** — Explicit modeling of global/shared/register memory tiers
+3. **Static Shape Preference** — Compile-time constants enable optimal tiling and vectorization
+4. **Warp-Friendly Execution** — Uniform control flow to minimize divergence penalties
+5. **Deterministic GPU Semantics** — Profile-driven guarantees for strict/repro/live execution modes
+
+For detailed GPU design rules, operator metadata requirements, and lowering patterns, see [GPU & MLIR Principles](./GPU_MLIR_PRINCIPLES.md).
+
 ### 5. Runtime System
 
 **Execution Context** (`creative_computation/runtime/`)

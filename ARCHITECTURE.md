@@ -114,6 +114,8 @@
 * Lowering targets: `linalg/affine/vector/gpu/async` → LLVM/SPIR-V/Metal.
 * External calls: FFT/Conv providers (FFTW/MKL/cuFFT/rocFFT), device audio.
 
+**GPU & MLIR Design Principles:** The compiler follows structured lowering patterns that align Kairo's semantic kernel with MLIR's GPU pipeline. See [GPU & MLIR Principles](docs/GPU_MLIR_PRINCIPLES.md) for detailed design rules on parallelism, memory hierarchy, determinism profiles, and operator metadata.
+
 ---
 
 ## 4) Runtime Backends (Providers)
