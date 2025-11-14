@@ -923,6 +923,326 @@ class MLIRCompilerV2:
 
             return module
 
+    # Phase 5: Audio Operations Support
+
+    def compile_audio_buffer_create(
+        self,
+        sample_rate: Any,
+        channels: Any,
+        duration: Any,
+        loc: Any,
+        ip: Any
+    ) -> Any:
+        """Compile audio buffer creation operation.
+
+        Args:
+            sample_rate: Sample rate in Hz (ir.Value, index type)
+            channels: Number of channels (ir.Value, index type)
+            duration: Duration in seconds (ir.Value, f32 type)
+            loc: Source location
+            ip: Insertion point
+
+        Returns:
+            Audio buffer value
+
+        Example:
+            audio_buffer_create(sample_rate=44100, channels=1, duration=1.0)
+            → %buf = kairo.audio.buffer.create %sr, %ch, %dur : !kairo.audio<44100, 1>
+        """
+        from .dialects.audio import AudioDialect
+        return AudioDialect.buffer_create(sample_rate, channels, duration, loc, ip)
+
+    def compile_audio_oscillator(
+        self,
+        buffer: Any,
+        waveform: Any,
+        frequency: Any,
+        phase: Any,
+        loc: Any,
+        ip: Any
+    ) -> Any:
+        """Compile oscillator operation.
+
+        Args:
+            buffer: Target audio buffer (ir.Value)
+            waveform: Waveform type (ir.Value, index: 0=sine, 1=square, 2=saw, 3=triangle)
+            frequency: Frequency in Hz (ir.Value, f32 type)
+            phase: Initial phase in radians (ir.Value, f32 type)
+            loc: Source location
+            ip: Insertion point
+
+        Returns:
+            Audio buffer with oscillator output
+
+        Example:
+            audio_oscillator(buffer, waveform=0, freq=440.0, phase=0.0)
+            → %osc = kairo.audio.oscillator %buf, %wf, %freq, %phase
+        """
+        from .dialects.audio import AudioDialect
+        return AudioDialect.oscillator(buffer, waveform, frequency, phase, loc, ip)
+
+    def compile_audio_envelope(
+        self,
+        buffer: Any,
+        attack: Any,
+        decay: Any,
+        sustain: Any,
+        release: Any,
+        loc: Any,
+        ip: Any
+    ) -> Any:
+        """Compile ADSR envelope operation.
+
+        Args:
+            buffer: Input audio buffer (ir.Value)
+            attack: Attack time in seconds (ir.Value, f32 type)
+            decay: Decay time in seconds (ir.Value, f32 type)
+            sustain: Sustain level 0.0-1.0 (ir.Value, f32 type)
+            release: Release time in seconds (ir.Value, f32 type)
+            loc: Source location
+            ip: Insertion point
+
+        Returns:
+            Audio buffer with envelope applied
+
+        Example:
+            audio_envelope(buffer, attack=0.01, decay=0.1, sustain=0.7, release=0.2)
+            → %env = kairo.audio.envelope %buf, %a, %d, %s, %r
+        """
+        from .dialects.audio import AudioDialect
+        return AudioDialect.envelope(buffer, attack, decay, sustain, release, loc, ip)
+
+    def compile_audio_filter(
+        self,
+        buffer: Any,
+        filter_type: Any,
+        cutoff: Any,
+        resonance: Any,
+        loc: Any,
+        ip: Any
+    ) -> Any:
+        """Compile filter operation.
+
+        Args:
+            buffer: Input audio buffer (ir.Value)
+            filter_type: Filter type (ir.Value, index: 0=lowpass, 1=highpass, 2=bandpass)
+            cutoff: Cutoff frequency in Hz (ir.Value, f32 type)
+            resonance: Resonance/Q factor (ir.Value, f32 type)
+            loc: Source location
+            ip: Insertion point
+
+        Returns:
+            Filtered audio buffer
+
+        Example:
+            audio_filter(buffer, filter_type=0, cutoff=1000.0, resonance=1.0)
+            → %filt = kairo.audio.filter %buf, %type, %cutoff, %Q
+        """
+        from .dialects.audio import AudioDialect
+        return AudioDialect.filter(buffer, filter_type, cutoff, resonance, loc, ip)
+
+    def compile_audio_mix(
+        self,
+        buffers: List[Any],
+        gains: List[Any],
+        loc: Any,
+        ip: Any
+    ) -> Any:
+        """Compile audio mix operation.
+
+        Args:
+            buffers: List of audio buffers to mix (list of ir.Value)
+            gains: List of gain values (list of ir.Value, f32 type)
+            loc: Source location
+            ip: Insertion point
+
+        Returns:
+            Mixed audio buffer
+
+        Example:
+            audio_mix([buf1, buf2], [0.5, 0.5])
+            → %mix = kairo.audio.mix %buf1, %buf2, %g1, %g2
+        """
+        from .dialects.audio import AudioDialect
+        return AudioDialect.mix(buffers, gains, loc, ip)
+
+    def apply_audio_lowering(self, module: Any) -> None:
+        """Apply audio-to-SCF lowering pass to module.
+
+        This transforms high-level audio operations into low-level
+        SCF loops with memref-based audio buffer storage.
+
+        Args:
+            module: MLIR module to transform (in-place)
+
+        Example:
+            >>> compiler.apply_audio_lowering(module)
+            # Audio ops → SCF loops + memref
+        """
+        from .lowering import create_audio_to_scf_pass
+
+        pass_obj = create_audio_to_scf_pass(self.context)
+        pass_obj.run(module)
+
+    def compile_audio_program(
+        self,
+        operations: List[Dict[str, Any]],
+        module_name: str = "audio_program"
+    ) -> Any:
+        """Compile a sequence of audio operations to MLIR module.
+
+        This is a convenience method for Phase 5 to compile audio operations
+        without requiring full AST support.
+
+        Args:
+            operations: List of operation dictionaries with keys:
+                - op: Operation name ("buffer_create", "oscillator", "envelope", "filter", "mix")
+                - args: Dictionary of arguments
+            module_name: Module name
+
+        Returns:
+            MLIR Module with lowered operations
+
+        Example:
+            >>> ops = [
+            ...     {"op": "buffer_create", "args": {"sample_rate": 44100, "channels": 1, "duration": 1.0}},
+            ...     {"op": "oscillator", "args": {"buffer": "buf0", "waveform": 0, "freq": 440.0, "phase": 0.0}},
+            ...     {"op": "envelope", "args": {"buffer": "osc0", "attack": 0.01, "decay": 0.1, "sustain": 0.7, "release": 0.2}},
+            ... ]
+            >>> module = compiler.compile_audio_program(ops)
+        """
+        with self.context.ctx, ir.Location.unknown():
+            module = self.context.create_module(module_name)
+
+            # Create a wrapper function
+            with ir.InsertionPoint(module.body):
+                f32 = ir.F32Type.get()
+                index = ir.IndexType.get()
+                func_type = ir.FunctionType.get([], [])
+                func_op = func.FuncOp(name="main", type=func_type)
+                func_op.add_entry_block()
+
+                with ir.InsertionPoint(func_op.entry_block):
+                    loc = ir.Location.unknown()
+                    ip = ir.InsertionPoint(func_op.entry_block)
+
+                    # Process operations
+                    results = {}
+                    for i, operation in enumerate(operations):
+                        op_name = operation["op"]
+                        args = operation["args"]
+
+                        if op_name == "buffer_create":
+                            # Create constants for buffer parameters
+                            sample_rate_val = arith.ConstantOp(
+                                index,
+                                ir.IntegerAttr.get(index, args["sample_rate"])
+                            ).result
+                            channels_val = arith.ConstantOp(
+                                index,
+                                ir.IntegerAttr.get(index, args["channels"])
+                            ).result
+                            duration_val = arith.ConstantOp(
+                                f32,
+                                ir.FloatAttr.get(f32, args["duration"])
+                            ).result
+
+                            result = self.compile_audio_buffer_create(
+                                sample_rate_val, channels_val, duration_val, loc, ip
+                            )
+                            results[f"buf{i}"] = result
+
+                        elif op_name == "oscillator":
+                            buffer_name = args["buffer"]
+                            buffer_val = results[buffer_name]
+                            waveform_val = arith.ConstantOp(
+                                index,
+                                ir.IntegerAttr.get(index, args["waveform"])
+                            ).result
+                            freq_val = arith.ConstantOp(
+                                f32,
+                                ir.FloatAttr.get(f32, args["freq"])
+                            ).result
+                            phase_val = arith.ConstantOp(
+                                f32,
+                                ir.FloatAttr.get(f32, args["phase"])
+                            ).result
+
+                            result = self.compile_audio_oscillator(
+                                buffer_val, waveform_val, freq_val, phase_val, loc, ip
+                            )
+                            results[f"osc{i}"] = result
+
+                        elif op_name == "envelope":
+                            buffer_name = args["buffer"]
+                            buffer_val = results[buffer_name]
+                            attack_val = arith.ConstantOp(
+                                f32,
+                                ir.FloatAttr.get(f32, args["attack"])
+                            ).result
+                            decay_val = arith.ConstantOp(
+                                f32,
+                                ir.FloatAttr.get(f32, args["decay"])
+                            ).result
+                            sustain_val = arith.ConstantOp(
+                                f32,
+                                ir.FloatAttr.get(f32, args["sustain"])
+                            ).result
+                            release_val = arith.ConstantOp(
+                                f32,
+                                ir.FloatAttr.get(f32, args["release"])
+                            ).result
+
+                            result = self.compile_audio_envelope(
+                                buffer_val, attack_val, decay_val, sustain_val, release_val, loc, ip
+                            )
+                            results[f"env{i}"] = result
+
+                        elif op_name == "filter":
+                            buffer_name = args["buffer"]
+                            buffer_val = results[buffer_name]
+                            filter_type_val = arith.ConstantOp(
+                                index,
+                                ir.IntegerAttr.get(index, args["filter_type"])
+                            ).result
+                            cutoff_val = arith.ConstantOp(
+                                f32,
+                                ir.FloatAttr.get(f32, args["cutoff"])
+                            ).result
+                            resonance_val = arith.ConstantOp(
+                                f32,
+                                ir.FloatAttr.get(f32, args["resonance"])
+                            ).result
+
+                            result = self.compile_audio_filter(
+                                buffer_val, filter_type_val, cutoff_val, resonance_val, loc, ip
+                            )
+                            results[f"filt{i}"] = result
+
+                        elif op_name == "mix":
+                            buffer_names = args["buffers"]
+                            buffer_vals = [results[name] for name in buffer_names]
+                            gain_vals = [
+                                arith.ConstantOp(
+                                    f32,
+                                    ir.FloatAttr.get(f32, gain)
+                                ).result
+                                for gain in args["gains"]
+                            ]
+
+                            result = self.compile_audio_mix(
+                                buffer_vals, gain_vals, loc, ip
+                            )
+                            results[f"mix{i}"] = result
+
+                    # Return
+                    func.ReturnOp([])
+
+            # Apply lowering passes
+            self.apply_audio_lowering(module)
+
+            return module
+
 
 # Export for backward compatibility check
 def is_legacy_compiler() -> bool:
