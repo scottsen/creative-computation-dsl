@@ -368,6 +368,285 @@ class MLIRCompilerV2:
 
             return module
 
+    # Phase 3: Temporal Operations Support
+
+    def compile_flow_create(
+        self,
+        dt: Any,
+        steps: Any,
+        element_type: Any,
+        loc: Any,
+        ip: Any
+    ) -> Any:
+        """Compile flow creation operation.
+
+        Args:
+            dt: Time step size (ir.Value)
+            steps: Number of timesteps (ir.Value)
+            element_type: MLIR element type
+            loc: Source location
+            ip: Insertion point
+
+        Returns:
+            Flow handle value
+
+        Example:
+            flow_create(dt=0.1, steps=10)
+            → %flow = kairo.temporal.flow.create %dt, %steps : !kairo.flow<f32>
+        """
+        from .dialects.temporal import TemporalDialect
+        return TemporalDialect.flow_create(dt, steps, element_type, loc, ip)
+
+    def compile_flow_run(
+        self,
+        flow: Any,
+        initial_state: Any,
+        loc: Any,
+        ip: Any
+    ) -> Any:
+        """Compile flow run operation.
+
+        Args:
+            flow: Flow handle (ir.Value)
+            initial_state: Initial state (ir.Value)
+            loc: Source location
+            ip: Insertion point
+
+        Returns:
+            Final state value
+
+        Example:
+            flow_run(flow, initial_state)
+            → %final = kairo.temporal.flow.run %flow, %initial_state
+        """
+        from .dialects.temporal import TemporalDialect
+        return TemporalDialect.flow_run(flow, initial_state, None, loc, ip)
+
+    def compile_state_create(
+        self,
+        size: Any,
+        initial_value: Any,
+        element_type: Any,
+        loc: Any,
+        ip: Any
+    ) -> Any:
+        """Compile state creation operation.
+
+        Args:
+            size: Size of state container (ir.Value)
+            initial_value: Initial value (ir.Value)
+            element_type: MLIR element type
+            loc: Source location
+            ip: Insertion point
+
+        Returns:
+            State container value
+
+        Example:
+            state_create(size=100, initial_value=0.0)
+            → %state = kairo.temporal.state.create %size, %init_val : !kairo.state<f32>
+        """
+        from .dialects.temporal import TemporalDialect
+        return TemporalDialect.state_create(size, initial_value, element_type, loc, ip)
+
+    def compile_state_update(
+        self,
+        state: Any,
+        index: Any,
+        value: Any,
+        loc: Any,
+        ip: Any
+    ) -> Any:
+        """Compile state update operation.
+
+        Args:
+            state: State container (ir.Value)
+            index: Index to update (ir.Value)
+            value: New value (ir.Value)
+            loc: Source location
+            ip: Insertion point
+
+        Returns:
+            Updated state container
+
+        Example:
+            state_update(state, index=5, value=1.5)
+            → %new_state = kairo.temporal.state.update %state, %idx, %val
+        """
+        from .dialects.temporal import TemporalDialect
+        return TemporalDialect.state_update(state, index, value, loc, ip)
+
+    def compile_state_query(
+        self,
+        state: Any,
+        index: Any,
+        element_type: Any,
+        loc: Any,
+        ip: Any
+    ) -> Any:
+        """Compile state query operation.
+
+        Args:
+            state: State container (ir.Value)
+            index: Index to read (ir.Value)
+            element_type: MLIR element type
+            loc: Source location
+            ip: Insertion point
+
+        Returns:
+            Value at index
+
+        Example:
+            state_query(state, index=5)
+            → %value = kairo.temporal.state.query %state, %idx : f32
+        """
+        from .dialects.temporal import TemporalDialect
+        return TemporalDialect.state_query(state, index, element_type, loc, ip)
+
+    def apply_temporal_lowering(self, module: Any) -> None:
+        """Apply temporal-to-SCF lowering pass to module.
+
+        This transforms high-level temporal operations into low-level
+        SCF loops with memref-based state management.
+
+        Args:
+            module: MLIR module to transform (in-place)
+
+        Example:
+            >>> compiler.apply_temporal_lowering(module)
+            # Temporal ops → SCF loops + memref
+        """
+        from .lowering import create_temporal_to_scf_pass
+
+        pass_obj = create_temporal_to_scf_pass(self.context)
+        pass_obj.run(module)
+
+    def compile_temporal_program(
+        self,
+        operations: List[Dict[str, Any]],
+        module_name: str = "temporal_program"
+    ) -> Any:
+        """Compile a sequence of temporal operations to MLIR module.
+
+        This is a convenience method for Phase 3 to compile temporal operations
+        without requiring full AST support.
+
+        Args:
+            operations: List of operation dictionaries with keys:
+                - op: Operation name ("flow_create", "state_create", "flow_run", etc.)
+                - args: Dictionary of arguments
+            module_name: Module name
+
+        Returns:
+            MLIR Module with lowered operations
+
+        Example:
+            >>> ops = [
+            ...     {"op": "state_create", "args": {"size": 100, "initial_value": 0.0}},
+            ...     {"op": "flow_create", "args": {"dt": 0.1, "steps": 10}},
+            ...     {"op": "flow_run", "args": {"flow": "flow0", "initial_state": "state0"}},
+            ... ]
+            >>> module = compiler.compile_temporal_program(ops)
+        """
+        with self.context.ctx, ir.Location.unknown():
+            module = self.context.create_module(module_name)
+
+            # Create a wrapper function
+            with ir.InsertionPoint(module.body):
+                f32 = ir.F32Type.get()
+                func_type = ir.FunctionType.get([], [])
+                func_op = func.FuncOp(name="main", type=func_type)
+                func_op.add_entry_block()
+
+                with ir.InsertionPoint(func_op.entry_block):
+                    loc = ir.Location.unknown()
+                    ip = ir.InsertionPoint(func_op.entry_block)
+
+                    # Process operations
+                    results = {}
+                    for i, operation in enumerate(operations):
+                        op_name = operation["op"]
+                        args = operation["args"]
+
+                        if op_name == "state_create":
+                            # Create constants
+                            size_val = arith.ConstantOp(
+                                ir.IndexType.get(),
+                                ir.IntegerAttr.get(ir.IndexType.get(), args["size"])
+                            ).result
+                            init_val = arith.ConstantOp(
+                                f32,
+                                ir.FloatAttr.get(f32, args["initial_value"])
+                            ).result
+
+                            result = self.compile_state_create(
+                                size_val, init_val, f32, loc, ip
+                            )
+                            results[f"state{i}"] = result
+
+                        elif op_name == "flow_create":
+                            # Create constants
+                            dt_val = arith.ConstantOp(
+                                f32,
+                                ir.FloatAttr.get(f32, args["dt"])
+                            ).result
+                            steps_val = arith.ConstantOp(
+                                ir.IndexType.get(),
+                                ir.IntegerAttr.get(ir.IndexType.get(), args["steps"])
+                            ).result
+
+                            result = self.compile_flow_create(
+                                dt_val, steps_val, f32, loc, ip
+                            )
+                            results[f"flow{i}"] = result
+
+                        elif op_name == "flow_run":
+                            flow_name = args["flow"]
+                            state_name = args["initial_state"]
+                            flow_val = results[flow_name]
+                            state_val = results[state_name]
+
+                            result = self.compile_flow_run(flow_val, state_val, loc, ip)
+                            results[f"final_state{i}"] = result
+
+                        elif op_name == "state_update":
+                            state_name = args["state"]
+                            state_val = results[state_name]
+                            index_val = arith.ConstantOp(
+                                ir.IndexType.get(),
+                                ir.IntegerAttr.get(ir.IndexType.get(), args["index"])
+                            ).result
+                            value_val = arith.ConstantOp(
+                                f32,
+                                ir.FloatAttr.get(f32, args["value"])
+                            ).result
+
+                            result = self.compile_state_update(
+                                state_val, index_val, value_val, loc, ip
+                            )
+                            results[f"state{i}"] = result
+
+                        elif op_name == "state_query":
+                            state_name = args["state"]
+                            state_val = results[state_name]
+                            index_val = arith.ConstantOp(
+                                ir.IndexType.get(),
+                                ir.IntegerAttr.get(ir.IndexType.get(), args["index"])
+                            ).result
+
+                            result = self.compile_state_query(
+                                state_val, index_val, f32, loc, ip
+                            )
+                            results[f"value{i}"] = result
+
+                    # Return
+                    func.ReturnOp([])
+
+            # Apply lowering passes
+            self.apply_temporal_lowering(module)
+
+            return module
+
 
 # Export for backward compatibility check
 def is_legacy_compiler() -> bool:
