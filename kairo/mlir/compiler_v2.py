@@ -12,11 +12,15 @@ This is a complete rewrite of kairo/mlir/compiler.py to use actual MLIR
 instead of string templates.
 """
 
-from typing import Dict, List, Optional, Any
+from __future__ import annotations
+from typing import Dict, List, Optional, Any, TYPE_CHECKING
 from ..ast.nodes import (
     Program, Statement, Expression,
     Function, Return, Assignment, Literal, Identifier, BinaryOp
 )
+
+if TYPE_CHECKING:
+    from .context import KairoMLIRContext
 
 # Import MLIR if available
 try:
@@ -25,7 +29,10 @@ try:
     MLIR_AVAILABLE = True
 except ImportError:
     MLIR_AVAILABLE = False
-    ir = None
+    if TYPE_CHECKING:
+        from mlir import ir
+    else:
+        ir = None
 
 
 class MLIRCompilerV2:
@@ -41,7 +48,7 @@ class MLIRCompilerV2:
         >>> module = compiler.compile_program(ast_program)
     """
 
-    def __init__(self, context: "KairoMLIRContext"):
+    def __init__(self, context: KairoMLIRContext):
         """Initialize MLIR compiler v2.
 
         Args:
@@ -57,10 +64,10 @@ class MLIRCompilerV2:
             )
 
         self.context = context
-        self.module: Optional[ir.Module] = None
-        self.symbols: Dict[str, ir.Value] = {}
+        self.module: Optional[Any] = None  # Will be ir.Module when MLIR is available
+        self.symbols: Dict[str, Any] = {}  # Will be Dict[str, ir.Value] when MLIR is available
 
-    def compile_program(self, program: Program) -> ir.Module:
+    def compile_program(self, program: Program) -> Any:
         """Compile a Kairo program to MLIR module.
 
         Args:
@@ -73,7 +80,7 @@ class MLIRCompilerV2:
         """
         raise NotImplementedError("Phase 1 implementation in progress")
 
-    def compile_literal(self, literal: Literal, builder: ir.InsertionPoint) -> ir.Value:
+    def compile_literal(self, literal: Literal, builder: Optional[Any]) -> Any:
         """Compile literal using arith.constant.
 
         Args:
@@ -108,7 +115,7 @@ class MLIRCompilerV2:
             else:
                 raise ValueError(f"Unsupported literal type: {type(literal.value)}")
 
-    def compile_binary_op(self, binop: BinaryOp, builder: ir.InsertionPoint) -> ir.Value:
+    def compile_binary_op(self, binop: BinaryOp, builder: Optional[Any]) -> Any:
         """Compile binary operation.
 
         Args:
