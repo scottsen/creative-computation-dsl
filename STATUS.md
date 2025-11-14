@@ -358,17 +358,27 @@ final = audio.reverb(pluck, mix=0.12, size=0.8)
 
 **Determinism:** ✅ Verified - all operations produce identical results with same seed
 
-#### Visual Dialect (for agents/layers) ⚠️ **PARTIAL**
-**Status:** Field visualization complete, agent rendering not implemented
+#### Visual Dialect (for agents/layers) ✅ **COMPLETE** (v0.6.0)
+**Status:** Full visualization pipeline with agent rendering and layer composition
 
 **Implemented:**
 - ✅ Field colorization and output
+- ✅ `visual.agents()` - Agent rendering with property-based styling
+- ✅ `visual.layer()` - Layer creation and conversion
+- ✅ `visual.composite()` - Multi-layer composition with blend modes
+- ✅ `visual.video()` - Video export (MP4, GIF)
+- ✅ Property-based coloring (color_property + palette)
+- ✅ Property-based sizing (size_property + size_scale)
+- ✅ Multiple blend modes (over, add, multiply, screen, overlay)
+
+**Location:** `kairo/stdlib/visual.py` (782 lines)
+
+**Tests:** `tests/test_visual_extensions.py` (34 tests)
 
 **Not Implemented:**
-- ❌ `visual.points()` - Agent rendering
-- ❌ `visual.layer()` - Layer composition
-- ❌ `visual.filter()` - Post-processing effects
+- ❌ `visual.filter()` - Post-processing effects (blur, sharpen)
 - ❌ `visual.coord_warp()` - Geometric warps
+- ❌ Text overlay support
 
 ---
 
@@ -610,14 +620,15 @@ kairo run examples/heat_diffusion.kairo
 - ✅ Field-agent coupling
 - ✅ 85 comprehensive tests
 
-### v0.6.0 (Next) - Audio I/O and Visual Dialect Extensions
-**Target:** 3-6 months
+### v0.6.0 ✅ **COMPLETE** - Audio I/O and Visual Dialect Extensions
+**Completed:** 2025-11-14
 
-- Real-time audio playback and recording
-- Audio file export (WAV, FLAC)
-- Agent visualization (points, trails)
-- Layer composition for visuals
-- Video export capabilities
+- ✅ Real-time audio playback and recording
+- ✅ Audio file export/import (WAV, FLAC)
+- ✅ Agent visualization with property-based styling
+- ✅ Layer composition system with blend modes
+- ✅ Video export capabilities (MP4, GIF)
+- ✅ 64+ I/O integration tests (24 audio I/O, 40+ visual extensions)
 
 ### v0.7.0 - Real MLIR Integration
 **Target:** 12+ months
@@ -649,11 +660,11 @@ kairo run examples/heat_diffusion.kairo
 - ⚠️ No GPU support yet
 
 ### Feature Gaps
-- ❌ Audio I/O (playback, recording, file export) not implemented
-- ❌ Advanced visual operations (layers, agent rendering) not implemented
-- ❌ Module system not implemented
+- ❌ Advanced post-processing (blur, sharpen, custom filters) not implemented
+- ❌ Text overlay support not implemented
+- ❌ Module system not fully implemented
 - ❌ Hot-reload not implemented
-- ❌ Video export not implemented
+- ❌ Coordinate warping (visual.coord_warp) not implemented
 
 ### Performance
 - ⚠️ Python/NumPy interpreter adequate for prototyping but not production
@@ -664,45 +675,49 @@ kairo run examples/heat_diffusion.kairo
 
 ## Getting Involved
 
-### High Priority (v0.6.0)
-1. **Audio I/O** - Real-time playback and recording
-2. **Audio File Export** - WAV, FLAC formats
-3. **Visual Dialect Extensions** - Agent rendering, layers
-4. **Example Programs** - More audio compositions and simulations
-5. **Documentation** - Audio tutorials, video examples
+### High Priority (v0.7.0)
+1. **Real MLIR Integration** - Replace text-based IR with actual MLIR bindings
+2. **Performance Optimization** - Profile-guided optimization, parallelization
+3. **Advanced Visual Operations** - Post-processing filters, text overlay
+4. **Example Programs** - More complex multi-modal compositions
+5. **Documentation** - Advanced tutorials, best practices
 
-### Medium Priority (v0.6.0+)
+### Medium Priority (v0.8.0+)
 - Module composition system
-- Performance optimization
-- Advanced visual operations
-- Video export capabilities
+- Physical units enforcement at runtime
+- Hot-reload implementation
+- Advanced examples and tutorials
 
-### Long-term (v0.7.0+)
-- Real MLIR integration
-- GPU compilation
-- Native code generation
-- Production tooling
+### Long-term (v1.0.0)
+- Production-ready performance
+- Complete optimization pipeline
+- Comprehensive documentation
+- Production tooling and IDE integration
 
 ---
 
 ## Summary
 
-**Kairo v0.5.0** is a **working, usable system** for:
+**Kairo v0.6.0** is a **working, usable system** for:
 - Field-based simulations (heat, diffusion, fluids)
 - Agent-based modeling (particles, boids, N-body systems)
 - Audio synthesis and processing (deterministic music generation)
+- **Real-time audio playback and recording** ⭐ NEW
+- **Audio file I/O (WAV, FLAC)** ⭐ NEW
+- **Agent visualization with property-based styling** ⭐ NEW
+- **Multi-layer visual composition** ⭐ NEW
+- **Video export (MP4, GIF)** ⭐ NEW
 - Deterministic computation with reproducible results
 - Interactive visualization and export
 - Educational and research applications
 
 **But** it is **not yet production-ready** for:
-- Real-time audio playback (no I/O implementation)
-- Audio/video file export
 - High-performance applications (Python interpreter only)
 - Native code generation (MLIR is text-only)
 - GPU acceleration
+- Advanced post-processing (blur, sharpen, text overlay)
 
-The foundation is solid, the architecture is sound, and the path forward is clear. The project is in **active development** with three major dialects now complete (Field, Agent, Audio) and a realistic roadmap to v1.0.
+The foundation is solid, the architecture is sound, and the path forward is clear. The project is in **active development** with **complete multimedia I/O** and three major dialects fully implemented (Field, Agent, Audio) with comprehensive visual extensions. Realistic roadmap to v1.0.
 
 ---
 
@@ -713,5 +728,5 @@ The foundation is solid, the architecture is sound, and the path forward is clea
 ---
 
 **Last Updated:** 2025-11-14
-**Version:** 0.5.0
-**Status:** Alpha - Core Features + Agent + Audio Dialects Working
+**Version:** 0.6.0
+**Status:** Alpha - Core Features + Agent + Audio + I/O Complete

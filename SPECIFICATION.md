@@ -1,4 +1,4 @@
-# Kairo v0.3.1 Language Specification
+# Kairo v0.6.0 Language Specification
 
 **A Language of Creative Determinism**
 
@@ -8,8 +8,8 @@
 
 ## Document Information
 
-- **Version**: 0.3.1
-- **Date**: 2025-11-06
+- **Version**: 0.6.0
+- **Date**: 2025-11-14
 - **Status**: Draft Specification
 - **Authors**: Scott Sen, with Claude
 - **Target Audience**: Implementors and Language Designers
@@ -64,18 +64,22 @@ Kairo programs describe time-evolving systems through:
 
 ### 1.3 Evolution from v0.2.2
 
-Kairo v0.3.1 refines v0.3.0 with lessons from Creative Computation DSL v0.2.2:
+Kairo has evolved from Creative Computation DSL v0.2.2 through several iterations:
 
-| Aspect | v0.2.2 | v0.3.0 | v0.3.1 |
-|--------|--------|--------|--------|
-| **Temporal** | `step` blocks | `flow(dt, substeps)` | `flow(dt, substeps)` ✓ |
-| **State** | `step.state()` | `@state` | `@state` ✓ |
-| **Types** | Explicit domains | Abstract Flow<T> | **Explicit domains** ✓ |
-| **Modules** | Clear syntax | Unclear compose | **Clear syntax** ✓ |
-| **Functions** | Implicit | Unclear | **Explicit fn/lambda** ✓ |
-| **RNG** | Implicit | Explicit | Explicit ✓ |
+| Aspect | v0.2.2 | v0.3.0 | v0.3.1 | v0.6.0 |
+|--------|--------|--------|--------|--------|
+| **Temporal** | `step` blocks | `flow(dt, substeps)` | `flow(dt, substeps)` ✓ | `flow(dt, substeps)` ✓ |
+| **State** | `step.state()` | `@state` | `@state` ✓ | `@state` ✓ |
+| **Types** | Explicit domains | Abstract Flow<T> | **Explicit domains** ✓ | **Explicit domains** ✓ |
+| **Modules** | Clear syntax | Unclear compose | **Clear syntax** ✓ | **Clear syntax** ✓ |
+| **Functions** | Implicit | Unclear | **Explicit fn/lambda** ✓ | **Explicit fn/lambda** ✓ |
+| **RNG** | Implicit | Explicit | Explicit ✓ | Explicit ✓ |
+| **Audio I/O** | - | - | - | **play/save/load/record** ✓ |
+| **Visual I/O** | Basic | Basic | Basic | **agents/composite/video** ✓ |
 
-**Key Insight**: v0.3.1 = v0.3.0 semantics + v0.2.2 completeness
+**Key Milestones**:
+- v0.3.1 = v0.3.0 semantics + v0.2.2 completeness
+- v0.6.0 = Complete multimedia I/O pipeline with production-ready features
 
 ---
 
@@ -1226,19 +1230,72 @@ For the complete Kairo.Audio language specification, including:
 
 See **[AUDIO_SPECIFICATION.md](AUDIO_SPECIFICATION.md)**
 
-### 11.5 Integration with Kairo Core
+### 11.5 Audio I/O Operations (v0.6.0)
+
+**Real-time playback and file I/O** for audio buffers:
+
+```kairo
+# Play audio in real-time
+audio.play(buffer, blocking=true)
+
+# Save audio to file
+audio.save(buffer, "output.wav")           # WAV format
+audio.save(buffer, "output.flac")          # FLAC lossless
+audio.save(buffer, "output.wav", format="wav")  # Explicit format
+
+# Load audio from file
+buffer = audio.load("input.wav")           # Auto-detect format
+buffer = audio.load("input.flac")          # FLAC support
+
+# Record from microphone
+recording = audio.record(
+    duration=5.0,        # seconds
+    sample_rate=44100,
+    channels=1           # 1=mono, 2=stereo
+)
+```
+
+**Supported Formats:**
+- **WAV**: Uncompressed (via soundfile or scipy.io.wavfile)
+- **FLAC**: Lossless compression (via soundfile)
+
+**Dependencies:**
+- `sounddevice`: For playback and recording
+- `soundfile`: For FLAC and high-quality WAV I/O
+- `scipy`: Fallback for WAV support
+
+**Example Workflow:**
+```kairo
+# Synthesize audio
+tone = audio.sine(freq=440.0, duration=1.0)
+processed = audio.reverb(tone, mix=0.2)
+
+# Export to file
+audio.save(processed, "output.flac")
+
+# Play back
+audio.play(processed)
+
+# Load and process
+loaded = audio.load("input.wav")
+filtered = audio.lowpass(loaded, cutoff=2000.0)
+audio.save(filtered, "filtered.wav")
+```
+
+### 11.6 Integration with Kairo Core
 
 Kairo.Audio seamlessly integrates with other Kairo dialects:
 - Audio can drive visual parameters via cross-rate sampling
 - Field data can modulate audio parameters
 - Agent systems can trigger audio events
+- Audio I/O enables real-time playback and file-based workflows
 - Unified deterministic execution across all domains
 
 ---
 
 ## 12. Visual Dialect
 
-Visual operations convert numeric data to images.
+Visual operations convert numeric data to images and support multi-layer composition and video export.
 
 ### 12.1 Field Visualization
 
@@ -1246,107 +1303,209 @@ Visual operations convert numeric data to images.
 use visual
 
 # Colorize scalar field
-colorize(field, palette="viridis")
+visual.colorize(field, palette="viridis")
 
 # Available palettes
-# "viridis", "plasma", "inferno", "magma", "cividis"
-# "fire", "ice", "rainbow", "grayscale"
+# "grayscale", "fire", "viridis", "coolwarm"
 
-# Custom color map
-colorize(field,
-    colors=[
-        (0.0, Color(0, 0, 255)),      # Blue at 0
-        (0.5, Color(0, 255, 0)),      # Green at 0.5
-        (1.0, Color(255, 0, 0))       # Red at 1
-    ]
+# With value range
+visual.colorize(field, palette="fire", vmin=0.0, vmax=100.0)
+```
+
+### 12.2 Agent Visualization (v0.6.0)
+
+**Render agents as particles** with property-based styling:
+
+```kairo
+# Basic agent rendering
+visual.agents(
+    agents,
+    width=512,
+    height=512,
+    pos_property="pos",      # Agent property for position
+    color=(255, 255, 255),   # White particles
+    size=2.0,                # Particle radius
+    background=(0, 0, 0)     # Black background
 )
 
-# With range
-colorize(field, palette="viridis", min=0.0, max=100.0)
-```
-
-### 12.2 Agent Visualization
-
-```kairo
-# Points with uniform color
-points(agents, color="white", size=2.0)
-
-# Color by property
-points(agents,
-    color=|a| if a.energy > 50.0 { "red" } else { "blue" },
-    size=2.0
+# Color by property with palette
+visual.agents(
+    agents,
+    width=512,
+    height=512,
+    color_property="energy",   # Color particles by energy
+    palette="fire",            # Use fire palette for mapping
+    size=3.0
 )
 
-# Size by property
-points(agents,
-    color="white",
-    size=|a| a.mass * 2.0
+# Size by property (variable particle sizes)
+visual.agents(
+    agents,
+    width=512,
+    height=512,
+    size_property="mass",      # Size particles by mass
+    size_scale=2.0,            # Scale factor
+    color=(100, 200, 255)
+)
+
+# Custom bounds (default: auto-compute from agent positions)
+visual.agents(
+    agents,
+    width=512,
+    height=512,
+    bounds=((0.0, 100.0), (0.0, 100.0))  # ((x_min, x_max), (y_min, y_max))
 )
 ```
 
-### 12.3 Layer Composition
+**Agent Property Mapping:**
+- `pos_property`: Agent property containing Vec2 position (default: "pos")
+- `color_property`: Property to map to colors via palette
+- `size_property`: Property to map to particle sizes
+- `palette`: Color palette for property mapping ("grayscale", "fire", "viridis", "coolwarm")
+
+### 12.3 Layer System (v0.6.0)
+
+**Create and compose visual layers:**
 
 ```kairo
-# Simple overlay
-layer([visual1, visual2, visual3])
+# Create empty layer
+layer = visual.layer(width=512, height=512, background=(0, 0, 0))
 
-# With blend modes
-layer([
-    (field_vis, "normal"),
-    (agent_vis, "additive"),
-    (overlay, "multiply")
-])
+# Convert existing visual to layer
+layer = visual.layer(visual=existing_visual)
 
-# Blend modes: "normal", "additive", "multiply", "screen", "overlay"
+# Composite multiple layers
+result = visual.composite(
+    layer1,
+    layer2,
+    layer3,
+    mode="over"      # Blending mode
+)
+
+# Available blend modes:
+# - "over": Standard alpha compositing (default)
+# - "add": Additive blending
+# - "multiply": Multiply blending
+# - "screen": Screen blending
+# - "overlay": Overlay blending
 ```
 
-### 12.4 Post-Processing
+### 12.4 Layer Composition Examples
 
 ```kairo
-# Blur
-blur(visual, radius=2.0)
+# Field + Agents composition
+field_visual = visual.colorize(temperature, palette="fire")
+agent_visual = visual.agents(
+    particles,
+    width=512,
+    height=512,
+    color_property="velocity",
+    palette="coolwarm"
+)
+result = visual.composite(field_visual, agent_visual, mode="add")
 
-# Sharpen
-sharpen(visual, amount=1.0)
+# Multi-layer with different blend modes
+background = visual.colorize(density, palette="viridis")
+particles = visual.agents(boids, width=512, height=512, color=(255, 255, 255))
+overlay = visual.layer(width=512, height=512, background=(255, 0, 0))
 
-# Brightness/Contrast
-adjust(visual, brightness=1.1, contrast=1.2, saturation=1.0)
-
-# Custom filter
-filter(visual, |color| {
-    # color: RGB tuple
-    return Color(color.r * 1.2, color.g, color.b)
-})
+final = visual.composite(
+    background,              # Base layer
+    particles,               # Additive particles
+    overlay,                 # Overlay effect
+    mode="over"
+)
 ```
 
-### 12.5 Text Overlay
+### 12.5 Video Export (v0.6.0)
+
+**Export animations as video files:**
 
 ```kairo
-# Simple text
-text("Hello, Kairo!", pos=(10, 10), color="white", size=24)
+# Export from frame list
+frames = [frame1, frame2, frame3, ...]
+visual.video(
+    frames,
+    path="output.mp4",
+    fps=30,
+    format="mp4"     # or "gif"
+)
 
-# Formatted text
-text("Step: {step}, Time: {time:.2f}", pos=(10, 10))
+# Export from generator (memory-efficient)
+def frame_generator():
+    for step in range(100):
+        # Generate frame
+        yield visual.colorize(compute_frame(step), palette="fire")
 
-# Composite with scene
-layer([
-    scene_visual,
-    text("Simulation Running", pos=(10, 10))
-])
+visual.video(
+    frame_generator(),
+    path="animation.gif",
+    fps=15,
+    format="gif",
+    max_frames=100
+)
+
+# Auto-detect format from extension
+visual.video(frames, path="output.mp4", fps=30)  # MP4
+visual.video(frames, path="output.gif", fps=15)  # GIF
 ```
 
-### 12.6 Output
+**Supported Formats:**
+- **MP4**: H.264 codec via imageio + ffmpeg
+- **GIF**: Infinite loop, good for short animations
+
+**Dependencies:**
+- `imageio`: Core library for video export
+- `imageio-ffmpeg`: FFmpeg plugin for MP4 support
+
+### 12.6 Output Operations
 
 ```kairo
-# Display to window
-output visual
+# Display in interactive window (Pygame)
+visual.display(visual, window_size=(512, 512))
 
-# Save to file
-save_visual(visual, "output/frame_{step:04d}.png")
+# Save single frame
+visual.output(visual, path="output.png")           # PNG
+visual.output(visual, path="output.jpg")           # JPEG
+visual.output(visual, path="output.png", format="png")  # Explicit
+```
 
-# Both
-output visual
-save_visual(visual, "output/frame_{step:04d}.png")
+### 12.7 Complete Animation Example
+
+```kairo
+use field, agent, visual
+
+@state temp : Field2D<f32> = random_normal(seed=42, shape=(256, 256))
+@state particles : Agents<Particle> = alloc(count=500, init=spawn_particle)
+
+flow(dt=0.01, steps=100) {
+    # Update physics
+    temp = diffuse(temp, rate=0.1, dt)
+    particles = integrate(particles, forces, dt)
+
+    # Create layered visualization
+    field_vis = visual.colorize(temp, palette="fire", vmin=0.0, vmax=1.0)
+    agent_vis = visual.agents(
+        particles,
+        width=256,
+        height=256,
+        color_property="energy",
+        palette="coolwarm",
+        size_property="mass",
+        size_scale=2.0
+    )
+
+    # Composite layers
+    frame = visual.composite(field_vis, agent_vis, mode="add")
+
+    # Display and save
+    visual.display(frame)
+    visual.output(frame, path="output/frame_{step:04d}.png")
+}
+
+# After flow: export video
+frames = [load_frame(i) for i in range(100)]
+visual.video(frames, path="simulation.mp4", fps=30)
 ```
 
 ---
@@ -2082,6 +2241,14 @@ state = match agent.state {
 
 ## Document History
 
+- **v0.6.0** (2025-11-14): Audio I/O and Visual Extensions
+  - Audio I/O operations: play(), save(), load(), record()
+  - Visual extensions: agents(), layer(), composite(), video()
+  - Complete agent visualization with property-based styling
+  - Layer composition system with multiple blend modes
+  - Video export (MP4, GIF) with generator support
+  - Updated examples and complete API documentation
+
 - **v0.3.1** (2025-11-06): Refined specification
   - Explicit domain types (not Flow<T>)
   - Clear module system
@@ -2101,4 +2268,4 @@ state = match agent.state {
 
 ---
 
-**End of Kairo v0.3.1 Specification**
+**End of Kairo v0.6.0 Specification**
