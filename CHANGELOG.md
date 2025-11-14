@@ -7,6 +7,110 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased] - 2025-11-14
+
+**Status**: Audio DSP & Spectral Analysis Complete ✅
+
+### Overview - Audio Buffer Operations & Spectral Processing
+
+Comprehensive audio buffer operations, DSP, and spectral analysis capabilities added to the audio module. This enhancement provides advanced signal processing tools including FFT/STFT transforms, spectral analysis metrics, frequency-domain processing, and flexible buffer manipulation operations.
+
+### Added - Audio Operations
+
+#### Buffer Operations (Section 5.6)
+- **`audio.slice(signal, start, end)`** - Extract portion of audio buffer by time
+- **`audio.concat(*signals)`** - Concatenate multiple audio buffers
+- **`audio.resample(signal, new_sample_rate)`** - Resample to different sample rate with linear interpolation
+- **`audio.reverse(signal)`** - Reverse audio buffer
+- **`audio.fade_in(signal, duration)`** - Apply linear fade-in envelope
+- **`audio.fade_out(signal, duration)`** - Apply linear fade-out envelope
+
+#### FFT / Spectral Transforms (Section 5.7)
+- **`audio.fft(signal)`** - Fast Fourier Transform with frequency bins
+- **`audio.ifft(spectrum, sample_rate)`** - Inverse FFT reconstruction
+- **`audio.stft(signal, window_size, hop_size)`** - Short-Time Fourier Transform (time-frequency analysis)
+- **`audio.istft(stft_matrix, hop_size, sample_rate)`** - Inverse STFT with overlap-add reconstruction
+- **`audio.spectrum(signal)`** - Get magnitude spectrum
+- **`audio.phase_spectrum(signal)`** - Get phase spectrum
+
+#### Spectral Analysis (Section 5.8)
+- **`audio.spectral_centroid(signal)`** - Calculate spectral centroid (brightness measure)
+- **`audio.spectral_rolloff(signal, threshold)`** - Find rolloff frequency (high-frequency content)
+- **`audio.spectral_flux(signal, hop_size)`** - Measure spectral change over time (onset detection)
+- **`audio.spectral_peaks(signal, num_peaks, min_freq)`** - Find dominant frequency peaks
+- **`audio.rms(signal)`** - Calculate RMS level (loudness measure)
+- **`audio.zero_crossings(signal)`** - Count zero crossing rate (noisiness/pitch indicator)
+
+#### Spectral Processing (Section 5.9)
+- **`audio.spectral_gate(signal, threshold_db, window_size, hop_size)`** - Spectral noise gate for noise reduction
+- **`audio.spectral_filter(signal, freq_mask)`** - Apply arbitrary frequency-domain filter
+- **`audio.convolution(signal, impulse)`** - FFT-based convolution (reverb, filtering)
+
+### Implementation Details
+
+#### Transform Operations
+- **FFT/IFFT**: Uses NumPy's `rfft`/`irfft` for real-valued signals (efficient half-spectrum computation)
+- **STFT/ISTFT**: Hann windowing with configurable window size and hop
+- **Overlap-add synthesis**: Proper window normalization for perfect reconstruction
+- **Time-frequency resolution**: Configurable trade-offs via window/hop parameters
+
+#### Analysis Metrics
+- **Spectral centroid**: Weighted average of frequencies (brightness)
+- **Spectral rolloff**: Frequency below which N% of energy is contained
+- **Spectral flux**: Sum of squared positive spectral differences (onset detection)
+- **Peak detection**: Local maxima finding with magnitude sorting
+- **RMS**: Root mean square for loudness estimation
+- **Zero crossings**: Sign change counting (correlated with pitch/noise)
+
+#### Processing Operations
+- **Spectral gate**: Magnitude thresholding in STFT domain
+- **Spectral filter**: Arbitrary frequency masking with FFT
+- **Convolution**: Fast FFT-based convolution with auto-normalization
+
+### Tests Added
+
+#### `tests/test_audio_buffer_ops.py` (188 lines)
+- 18 comprehensive tests covering:
+  - Slice operations (basic, start-only, boundary clamping)
+  - Concatenation (basic, multiple, sample rate validation)
+  - Resampling (basic, same-rate, stereo)
+  - Reverse operations (basic, double-reverse identity)
+  - Fade operations (in, out, stereo, long duration)
+  - Integration workflows (slice+concat, resample chains, reverse+fade)
+
+#### `tests/test_audio_spectral.py` (425 lines)
+- 33 comprehensive tests covering:
+  - **FFT Operations** (9 tests): Basic FFT, peak detection, IFFT reconstruction, spectrum/phase extraction, STFT/ISTFT
+  - **Spectral Analysis** (12 tests): Centroid, rolloff, flux, peaks, RMS, zero crossings with various signal types
+  - **Spectral Processing** (9 tests): Spectral gate, filter, convolution
+  - **Integration Workflows** (3 tests): FFT→modify→IFFT, STFT→modify→ISTFT, full analysis pipeline
+
+### Code Statistics
+
+- **~670 lines** of production code added to `kairo/stdlib/audio.py`
+- **~610 lines** of comprehensive test coverage
+- **51 total tests** (18 buffer ops + 33 spectral ops)
+- **100% test pass rate**
+- **6 buffer operations**
+- **6 transform operations**
+- **6 analysis operations**
+- **3 processing operations**
+- All operations fully typed with NumPy arrays
+- Comprehensive docstrings with examples
+
+### Success Metrics ✅
+
+- ✅ All 51 tests pass
+- ✅ FFT/IFFT perfect reconstruction (5 decimal places)
+- ✅ STFT/ISTFT near-perfect reconstruction (edge effects handled)
+- ✅ Spectral metrics accurate (centroid, rolloff, flux)
+- ✅ Peak detection finds multiple tones correctly
+- ✅ Buffer operations preserve sample rates
+- ✅ Stereo and mono signals handled appropriately
+- ✅ Comprehensive error handling (stereo restrictions, boundary checks)
+
+---
+
 ## [0.7.2] - 2025-11-14
 
 **Status**: Phase 4 Complete - Agent Operations ✅

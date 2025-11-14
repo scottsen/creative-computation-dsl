@@ -1350,6 +1350,675 @@ class AudioOperations:
 
         return AudioBuffer(data=data, sample_rate=sample_rate)
 
+    # ========================================================================
+    # BUFFER OPERATIONS (Section 5.6)
+    # ========================================================================
+
+    @staticmethod
+    def slice(signal: AudioBuffer, start: float = 0.0, end: Optional[float] = None) -> AudioBuffer:
+        """Extract a portion of an audio buffer.
+
+        Args:
+            signal: Input audio buffer
+            start: Start time in seconds
+            end: End time in seconds (None = end of buffer)
+
+        Returns:
+            Sliced audio buffer
+
+        Example:
+            # Extract middle second
+            sliced = audio.slice(signal, start=1.0, end=2.0)
+        """
+        start_sample = int(start * signal.sample_rate)
+        end_sample = int(end * signal.sample_rate) if end is not None else signal.num_samples
+
+        # Clamp to valid range
+        start_sample = max(0, min(start_sample, signal.num_samples))
+        end_sample = max(start_sample, min(end_sample, signal.num_samples))
+
+        return AudioBuffer(data=signal.data[start_sample:end_sample].copy(),
+                         sample_rate=signal.sample_rate)
+
+    @staticmethod
+    def concat(*signals: AudioBuffer) -> AudioBuffer:
+        """Concatenate multiple audio buffers.
+
+        Args:
+            *signals: Audio buffers to concatenate
+
+        Returns:
+            Concatenated audio buffer
+
+        Example:
+            # Join three sounds
+            combined = audio.concat(intro, middle, outro)
+        """
+        if not signals:
+            raise ValueError("At least one signal required")
+
+        # Ensure all have same sample rate
+        sample_rate = signals[0].sample_rate
+        for sig in signals:
+            if sig.sample_rate != sample_rate:
+                raise ValueError("All signals must have same sample rate")
+
+        # Concatenate data
+        data = np.concatenate([sig.data for sig in signals])
+        return AudioBuffer(data=data, sample_rate=sample_rate)
+
+    @staticmethod
+    def resample(signal: AudioBuffer, new_sample_rate: int) -> AudioBuffer:
+        """Resample audio buffer to a different sample rate.
+
+        Args:
+            signal: Input audio buffer
+            new_sample_rate: Target sample rate in Hz
+
+        Returns:
+            Resampled audio buffer
+
+        Example:
+            # Convert 44.1kHz to 48kHz
+            resampled = audio.resample(signal, new_sample_rate=48000)
+        """
+        if signal.sample_rate == new_sample_rate:
+            return signal.copy()
+
+        # Calculate new length
+        ratio = new_sample_rate / signal.sample_rate
+        new_length = int(signal.num_samples * ratio)
+
+        # Linear interpolation resampling
+        old_indices = np.arange(signal.num_samples)
+        new_indices = np.linspace(0, signal.num_samples - 1, new_length)
+
+        # Handle stereo
+        if signal.is_stereo:
+            left = np.interp(new_indices, old_indices, signal.data[:, 0])
+            right = np.interp(new_indices, old_indices, signal.data[:, 1])
+            data = np.column_stack([left, right])
+        else:
+            data = np.interp(new_indices, old_indices, signal.data)
+
+        return AudioBuffer(data=data, sample_rate=new_sample_rate)
+
+    @staticmethod
+    def reverse(signal: AudioBuffer) -> AudioBuffer:
+        """Reverse an audio buffer.
+
+        Args:
+            signal: Input audio buffer
+
+        Returns:
+            Reversed audio buffer
+
+        Example:
+            # Reverse audio
+            backwards = audio.reverse(signal)
+        """
+        return AudioBuffer(data=signal.data[::-1].copy(), sample_rate=signal.sample_rate)
+
+    @staticmethod
+    def fade_in(signal: AudioBuffer, duration: float = 0.05) -> AudioBuffer:
+        """Apply fade-in envelope.
+
+        Args:
+            signal: Input audio buffer
+            duration: Fade duration in seconds
+
+        Returns:
+            Audio buffer with fade-in
+
+        Example:
+            # Smooth fade-in
+            faded = audio.fade_in(signal, duration=0.1)
+        """
+        fade_samples = int(duration * signal.sample_rate)
+        fade_samples = min(fade_samples, signal.num_samples)
+
+        envelope = np.ones(signal.num_samples)
+        envelope[:fade_samples] = np.linspace(0, 1, fade_samples)
+
+        if signal.is_stereo:
+            data = signal.data.copy()
+            data[:, 0] *= envelope
+            data[:, 1] *= envelope
+        else:
+            data = signal.data * envelope
+
+        return AudioBuffer(data=data, sample_rate=signal.sample_rate)
+
+    @staticmethod
+    def fade_out(signal: AudioBuffer, duration: float = 0.05) -> AudioBuffer:
+        """Apply fade-out envelope.
+
+        Args:
+            signal: Input audio buffer
+            duration: Fade duration in seconds
+
+        Returns:
+            Audio buffer with fade-out
+
+        Example:
+            # Smooth fade-out
+            faded = audio.fade_out(signal, duration=0.1)
+        """
+        fade_samples = int(duration * signal.sample_rate)
+        fade_samples = min(fade_samples, signal.num_samples)
+
+        envelope = np.ones(signal.num_samples)
+        envelope[-fade_samples:] = np.linspace(1, 0, fade_samples)
+
+        if signal.is_stereo:
+            data = signal.data.copy()
+            data[:, 0] *= envelope
+            data[:, 1] *= envelope
+        else:
+            data = signal.data * envelope
+
+        return AudioBuffer(data=data, sample_rate=signal.sample_rate)
+
+    # ========================================================================
+    # FFT / SPECTRAL TRANSFORMS (Section 5.7)
+    # ========================================================================
+
+    @staticmethod
+    def fft(signal: AudioBuffer) -> Tuple[np.ndarray, np.ndarray]:
+        """Compute Fast Fourier Transform.
+
+        Args:
+            signal: Input audio buffer (must be mono)
+
+        Returns:
+            Tuple of (frequencies, complex_spectrum)
+            - frequencies: Frequency bins in Hz
+            - complex_spectrum: Complex FFT coefficients
+
+        Example:
+            # Analyze frequency content
+            freqs, spectrum = audio.fft(signal)
+            magnitude = np.abs(spectrum)
+        """
+        if signal.is_stereo:
+            raise ValueError("FFT requires mono signal (use left channel)")
+
+        # Compute FFT
+        spectrum = np.fft.rfft(signal.data)
+        freqs = np.fft.rfftfreq(signal.num_samples, 1.0 / signal.sample_rate)
+
+        return freqs, spectrum
+
+    @staticmethod
+    def ifft(spectrum: np.ndarray, sample_rate: int = DEFAULT_SAMPLE_RATE) -> AudioBuffer:
+        """Compute Inverse Fast Fourier Transform.
+
+        Args:
+            spectrum: Complex FFT coefficients (from rfft)
+            sample_rate: Sample rate in Hz
+
+        Returns:
+            Audio buffer reconstructed from spectrum
+
+        Example:
+            # Modify and reconstruct
+            freqs, spectrum = audio.fft(signal)
+            # ... modify spectrum ...
+            reconstructed = audio.ifft(spectrum, signal.sample_rate)
+        """
+        data = np.fft.irfft(spectrum)
+        return AudioBuffer(data=data.real, sample_rate=sample_rate)
+
+    @staticmethod
+    def stft(signal: AudioBuffer, window_size: int = 2048,
+             hop_size: int = 512) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Compute Short-Time Fourier Transform.
+
+        Args:
+            signal: Input audio buffer (must be mono)
+            window_size: FFT window size in samples
+            hop_size: Hop size in samples
+
+        Returns:
+            Tuple of (times, frequencies, stft_matrix)
+            - times: Time bins in seconds
+            - frequencies: Frequency bins in Hz
+            - stft_matrix: Complex STFT matrix (freq × time)
+
+        Example:
+            # Compute spectrogram
+            times, freqs, stft_data = audio.stft(signal)
+            spectrogram = np.abs(stft_data)
+        """
+        if signal.is_stereo:
+            raise ValueError("STFT requires mono signal")
+
+        # Hann window
+        window = np.hanning(window_size)
+
+        # Calculate number of frames
+        num_frames = 1 + (signal.num_samples - window_size) // hop_size
+
+        # Allocate STFT matrix
+        num_freqs = window_size // 2 + 1
+        stft_matrix = np.zeros((num_freqs, num_frames), dtype=np.complex128)
+
+        # Compute STFT
+        for i in range(num_frames):
+            start = i * hop_size
+            frame = signal.data[start:start + window_size]
+
+            # Apply window
+            windowed = frame * window
+
+            # FFT
+            stft_matrix[:, i] = np.fft.rfft(windowed)
+
+        # Time and frequency axes
+        times = np.arange(num_frames) * hop_size / signal.sample_rate
+        freqs = np.fft.rfftfreq(window_size, 1.0 / signal.sample_rate)
+
+        return times, freqs, stft_matrix
+
+    @staticmethod
+    def istft(stft_matrix: np.ndarray, hop_size: int = 512,
+              sample_rate: int = DEFAULT_SAMPLE_RATE) -> AudioBuffer:
+        """Compute Inverse Short-Time Fourier Transform.
+
+        Args:
+            stft_matrix: Complex STFT matrix (freq × time)
+            hop_size: Hop size in samples
+            sample_rate: Sample rate in Hz
+
+        Returns:
+            Reconstructed audio buffer
+
+        Example:
+            # Modify and reconstruct
+            times, freqs, stft_data = audio.stft(signal)
+            # ... modify stft_data ...
+            reconstructed = audio.istft(stft_data, hop_size=512)
+        """
+        num_freqs, num_frames = stft_matrix.shape
+        window_size = (num_freqs - 1) * 2
+
+        # Hann window
+        window = np.hanning(window_size)
+
+        # Output length
+        output_length = (num_frames - 1) * hop_size + window_size
+        output = np.zeros(output_length)
+        window_sum = np.zeros(output_length)
+
+        # Overlap-add
+        for i in range(num_frames):
+            start = i * hop_size
+
+            # Inverse FFT
+            frame = np.fft.irfft(stft_matrix[:, i])
+
+            # Apply window and accumulate
+            output[start:start + window_size] += frame * window
+            window_sum[start:start + window_size] += window ** 2
+
+        # Normalize by window overlap
+        # Avoid division by zero
+        window_sum[window_sum < 1e-10] = 1.0
+        output = output / window_sum
+
+        return AudioBuffer(data=output, sample_rate=sample_rate)
+
+    @staticmethod
+    def spectrum(signal: AudioBuffer) -> Tuple[np.ndarray, np.ndarray]:
+        """Get magnitude spectrum.
+
+        Args:
+            signal: Input audio buffer (must be mono)
+
+        Returns:
+            Tuple of (frequencies, magnitudes)
+
+        Example:
+            # Get magnitude spectrum
+            freqs, mags = audio.spectrum(signal)
+        """
+        freqs, complex_spec = AudioOperations.fft(signal)
+        magnitudes = np.abs(complex_spec)
+        return freqs, magnitudes
+
+    @staticmethod
+    def phase_spectrum(signal: AudioBuffer) -> Tuple[np.ndarray, np.ndarray]:
+        """Get phase spectrum.
+
+        Args:
+            signal: Input audio buffer (must be mono)
+
+        Returns:
+            Tuple of (frequencies, phases)
+
+        Example:
+            # Get phase spectrum
+            freqs, phases = audio.phase_spectrum(signal)
+        """
+        freqs, complex_spec = AudioOperations.fft(signal)
+        phases = np.angle(complex_spec)
+        return freqs, phases
+
+    # ========================================================================
+    # SPECTRAL ANALYSIS (Section 5.8)
+    # ========================================================================
+
+    @staticmethod
+    def spectral_centroid(signal: AudioBuffer) -> float:
+        """Calculate spectral centroid (brightness measure).
+
+        The spectral centroid is the center of mass of the spectrum,
+        indicating where the "center" of the sound's frequency content is.
+
+        Args:
+            signal: Input audio buffer (must be mono)
+
+        Returns:
+            Spectral centroid in Hz
+
+        Example:
+            # Measure brightness
+            brightness = audio.spectral_centroid(signal)
+            print(f"Spectral centroid: {brightness:.1f} Hz")
+        """
+        freqs, magnitudes = AudioOperations.spectrum(signal)
+
+        # Weighted average of frequencies by magnitude
+        centroid = np.sum(freqs * magnitudes) / (np.sum(magnitudes) + 1e-10)
+        return float(centroid)
+
+    @staticmethod
+    def spectral_rolloff(signal: AudioBuffer, threshold: float = 0.85) -> float:
+        """Calculate spectral rolloff frequency.
+
+        The frequency below which the given threshold of spectral energy is contained.
+
+        Args:
+            signal: Input audio buffer (must be mono)
+            threshold: Energy threshold (0.0 to 1.0, default 0.85 = 85%)
+
+        Returns:
+            Rolloff frequency in Hz
+
+        Example:
+            # Find high-frequency content
+            rolloff = audio.spectral_rolloff(signal, threshold=0.85)
+        """
+        freqs, magnitudes = AudioOperations.spectrum(signal)
+
+        # Calculate cumulative energy
+        energy = magnitudes ** 2
+        cumulative_energy = np.cumsum(energy)
+        total_energy = cumulative_energy[-1]
+
+        # Find rolloff point
+        rolloff_idx = np.where(cumulative_energy >= threshold * total_energy)[0]
+
+        if len(rolloff_idx) > 0:
+            return float(freqs[rolloff_idx[0]])
+        else:
+            return float(freqs[-1])
+
+    @staticmethod
+    def spectral_flux(signal: AudioBuffer, hop_size: int = 512) -> np.ndarray:
+        """Calculate spectral flux (change in spectrum over time).
+
+        Spectral flux measures how quickly the spectrum is changing,
+        useful for onset detection and rhythm analysis.
+
+        Args:
+            signal: Input audio buffer (must be mono)
+            hop_size: Hop size in samples
+
+        Returns:
+            Array of spectral flux values over time
+
+        Example:
+            # Detect onsets
+            flux = audio.spectral_flux(signal)
+            onsets = np.where(flux > np.mean(flux) * 3)[0]
+        """
+        times, freqs, stft_matrix = AudioOperations.stft(signal, hop_size=hop_size)
+
+        # Calculate magnitude spectrum
+        mag_spectrum = np.abs(stft_matrix)
+
+        # Spectral flux = sum of squared differences between adjacent frames
+        flux = np.zeros(mag_spectrum.shape[1])
+        for i in range(1, mag_spectrum.shape[1]):
+            diff = mag_spectrum[:, i] - mag_spectrum[:, i-1]
+            # Only positive changes (rectified)
+            diff = np.maximum(0, diff)
+            flux[i] = np.sum(diff ** 2)
+
+        return flux
+
+    @staticmethod
+    def spectral_peaks(signal: AudioBuffer, num_peaks: int = 5,
+                       min_freq: float = 20.0) -> Tuple[np.ndarray, np.ndarray]:
+        """Find spectral peaks (dominant frequencies).
+
+        Args:
+            signal: Input audio buffer (must be mono)
+            num_peaks: Number of peaks to return
+            min_freq: Minimum frequency in Hz
+
+        Returns:
+            Tuple of (peak_frequencies, peak_magnitudes)
+
+        Example:
+            # Find dominant frequencies
+            peak_freqs, peak_mags = audio.spectral_peaks(signal, num_peaks=5)
+            print(f"Strongest frequency: {peak_freqs[0]:.1f} Hz")
+        """
+        freqs, magnitudes = AudioOperations.spectrum(signal)
+
+        # Filter by minimum frequency
+        valid_idx = freqs >= min_freq
+        freqs = freqs[valid_idx]
+        magnitudes = magnitudes[valid_idx]
+
+        # Find peaks using simple maximum finding
+        # Look for local maxima
+        peaks_idx = []
+        for i in range(1, len(magnitudes) - 1):
+            if magnitudes[i] > magnitudes[i-1] and magnitudes[i] > magnitudes[i+1]:
+                peaks_idx.append(i)
+
+        if len(peaks_idx) == 0:
+            # No peaks found, return highest magnitudes
+            peaks_idx = np.argsort(magnitudes)[::-1][:num_peaks]
+        else:
+            # Sort peaks by magnitude
+            peaks_idx = np.array(peaks_idx)
+            sorted_idx = np.argsort(magnitudes[peaks_idx])[::-1]
+            peaks_idx = peaks_idx[sorted_idx][:num_peaks]
+
+        peak_freqs = freqs[peaks_idx]
+        peak_mags = magnitudes[peaks_idx]
+
+        return peak_freqs, peak_mags
+
+    @staticmethod
+    def rms(signal: AudioBuffer) -> float:
+        """Calculate RMS (Root Mean Square) level.
+
+        RMS is a measure of the average power/loudness of the signal.
+
+        Args:
+            signal: Input audio buffer
+
+        Returns:
+            RMS value (0.0 to 1.0)
+
+        Example:
+            # Measure loudness
+            loudness = audio.rms(signal)
+            loudness_db = audio.lin2db(loudness)
+        """
+        if signal.is_stereo:
+            # Average both channels
+            rms_val = np.sqrt(np.mean(signal.data ** 2))
+        else:
+            rms_val = np.sqrt(np.mean(signal.data ** 2))
+
+        return float(rms_val)
+
+    @staticmethod
+    def zero_crossings(signal: AudioBuffer) -> int:
+        """Count zero crossings (sign changes).
+
+        Zero crossing rate is correlated with the noisiness/pitch of a signal.
+
+        Args:
+            signal: Input audio buffer (must be mono)
+
+        Returns:
+            Number of zero crossings
+
+        Example:
+            # Measure noisiness
+            zcr = audio.zero_crossings(signal)
+            zcr_rate = zcr / signal.duration
+        """
+        if signal.is_stereo:
+            raise ValueError("Zero crossings requires mono signal")
+
+        # Count sign changes
+        signs = np.sign(signal.data)
+        crossings = np.sum(np.abs(np.diff(signs))) / 2
+
+        return int(crossings)
+
+    # ========================================================================
+    # SPECTRAL PROCESSING (Section 5.9)
+    # ========================================================================
+
+    @staticmethod
+    def spectral_gate(signal: AudioBuffer, threshold_db: float = -40.0,
+                      window_size: int = 2048, hop_size: int = 512) -> AudioBuffer:
+        """Apply spectral noise gate.
+
+        Removes frequency bins below threshold, useful for noise reduction.
+
+        Args:
+            signal: Input audio buffer (must be mono)
+            threshold_db: Threshold in dB
+            window_size: FFT window size
+            hop_size: Hop size in samples
+
+        Returns:
+            Noise-gated audio buffer
+
+        Example:
+            # Remove quiet frequencies
+            cleaned = audio.spectral_gate(signal, threshold_db=-40.0)
+        """
+        if signal.is_stereo:
+            raise ValueError("Spectral gate requires mono signal")
+
+        # Compute STFT
+        times, freqs, stft_matrix = AudioOperations.stft(signal, window_size, hop_size)
+
+        # Convert threshold to linear
+        threshold_lin = AudioOperations.db2lin(threshold_db)
+
+        # Get magnitude and phase
+        magnitude = np.abs(stft_matrix)
+        phase = np.angle(stft_matrix)
+
+        # Apply gate
+        mask = magnitude > threshold_lin
+        magnitude_gated = magnitude * mask
+
+        # Reconstruct complex spectrum
+        stft_gated = magnitude_gated * np.exp(1j * phase)
+
+        # Inverse STFT
+        return AudioOperations.istft(stft_gated, hop_size, signal.sample_rate)
+
+    @staticmethod
+    def spectral_filter(signal: AudioBuffer, freq_mask: np.ndarray) -> AudioBuffer:
+        """Apply arbitrary frequency-domain filter.
+
+        Args:
+            signal: Input audio buffer (must be mono)
+            freq_mask: Frequency mask (same length as FFT bins)
+
+        Returns:
+            Filtered audio buffer
+
+        Example:
+            # Custom spectral filter
+            freqs, _ = audio.fft(signal)
+            mask = (freqs > 200) & (freqs < 2000)  # Bandpass
+            filtered = audio.spectral_filter(signal, mask.astype(float))
+        """
+        if signal.is_stereo:
+            raise ValueError("Spectral filter requires mono signal")
+
+        # Compute FFT
+        freqs, spectrum = AudioOperations.fft(signal)
+
+        # Apply mask
+        spectrum_filtered = spectrum * freq_mask
+
+        # Inverse FFT
+        return AudioOperations.ifft(spectrum_filtered, signal.sample_rate)
+
+    @staticmethod
+    def convolution(signal: AudioBuffer, impulse: AudioBuffer) -> AudioBuffer:
+        """Apply convolution (for reverb, filtering, etc.).
+
+        Convolution in time domain = multiplication in frequency domain.
+        Useful for convolution reverb with impulse responses.
+
+        Args:
+            signal: Input audio buffer (must be mono)
+            impulse: Impulse response (must be mono)
+
+        Returns:
+            Convolved audio buffer
+
+        Example:
+            # Convolution reverb
+            # impulse_response = audio.load("hall_ir.wav")
+            # reverb_sound = audio.convolution(dry_signal, impulse_response)
+        """
+        if signal.is_stereo or impulse.is_stereo:
+            raise ValueError("Convolution requires mono signals")
+
+        # FFT-based convolution (faster for long impulses)
+        conv_length = signal.num_samples + impulse.num_samples - 1
+
+        # Pad to power of 2 for efficiency
+        fft_length = 2 ** int(np.ceil(np.log2(conv_length)))
+
+        # FFT
+        signal_fft = np.fft.rfft(signal.data, n=fft_length)
+        impulse_fft = np.fft.rfft(impulse.data, n=fft_length)
+
+        # Multiply in frequency domain
+        result_fft = signal_fft * impulse_fft
+
+        # Inverse FFT
+        result = np.fft.irfft(result_fft)
+
+        # Trim to correct length
+        result = result[:conv_length]
+
+        # Normalize
+        peak = np.max(np.abs(result))
+        if peak > 1.0:
+            result = result / peak
+
+        return AudioBuffer(data=result, sample_rate=signal.sample_rate)
+
 
 # Create singleton instance for use as 'audio' namespace
 audio = AudioOperations()
