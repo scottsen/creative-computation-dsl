@@ -1,11 +1,11 @@
-"""Kairo v0.3.1
+"""Kairo v0.6.0
 
 A typed, deterministic domain-specific language for creative computation.
 Unifies simulation, sound, visualization, and procedural design within a
 single, reproducible execution model.
 """
 
-__version__ = "0.3.1"
+__version__ = "0.6.0"
 
 # Core components will be imported here as they are implemented
 # from .parser import parse
