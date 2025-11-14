@@ -14,7 +14,7 @@ tags:
 - deterministic
 ---
 
-# Kairo v0.6.0
+# Kairo v0.7.0 (In Development)
 
 **A semantic, deterministic transform kernel with two human-friendly faces:**
 - **Kairo.Audio** for composition
@@ -23,6 +23,7 @@ tags:
 *Where computation becomes composition*
 
 > 📐 **Architecture**: See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the complete Kairo Stack design (kernel, frontends, Graph IR, transforms)
+> 🚀 **v0.7.0 Development**: Real MLIR Integration underway - see [docs/v0.7.0_DESIGN.md](docs/v0.7.0_DESIGN.md) for the 12-month roadmap
 
 ---
 
@@ -342,8 +343,9 @@ See `examples/` directory for more!
 
 ## Project Status
 
-**Version**: 0.6.0
-**Status**: Alpha - Core Features + Agent + Audio + I/O Complete
+**Version**: 0.7.0-dev (In Development)
+**Stable Version**: 0.6.0
+**Status**: v0.7.0 Phase 1 - Real MLIR Integration Foundation
 
 ### ✅ Production-Ready
 - Language specification (comprehensive)
@@ -360,17 +362,29 @@ See `examples/` directory for more!
 - Documentation (comprehensive and accurate)
 - Test suite (580+ tests: 247 original + 85 agent + 184 audio + 64+ I/O tests)
 
-### 🚧 Experimental (Text-Based, Not Production)
-- **MLIR text IR generation** (not real MLIR bindings)
+### 🚀 In Active Development (v0.7.0 - Real MLIR Integration)
+- **MLIR Python Bindings Integration** - Phase 1 Foundation (Months 1-3 of 12)
+  - ✅ Design document and architecture complete
+  - ✅ Context management and module structure
+  - ✅ Proof-of-concept working (simple arithmetic)
+  - ⏳ Custom Kairo dialects (field, agent, audio, visual) - planned Phase 2+
+  - ⏳ Lowering passes (Kairo → SCF → LLVM) - planned Phase 2-3
+  - ⏳ JIT compilation and native code generation - planned Phase 4
+- See [docs/v0.7.0_DESIGN.md](docs/v0.7.0_DESIGN.md) for complete roadmap
+
+### 🚧 Deprecated (Legacy, Maintained for Compatibility)
+- **MLIR text IR generation** (legacy text-based, not real MLIR bindings)
 - Optimization passes (basic constant folding, DCE stubs)
+- Will be removed in v0.8.0+ after v0.7.0 transition complete
 
-### 📋 Planned (Not Yet Implemented)
-- **Real MLIR Integration** - Currently text-based IR only
-- **Native Code Generation** - Requires real MLIR bindings
-- **Physical Unit Checking** - Annotations exist, not enforced
+### 📋 Planned (Future Phases)
+- **Physical Unit Checking** - Annotations exist, dimensional analysis not enforced
 - **Hot-reload** - Architecture designed, not implemented
+- **GPU Acceleration** - Via MLIR GPU dialect (planned Phase 3-4)
+- **Advanced Optimization** - Auto-vectorization, fusion, polyhedral optimization
 
-**Next Milestone**: v0.7.0 Real MLIR Integration (12+ months)
+**Current Milestone**: v0.7.0 Real MLIR Integration - Phase 1 Foundation (Months 1-3 of 12)
+**Next Milestone**: v0.7.0 Phase 2 - Field Operations Dialect (Months 4-6)
 
 ---
 
@@ -443,4 +457,4 @@ MIT License - see [LICENSE](LICENSE) for details
 
 ---
 
-**Status:** Alpha - Core Features + Agent + Audio + I/O Complete | **Version:** 0.6.0 | **Last Updated:** 2025-11-14
+**Status:** v0.7.0 Development - Phase 1 Foundation (Real MLIR Integration) | **Stable Version:** 0.6.0 | **Dev Version:** 0.7.0-dev | **Last Updated:** 2025-11-14
