@@ -1,8 +1,8 @@
 # Kairo — Implementation Status
 
 **Last Updated:** 2025-11-14
-**Current Version:** v0.3.1
-**Status:** Alpha - Core Features Working
+**Current Version:** v0.4.0
+**Status:** Alpha - Core Features + Agent Dialect Working
 
 ---
 
@@ -12,8 +12,9 @@
 - **Language Frontend**: Complete lexer, parser, AST, type system
 - **Python Runtime**: Full interpreter with NumPy backend
 - **Field Operations**: All core PDE operations working
+- **Agent Dialect**: Complete sparse particle/agent-based modeling (NEW in v0.4.0!)
 - **Visualization**: Complete PNG/JPEG export and interactive display
-- **Testing**: 247 comprehensive tests covering all working features
+- **Testing**: 332 comprehensive tests (247 original + 85 agent tests)
 
 ### 🚧 Experimental (Text-Based, Not Production)
 - **MLIR Compilation**: Text-based IR generation (not real MLIR bindings)
@@ -21,7 +22,6 @@
 
 ### 📋 Planned (Not Yet Implemented)
 - **Audio Dialect (Kairo.Audio)**: Specification complete, no implementation
-- **Agent Dialect**: Design complete, no implementation
 - **Native Code Generation**: Requires real MLIR integration
 - **Physical Units**: Type system exists, dimensional analysis not enforced
 - **Hot-reload**: Architecture designed, not implemented
@@ -157,7 +157,77 @@
 
 ---
 
-### 4. Visualization ✅ **PRODUCTION READY**
+### 4. Agent Dialect ✅ **PRODUCTION READY** (NEW in v0.4.0!)
+
+#### Agent Operations — **COMPLETE** ✅
+**Status:** Full agent-based modeling with sparse particle systems
+
+**Implemented:**
+- ✅ `agents.alloc(count, properties)` - Agent collection allocation
+- ✅ `agents.map(agents, property, func)` - Apply function to each agent
+- ✅ `agents.filter(agents, property, condition)` - Filter agents by condition
+- ✅ `agents.reduce(agents, property, operation)` - Aggregate across agents
+- ✅ `agents.compute_pairwise_forces(...)` - N-body force calculations
+- ✅ `agents.sample_field(agents, field, property)` - Sample fields at agent positions
+- ✅ Spatial hashing for O(n) neighbor queries
+- ✅ Alive/dead agent masking
+- ✅ Property-based data structure (pos, vel, mass, etc.)
+
+**Location:** `kairo/stdlib/agents.py` (569 lines)
+
+**Tests:** 85 comprehensive tests across 4 test files:
+- `tests/test_agents_basic.py` (25 tests) - Allocation, properties, masks
+- `tests/test_agents_operations.py` (29 tests) - Map, filter, reduce
+- `tests/test_agents_forces.py` (19 tests) - Pairwise forces, field sampling
+- `tests/test_agents_integration.py` (12 tests) - Runtime integration, simulations
+
+**Use Cases:**
+- ✅ Boids flocking simulations
+- ✅ N-body gravitational systems
+- ✅ Particle systems
+- ✅ Agent-field coupling (particles in flow fields)
+- ✅ Crowd simulation
+- ✅ SPH (Smoothed Particle Hydrodynamics) foundations
+
+**Example:**
+```python
+from kairo.stdlib.agents import agents
+
+# Create 1000 particles
+particles = agents.alloc(
+    count=1000,
+    properties={
+        'pos': np.random.rand(1000, 2) * 100.0,
+        'vel': np.zeros((1000, 2)),
+        'mass': np.ones(1000)
+    }
+)
+
+# Compute gravitational forces
+forces = agents.compute_pairwise_forces(
+    particles,
+    radius=50.0,
+    force_func=gravity_force,
+    mass_property='mass'
+)
+
+# Update velocities and positions
+new_vel = particles.get('vel') + forces * dt
+particles = particles.update('vel', new_vel)
+particles = particles.update('pos', particles.get('pos') + new_vel * dt)
+```
+
+**Determinism:** ✅ Verified - all operations produce identical results with same seed
+
+**Performance:**
+- ✅ 1,000 agents: Instant allocation
+- ✅ 10,000 agents: ~0.01s allocation
+- ✅ Spatial hashing enables O(n) neighbor queries vs O(n²) brute force
+- ✅ NumPy vectorization for all operations
+
+---
+
+### 5. Visualization ✅ **PRODUCTION READY**
 
 #### Visual Operations — **COMPLETE** ✅
 **Status:** Full visualization pipeline with multiple output modes
@@ -327,9 +397,10 @@ pytest -v
 - ✅ `docs/TROUBLESHOOTING.md` - Common issues and solutions
 - ✅ `docs/SPEC-*.md` - Detailed component specifications
 
-**Needs Update:**
-- ⚠️ README should clarify MLIR is text-based, not production
-- ⚠️ Remove claims about Audio/Agent being implemented
+**Updated for v0.4.0:**
+- ✅ Agent dialect documentation added
+- ✅ MLIR clarifications maintained
+- ⚠️ README needs Agent dialect examples
 
 ---
 
@@ -355,7 +426,7 @@ kairo run examples/heat_diffusion.kairo
 
 ---
 
-## What Works Right Now (v0.3.1)
+## What Works Right Now (v0.4.0)
 
 ### ✅ You Can:
 - Write Kairo programs with full v0.3.1 syntax
@@ -363,14 +434,16 @@ kairo run examples/heat_diffusion.kairo
 - Type-check them
 - Execute them with Python/NumPy interpreter
 - Use all field operations (diffuse, advect, project, etc.)
+- **Use all agent operations (alloc, map, filter, reduce, forces, field sampling)** ⭐ NEW!
+- **Create particle systems, boids, N-body simulations** ⭐ NEW!
+- **Couple agents with fields (particles in flow)** ⭐ NEW!
 - Visualize results (PNG export, interactive display)
 - Verify deterministic behavior
-- Run 247 comprehensive tests
+- Run 332 comprehensive tests (247 original + 85 agent tests)
 
 ### ❌ You Cannot (Yet):
 - Compile to native code (MLIR is text-only)
 - Use Audio dialect operations (not implemented)
-- Use Agent dialect operations (not implemented)
 - Enforce physical unit checking at runtime
 - Use GPU acceleration
 - Hot-reload code changes
@@ -380,7 +453,21 @@ kairo run examples/heat_diffusion.kairo
 
 ## Version History
 
-### v0.3.1 (Current) - 2025-11-14
+### v0.4.0 (Current) - 2025-11-14
+**Focus:** Agent Dialect Implementation - Sparse particle/agent-based modeling
+
+- ✅ Complete Agents<T> type system
+- ✅ Agent operations: alloc, map, filter, reduce
+- ✅ Pairwise force calculations with spatial hashing
+- ✅ Field-agent coupling (sample fields at agent positions)
+- ✅ 85 comprehensive tests for agent functionality
+- ✅ Runtime integration (agents namespace available)
+- ✅ Performance optimizations (O(n) neighbor queries)
+- ✅ Deterministic execution verified
+
+**Test Count:** 332 total (247 original + 85 agent tests)
+
+### v0.3.1 - 2025-11-14
 **Focus:** Struct literals, documentation alignment, v0.3.1 syntax complete
 
 - ✅ Struct literal support with parser and runtime
@@ -420,16 +507,16 @@ kairo run examples/heat_diffusion.kairo
 
 ## Roadmap
 
-### v0.4.0 (Next) - Agent Dialect Implementation
-**Target:** 3-4 months
+### v0.4.0 ✅ **COMPLETE** - Agent Dialect Implementation
+**Completed:** 2025-11-14
 
-- Implement Agents<T> type
-- Agent operations (map, filter, reduce)
-- Force calculations (gravity, springs, etc.)
-- Field-agent coupling
-- Boids and particle system examples
+- ✅ Implement Agents<T> type
+- ✅ Agent operations (map, filter, reduce)
+- ✅ Force calculations (gravity, springs, spatial hashing)
+- ✅ Field-agent coupling
+- ✅ 85 comprehensive tests
 
-### v0.5.0 - Audio Dialect Implementation
+### v0.5.0 (Next) - Audio Dialect Implementation
 **Target:** 6-8 months
 
 - Implement Kairo.Audio operations

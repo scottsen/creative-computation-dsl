@@ -338,13 +338,15 @@ class Runtime:
         self._setup_builtins()
 
     def _setup_builtins(self) -> None:
-        """Set up built-in namespaces (field, visual, etc.)."""
+        """Set up built-in namespaces (field, visual, agents, etc.)."""
         from ..stdlib.field import field
         from ..stdlib.visual import visual
+        from ..stdlib.agents import agents
 
         # Register built-in namespaces
         self.context.set_variable("field", field)
         self.context.set_variable("visual", visual)
+        self.context.set_variable("agents", agents)
 
     def execute_program(self, program) -> None:
         """Execute a complete DSL program.
