@@ -4,7 +4,7 @@ This module provides visualization capabilities including field colorization,
 PNG output, and interactive real-time display for the MVP.
 """
 
-from typing import Optional, Union, Callable
+from typing import Optional, Union, Callable, Tuple
 import numpy as np
 import time
 
@@ -381,6 +381,400 @@ class VisualOperations:
 
         finally:
             pygame.quit()
+
+    # ========================================================================
+    # VISUAL EXTENSIONS (v0.6.0)
+    # ========================================================================
+
+    @staticmethod
+    def agents(agents, width: int = 512, height: int = 512,
+               position_property: str = 'pos',
+               color_property: Optional[str] = None,
+               size_property: Optional[str] = None,
+               color: tuple = (1.0, 1.0, 1.0),
+               size: float = 2.0,
+               palette: str = "viridis",
+               background: tuple = (0.0, 0.0, 0.0),
+               bounds: Optional[Tuple[Tuple[float, float], Tuple[float, float]]] = None,
+               trail: bool = False,
+               trail_length: int = 10,
+               trail_alpha: float = 0.5) -> Visual:
+        """Render agents as points or circles.
+
+        Args:
+            agents: Agents instance to visualize
+            width: Output image width in pixels
+            height: Output image height in pixels
+            position_property: Name of position property (default: 'pos')
+            color_property: Name of property to colorize by (optional)
+            size_property: Name of property to size by (optional)
+            color: Default color as (R, G, B) in [0, 1] (used if color_property=None)
+            size: Default point size in pixels (used if size_property=None)
+            palette: Color palette name for color_property mapping
+            background: Background color as (R, G, B) in [0, 1]
+            bounds: ((xmin, xmax), (ymin, ymax)) for position mapping, auto if None
+            trail: If True, render agent trails (requires 'trail' property)
+            trail_length: Number of trail points to render
+            trail_alpha: Alpha transparency for trail
+
+        Returns:
+            Visual representation of agents
+
+        Example:
+            # Render agents with velocity-based coloring
+            vis = visual.agents(
+                agents,
+                color_property='vel_mag',
+                size=3.0,
+                palette='viridis'
+            )
+        """
+        from .agents import Agents
+
+        if not isinstance(agents, Agents):
+            raise TypeError(f"Expected Agents, got {type(agents)}")
+
+        # Get positions
+        positions = agents.get(position_property)
+        if len(positions.shape) != 2 or positions.shape[1] != 2:
+            raise ValueError(
+                f"Position property must be (N, 2) array, got shape {positions.shape}"
+            )
+
+        # Determine bounds
+        if bounds is None:
+            xmin, xmax = np.min(positions[:, 0]), np.max(positions[:, 0])
+            ymin, ymax = np.min(positions[:, 1]), np.max(positions[:, 1])
+
+            # Add 10% padding
+            x_padding = (xmax - xmin) * 0.1
+            y_padding = (ymax - ymin) * 0.1
+            bounds = ((xmin - x_padding, xmax + x_padding),
+                     (ymin - y_padding, ymax + y_padding))
+        else:
+            (xmin, xmax), (ymin, ymax) = bounds
+
+        # Create output image
+        img = np.zeros((height, width, 3), dtype=np.float32)
+        img[:, :, :] = background
+
+        # Map positions to pixel coordinates
+        x_norm = (positions[:, 0] - xmin) / (xmax - xmin)
+        y_norm = (positions[:, 1] - ymin) / (ymax - ymin)
+
+        px = (x_norm * (width - 1)).astype(int)
+        py = ((1.0 - y_norm) * (height - 1)).astype(int)  # Flip Y axis
+
+        # Clip to image bounds
+        px = np.clip(px, 0, width - 1)
+        py = np.clip(py, 0, height - 1)
+
+        # Determine colors
+        if color_property is not None:
+            # Color by property
+            color_values = agents.get(color_property)
+
+            # Handle vector properties (use magnitude)
+            if len(color_values.shape) > 1:
+                color_values = np.linalg.norm(color_values, axis=1)
+
+            # Normalize to [0, 1]
+            vmin, vmax = np.min(color_values), np.max(color_values)
+            if vmax - vmin < 1e-10:
+                color_norm = np.zeros_like(color_values)
+            else:
+                color_norm = (color_values - vmin) / (vmax - vmin)
+
+            # Map to palette
+            palette_colors = np.array(VisualOperations.PALETTES[palette])
+            n_colors = len(palette_colors)
+
+            indices = color_norm * (n_colors - 1)
+            idx_low = np.floor(indices).astype(int)
+            idx_high = np.minimum(idx_low + 1, n_colors - 1)
+            frac = indices - idx_low
+
+            colors = np.zeros((len(agents.get(position_property)), 3), dtype=np.float32)
+            for c in range(3):
+                colors[:, c] = (
+                    palette_colors[idx_low, c] * (1 - frac) +
+                    palette_colors[idx_high, c] * frac
+                )
+        else:
+            # Use default color for all agents
+            colors = np.tile(color, (len(positions), 1))
+
+        # Determine sizes
+        if size_property is not None:
+            size_values = agents.get(size_property)
+
+            # Handle vector properties (use magnitude)
+            if len(size_values.shape) > 1:
+                size_values = np.linalg.norm(size_values, axis=1)
+
+            # Normalize and scale
+            vmin, vmax = np.min(size_values), np.max(size_values)
+            if vmax - vmin < 1e-10:
+                sizes = np.ones(len(size_values)) * size
+            else:
+                size_norm = (size_values - vmin) / (vmax - vmin)
+                sizes = size_norm * size * 2  # Scale up to 2x base size
+        else:
+            sizes = np.ones(len(positions)) * size
+
+        # Render agents as circles
+        for i in range(len(positions)):
+            agent_size = int(sizes[i])
+            agent_color = colors[i]
+
+            # Draw filled circle
+            y, x = py[i], px[i]
+            for dy in range(-agent_size, agent_size + 1):
+                for dx in range(-agent_size, agent_size + 1):
+                    if dx*dx + dy*dy <= agent_size * agent_size:
+                        ny, nx = y + dy, x + dx
+                        if 0 <= ny < height and 0 <= nx < width:
+                            img[ny, nx] = agent_color
+
+        return Visual(img)
+
+    @staticmethod
+    def layer(visual: Optional[Visual] = None, width: int = 512, height: int = 512,
+              background: tuple = (0.0, 0.0, 0.0)) -> Visual:
+        """Create a visual layer for composition.
+
+        Args:
+            visual: Existing visual to convert to layer (optional)
+            width: Layer width if creating new layer
+            height: Layer height if creating new layer
+            background: Background color as (R, G, B) in [0, 1]
+
+        Returns:
+            Visual layer
+
+        Example:
+            # Create empty layer
+            layer1 = visual.layer(width=512, height=512)
+
+            # Convert existing visual to layer
+            layer2 = visual.layer(existing_visual)
+        """
+        if visual is not None:
+            if not isinstance(visual, Visual):
+                raise TypeError(f"Expected Visual, got {type(visual)}")
+            return visual.copy()
+        else:
+            # Create new empty layer
+            img = np.zeros((height, width, 3), dtype=np.float32)
+            img[:, :, :] = background
+            return Visual(img)
+
+    @staticmethod
+    def composite(*layers: Visual, mode: str = "over",
+                  opacity: Optional[Union[float, list]] = None) -> Visual:
+        """Composite multiple visual layers.
+
+        Args:
+            *layers: Visual layers to composite (bottom to top)
+            mode: Blending mode ("over", "add", "multiply", "screen", "overlay")
+            opacity: Opacity for each layer (0.0 to 1.0), or single value for all
+
+        Returns:
+            Composited visual
+
+        Example:
+            # Composite field and agents
+            field_vis = visual.colorize(temperature, palette="fire")
+            agent_vis = visual.agents(particles, color=(1, 1, 1))
+            result = visual.composite(field_vis, agent_vis, mode="add")
+        """
+        if len(layers) == 0:
+            raise ValueError("At least one layer required")
+
+        # Validate all layers are Visual instances
+        for i, layer in enumerate(layers):
+            if not isinstance(layer, Visual):
+                raise TypeError(f"Layer {i} is not a Visual instance")
+
+        # Check all layers have same dimensions
+        base_shape = layers[0].shape
+        for i, layer in enumerate(layers[1:], 1):
+            if layer.shape != base_shape:
+                raise ValueError(
+                    f"Layer {i} has shape {layer.shape}, expected {base_shape}"
+                )
+
+        # Handle opacity
+        if opacity is None:
+            opacities = [1.0] * len(layers)
+        elif isinstance(opacity, (int, float)):
+            opacities = [float(opacity)] * len(layers)
+        else:
+            if len(opacity) != len(layers):
+                raise ValueError(
+                    f"opacity list length {len(opacity)} doesn't match layers {len(layers)}"
+                )
+            opacities = list(opacity)
+
+        # Start with first layer
+        result = layers[0].data.copy() * opacities[0]
+
+        # Composite remaining layers
+        for i, layer in enumerate(layers[1:], 1):
+            alpha = opacities[i]
+            top = layer.data
+            bottom = result
+
+            if mode == "over":
+                # Standard alpha compositing (over operator)
+                result = bottom * (1 - alpha) + top * alpha
+            elif mode == "add":
+                # Additive blending
+                result = bottom + top * alpha
+            elif mode == "multiply":
+                # Multiply blending
+                result = bottom * (1 - alpha + top * alpha)
+            elif mode == "screen":
+                # Screen blending
+                result = 1 - (1 - bottom) * (1 - top * alpha)
+            elif mode == "overlay":
+                # Overlay blending
+                mask = bottom < 0.5
+                result = np.where(
+                    mask,
+                    2 * bottom * top * alpha + bottom * (1 - alpha),
+                    1 - 2 * (1 - bottom) * (1 - top) * alpha + bottom * (1 - alpha)
+                )
+            else:
+                raise ValueError(
+                    f"Unknown blending mode: {mode}. "
+                    f"Supported: 'over', 'add', 'multiply', 'screen', 'overlay'"
+                )
+
+        return Visual(result)
+
+    @staticmethod
+    def video(frames: Union[list, Callable[[], Optional[Visual]]],
+              path: str,
+              fps: int = 30,
+              format: str = "auto",
+              max_frames: Optional[int] = None) -> None:
+        """Export animation sequence to video file.
+
+        Supports MP4 and GIF output formats.
+
+        Args:
+            frames: List of Visual frames or generator function
+            path: Output file path
+            fps: Frames per second
+            format: Output format ("auto", "mp4", "gif") - auto infers from extension
+            max_frames: Maximum number of frames to export (for generators)
+
+        Raises:
+            ImportError: If imageio is not installed
+
+        Example:
+            # From list of frames
+            frames = [generate_frame(i) for i in range(100)]
+            visual.video(frames, "output.mp4", fps=30)
+
+            # From generator
+            def gen_frames():
+                temp = field.random((128, 128))
+                for i in range(100):
+                    temp = field.diffuse(temp, rate=0.1)
+                    yield visual.colorize(temp, palette="fire")
+
+            visual.video(gen_frames, "output.gif", fps=10)
+        """
+        try:
+            import imageio
+        except ImportError:
+            raise ImportError(
+                "imageio is required for video export. "
+                "Install with: pip install imageio imageio-ffmpeg"
+            )
+
+        # Infer format from path if auto
+        if format == "auto":
+            if path.endswith(".mp4"):
+                format = "mp4"
+            elif path.endswith(".gif"):
+                format = "gif"
+            else:
+                format = "mp4"  # Default
+
+        format = format.lower()
+
+        # Collect frames
+        if callable(frames):
+            # Generator function
+            frame_list = []
+            count = 0
+            while True:
+                if max_frames is not None and count >= max_frames:
+                    break
+
+                frame = frames()
+                if frame is None:
+                    break
+
+                if not isinstance(frame, Visual):
+                    raise TypeError(f"Frame {count} is not a Visual instance")
+
+                frame_list.append(frame)
+                count += 1
+        else:
+            # List of frames
+            frame_list = list(frames)
+
+            # Validate all frames
+            for i, frame in enumerate(frame_list):
+                if not isinstance(frame, Visual):
+                    raise TypeError(f"Frame {i} is not a Visual instance")
+
+        if len(frame_list) == 0:
+            raise ValueError("No frames to export")
+
+        print(f"Exporting {len(frame_list)} frames to {path}...")
+
+        # Convert frames to 8-bit RGB
+        rgb_frames = []
+        for frame in frame_list:
+            # Apply gamma correction
+            srgb = VisualOperations._linear_to_srgb(frame.data)
+
+            # Convert to 8-bit
+            rgb_8bit = (srgb * 255).astype(np.uint8)
+            rgb_frames.append(rgb_8bit)
+
+        # Write video
+        if format == "mp4":
+            # MP4 requires ffmpeg
+            try:
+                imageio.mimwrite(
+                    path,
+                    rgb_frames,
+                    fps=fps,
+                    codec='libx264',
+                    quality=8,
+                    pixelformat='yuv420p'
+                )
+            except Exception as e:
+                # Fall back to basic MP4 if codec not available
+                imageio.mimwrite(path, rgb_frames, fps=fps)
+        elif format == "gif":
+            # GIF export
+            imageio.mimwrite(
+                path,
+                rgb_frames,
+                fps=fps,
+                loop=0  # Infinite loop
+            )
+        else:
+            raise ValueError(f"Unsupported format: {format}. Supported: 'mp4', 'gif'")
+
+        print(f"Video export complete: {path}")
 
 
 # Create singleton instance for use as 'visual' namespace

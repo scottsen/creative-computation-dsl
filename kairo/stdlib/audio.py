@@ -1113,6 +1113,243 @@ class AudioOperations:
 
         return np.array([b0, b1, b2]), np.array([a0, a1, a2])
 
+    # ========================================================================
+    # AUDIO I/O (v0.6.0)
+    # ========================================================================
+
+    @staticmethod
+    def play(buffer: AudioBuffer, blocking: bool = True) -> None:
+        """Play audio buffer in real-time.
+
+        Args:
+            buffer: Audio buffer to play
+            blocking: If True, wait for playback to complete (default: True)
+
+        Raises:
+            ImportError: If sounddevice is not installed
+
+        Example:
+            # Generate and play a tone
+            tone = audio.sine(freq=440.0, duration=1.0)
+            audio.play(tone)
+        """
+        if not isinstance(buffer, AudioBuffer):
+            raise TypeError(f"Expected AudioBuffer, got {type(buffer)}")
+
+        try:
+            import sounddevice as sd
+        except ImportError:
+            raise ImportError(
+                "sounddevice is required for audio playback. "
+                "Install with: pip install sounddevice"
+            )
+
+        # Prepare data for playback
+        # sounddevice expects shape (samples, channels) for stereo
+        if buffer.is_stereo:
+            data = buffer.data  # Already (samples, 2)
+        else:
+            data = buffer.data.reshape(-1, 1)  # Make (samples, 1) for mono
+
+        # Play audio
+        sd.play(data, samplerate=buffer.sample_rate, blocking=blocking)
+
+    @staticmethod
+    def save(buffer: AudioBuffer, path: str, format: str = "auto") -> None:
+        """Save audio buffer to file.
+
+        Supports WAV and FLAC formats with automatic format detection from file extension.
+
+        Args:
+            buffer: Audio buffer to save
+            path: Output file path
+            format: Output format ("auto", "wav", "flac") - auto infers from extension
+
+        Raises:
+            ImportError: If soundfile is not installed (for FLAC) or scipy (for WAV fallback)
+            ValueError: If format is unsupported
+
+        Example:
+            # Generate and save audio
+            tone = audio.sine(freq=440.0, duration=1.0)
+            audio.save(tone, "output.wav")
+            audio.save(tone, "output.flac")
+        """
+        if not isinstance(buffer, AudioBuffer):
+            raise TypeError(f"Expected AudioBuffer, got {type(buffer)}")
+
+        # Infer format from path if auto
+        if format == "auto":
+            if path.endswith(".wav"):
+                format = "wav"
+            elif path.endswith(".flac"):
+                format = "flac"
+            else:
+                format = "wav"  # Default to WAV
+
+        format = format.lower()
+
+        # Prepare data
+        # Ensure data is in the correct format (float32, clipped to [-1, 1])
+        data = np.clip(buffer.data, -1.0, 1.0).astype(np.float32)
+
+        if format == "flac":
+            # FLAC requires soundfile
+            try:
+                import soundfile as sf
+            except ImportError:
+                raise ImportError(
+                    "soundfile is required for FLAC export. "
+                    "Install with: pip install soundfile"
+                )
+
+            # soundfile expects (samples, channels) for stereo
+            if buffer.is_stereo:
+                sf.write(path, data, buffer.sample_rate, format='FLAC')
+            else:
+                sf.write(path, data.reshape(-1, 1), buffer.sample_rate, format='FLAC')
+
+        elif format == "wav":
+            # Try soundfile first (better quality), fall back to scipy
+            try:
+                import soundfile as sf
+                if buffer.is_stereo:
+                    sf.write(path, data, buffer.sample_rate, format='WAV')
+                else:
+                    sf.write(path, data.reshape(-1, 1), buffer.sample_rate, format='WAV')
+            except ImportError:
+                # Fall back to scipy.io.wavfile
+                try:
+                    from scipy.io import wavfile
+                except ImportError:
+                    raise ImportError(
+                        "Either soundfile or scipy is required for WAV export. "
+                        "Install with: pip install soundfile  OR  pip install scipy"
+                    )
+
+                # scipy.io.wavfile expects int16 format
+                # Convert float32 [-1, 1] to int16 [-32768, 32767]
+                data_int16 = (data * 32767).astype(np.int16)
+                wavfile.write(path, buffer.sample_rate, data_int16)
+
+        else:
+            raise ValueError(
+                f"Unsupported format: {format}. Supported: 'wav', 'flac'"
+            )
+
+        print(f"Saved audio to: {path}")
+
+    @staticmethod
+    def load(path: str) -> AudioBuffer:
+        """Load audio buffer from file.
+
+        Supports WAV and FLAC formats with automatic format detection.
+
+        Args:
+            path: Input file path
+
+        Returns:
+            Loaded audio buffer
+
+        Raises:
+            ImportError: If soundfile is not installed
+            FileNotFoundError: If file doesn't exist
+
+        Example:
+            # Load audio file
+            loaded = audio.load("input.wav")
+            print(f"Loaded {loaded.duration:.2f}s of audio")
+        """
+        try:
+            import soundfile as sf
+        except ImportError:
+            # Try scipy fallback for WAV
+            if path.endswith('.wav'):
+                try:
+                    from scipy.io import wavfile
+                    sample_rate, data = wavfile.read(path)
+
+                    # Convert to float32 [-1, 1]
+                    if data.dtype == np.int16:
+                        data = data.astype(np.float32) / 32768.0
+                    elif data.dtype == np.int32:
+                        data = data.astype(np.float32) / 2147483648.0
+                    elif data.dtype == np.uint8:
+                        data = (data.astype(np.float32) - 128.0) / 128.0
+
+                    # Handle stereo: scipy returns (samples, channels)
+                    # We need to keep it that way
+                    return AudioBuffer(data=data, sample_rate=sample_rate)
+                except ImportError:
+                    raise ImportError(
+                        "Either soundfile or scipy is required for audio loading. "
+                        "Install with: pip install soundfile  OR  pip install scipy"
+                    )
+            else:
+                raise ImportError(
+                    "soundfile is required for loading non-WAV audio. "
+                    "Install with: pip install soundfile"
+                )
+
+        # Load with soundfile
+        data, sample_rate = sf.read(path, dtype='float32')
+
+        # soundfile returns (samples,) for mono, (samples, channels) for stereo
+        # This matches our AudioBuffer expectations
+        return AudioBuffer(data=data, sample_rate=sample_rate)
+
+    @staticmethod
+    def record(duration: float, sample_rate: int = DEFAULT_SAMPLE_RATE,
+               channels: int = 1) -> AudioBuffer:
+        """Record audio from microphone.
+
+        Args:
+            duration: Recording duration in seconds
+            sample_rate: Sample rate in Hz
+            channels: Number of channels (1=mono, 2=stereo)
+
+        Returns:
+            Recorded audio buffer
+
+        Raises:
+            ImportError: If sounddevice is not installed
+
+        Example:
+            # Record 3 seconds from microphone
+            recording = audio.record(duration=3.0)
+            audio.save(recording, "recording.wav")
+        """
+        if channels not in (1, 2):
+            raise ValueError(f"channels must be 1 (mono) or 2 (stereo), got {channels}")
+
+        try:
+            import sounddevice as sd
+        except ImportError:
+            raise ImportError(
+                "sounddevice is required for audio recording. "
+                "Install with: pip install sounddevice"
+            )
+
+        print(f"Recording {duration}s of audio...")
+
+        # Record audio
+        data = sd.rec(
+            int(duration * sample_rate),
+            samplerate=sample_rate,
+            channels=channels,
+            dtype='float32'
+        )
+        sd.wait()  # Wait for recording to complete
+
+        print("Recording complete!")
+
+        # sounddevice returns (samples, channels) even for mono
+        # For mono, we want (samples,) to match our convention
+        if channels == 1:
+            data = data.reshape(-1)
+
+        return AudioBuffer(data=data, sample_rate=sample_rate)
+
 
 # Create singleton instance for use as 'audio' namespace
 audio = AudioOperations()

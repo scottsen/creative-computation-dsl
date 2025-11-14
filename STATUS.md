@@ -1,8 +1,8 @@
 # Kairo — Implementation Status
 
 **Last Updated:** 2025-11-14
-**Current Version:** v0.5.0
-**Status:** Alpha - Core Features + Agent + Audio Dialects Working
+**Current Version:** v0.6.0
+**Status:** Alpha - Core Features + Agent + Audio + I/O Complete
 
 ---
 
@@ -13,9 +13,11 @@
 - **Python Runtime**: Full interpreter with NumPy backend
 - **Field Operations**: All core PDE operations working
 - **Agent Dialect**: Complete sparse particle/agent-based modeling (v0.4.0)
-- **Audio Dialect**: Complete audio synthesis and processing (NEW in v0.5.0!)
+- **Audio Dialect**: Complete audio synthesis and processing (v0.5.0)
+- **Audio I/O**: Real-time playback, WAV/FLAC export, recording (NEW in v0.6.0!)
+- **Visual Extensions**: Agent visualization, layer composition, video export (NEW in v0.6.0!)
 - **Visualization**: Complete PNG/JPEG export and interactive display
-- **Testing**: 516 comprehensive tests (247 original + 85 agent + 184 audio tests)
+- **Testing**: 580+ comprehensive tests (247 original + 85 agent + 184 audio + 64+ I/O tests)
 
 ### 🚧 Experimental (Text-Based, Not Production)
 - **MLIR Compilation**: Text-based IR generation (not real MLIR bindings)
@@ -25,7 +27,6 @@
 - **Native Code Generation**: Requires real MLIR integration
 - **Physical Units**: Type system exists, dimensional analysis not enforced
 - **Hot-reload**: Architecture designed, not implemented
-- **Audio I/O**: Real-time audio playback and recording
 
 ---
 
@@ -446,7 +447,7 @@ kairo run examples/heat_diffusion.kairo
 
 ---
 
-## What Works Right Now (v0.5.0)
+## What Works Right Now (v0.6.0)
 
 ### ✅ You Can:
 - Write Kairo programs with full v0.3.1 syntax
@@ -457,26 +458,67 @@ kairo run examples/heat_diffusion.kairo
 - Use all agent operations (alloc, map, filter, reduce, forces, field sampling)
 - Create particle systems, boids, N-body simulations
 - Couple agents with fields (particles in flow)
-- **Use all audio operations (oscillators, filters, envelopes, effects, physical modeling)** ⭐ NEW!
-- **Synthesize music and sound effects deterministically** ⭐ NEW!
-- **Apply audio effects chains (reverb, delay, distortion, etc.)** ⭐ NEW!
+- Use all audio operations (oscillators, filters, envelopes, effects, physical modeling)
+- Synthesize music and sound effects deterministically
+- Apply audio effects chains (reverb, delay, distortion, etc.)
+- **Play audio in real-time with audio.play()** ⭐ NEW in v0.6.0!
+- **Export audio to WAV/FLAC with audio.save()** ⭐ NEW in v0.6.0!
+- **Load audio files with audio.load()** ⭐ NEW in v0.6.0!
+- **Record audio from microphone with audio.record()** ⭐ NEW in v0.6.0!
+- **Visualize agents with visual.agents()** ⭐ NEW in v0.6.0!
+- **Composite visual layers with visual.composite()** ⭐ NEW in v0.6.0!
+- **Export animations to MP4/GIF with visual.video()** ⭐ NEW in v0.6.0!
 - Visualize results (PNG export, interactive display)
 - Verify deterministic behavior
-- Run 516 comprehensive tests (247 original + 85 agent + 184 audio tests)
+- Run 580+ comprehensive tests (247 original + 85 agent + 184 audio + 64+ I/O tests)
 
 ### ❌ You Cannot (Yet):
 - Compile to native code (MLIR is text-only)
-- Play audio in real-time (no I/O implementation yet)
 - Enforce physical unit checking at runtime
 - Use GPU acceleration
 - Hot-reload code changes
-- Export to video or audio file formats
 
 ---
 
 ## Version History
 
-### v0.5.0 (Current) - 2025-11-14
+### v0.6.0 (Current) - 2025-11-14
+**Focus:** Audio I/O and Visual Extensions - Complete multimedia I/O pipeline
+
+**Audio I/O:**
+- ✅ Real-time audio playback with `audio.play()` (sounddevice backend)
+- ✅ WAV export/import with `audio.save()` and `audio.load()` (soundfile/scipy)
+- ✅ FLAC export/import for lossless audio (soundfile backend)
+- ✅ Microphone recording with `audio.record()` (sounddevice backend)
+- ✅ Sample rate conversion and format handling
+- ✅ Mono and stereo support
+
+**Visual Extensions:**
+- ✅ Agent visualization with `visual.agents()` - render particles/agents as points/circles
+- ✅ Color-by-property support (velocity, energy, etc.) with palettes
+- ✅ Size-by-property support for variable-size agents
+- ✅ Layer composition system with `visual.layer()` and `visual.composite()`
+- ✅ Multiple blending modes (over, add, multiply, screen, overlay)
+- ✅ Per-layer opacity control
+- ✅ Video export with `visual.video()` - MP4 and GIF support (imageio backend)
+- ✅ Frame generator support for memory-efficient animations
+
+**Integration:**
+- ✅ Field + Agent visual composition workflows
+- ✅ Audio-visual synchronized content examples
+- ✅ Multi-modal export (audio + video)
+- ✅ 64+ new I/O integration tests (24 audio I/O, 40+ visual extensions)
+
+**Dependencies Added:**
+- sounddevice >= 0.4.0 (audio playback/recording)
+- soundfile >= 0.12.0 (WAV/FLAC I/O)
+- scipy >= 1.7.0 (WAV fallback)
+- imageio >= 2.9.0 (video export)
+- imageio-ffmpeg >= 0.4.0 (MP4 codec)
+
+**Test Count:** 580+ total (247 original + 85 agent + 184 audio + 64+ I/O tests)
+
+### v0.5.0 - 2025-11-14
 **Focus:** Audio Dialect Implementation - Production-ready audio synthesis
 
 - ✅ Complete AudioBuffer type and operations
