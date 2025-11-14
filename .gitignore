@@ -66,3 +66,4 @@ dmypy.json
 *.tmp
 *.log
 CODEBASE_ANALYSIS.md
+QUICK_REFERENCE.txt
