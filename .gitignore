@@ -65,3 +65,4 @@ dmypy.json
 # Temporary files
 *.tmp
 *.log
+CODEBASE_ANALYSIS.md
