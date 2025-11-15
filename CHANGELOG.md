@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - 2025-11-15
 
+### Added
+- **TiaCAD Integration - Unified Reference & Frame Model** ⭐
+  - **New Specifications**:
+    - `docs/SPEC-COORDINATE-FRAMES.md`: Complete specification for coordinate frames, anchors, and reference-based composition across all domains
+    - `docs/SPEC-GEOMETRY.md`: Full geometry domain specification with TiaCAD-inspired operator families (primitives, sketches, booleans, patterns, finishing ops)
+    - `docs/ADR/001-unified-reference-model.md`: Architecture Decision Record formalizing the unified reference system
+  - **Enhanced Documentation**:
+    - `docs/SPEC-TRANSFORM.md`: Added Section 7 on spatial transformations (affine, coordinate conversions, projective, frame-aware transforms)
+    - `docs/DOMAIN_ARCHITECTURE.md`: Expanded Section 2.1 with comprehensive geometry domain coverage, TiaCAD principles, and cross-domain anchor concepts
+    - `docs/SPEC-OPERATOR-REGISTRY.md`: Extended Layer 6 with geometry operators (primitives, sketches, booleans, patterns, mesh ops, anchors)
+  - **Key Concepts from TiaCAD v3.x**:
+    - Reference-based composition via anchors (replaces hierarchical assemblies)
+    - Explicit transform origins (no implicit rotation/scale centers)
+    - Deterministic transform chains (pure functions, no hidden state)
+    - Auto-generated anchors for all geometric objects
+    - Cross-domain applicability (geometry, audio, physics, agents, fields)
+    - Backend-neutral operator semantics with multiple lowering targets
+  - **Impact**: Unifies spatial, temporal, and structural references across all Kairo domains; provides declarative, refactor-safe composition model; establishes foundation for v0.9+ geometry domain implementation
+
 ### Changed
 - **Code cleanup**: Removed stale TODOs and updated documentation
   - `kairo/mlir/context.py`: Updated dialect registration docs to reflect implemented dialects (Phases 2-5)

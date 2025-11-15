@@ -34,6 +34,14 @@
 - Will be maintained during v0.7.0 transition, removed in v0.8.0+
 
 ### 📋 Planned (Future Enhancements)
+- **Geometry Domain (v0.9+)** ⭐ **Architecture Complete**:
+  - Unified reference & frame model inspired by TiaCAD v3.x
+  - Complete specifications: SPEC-COORDINATE-FRAMES.md, SPEC-GEOMETRY.md
+  - ADR-001: Unified Reference Model (approved for implementation)
+  - Cross-domain anchor system (geometry, audio, physics, agents, fields)
+  - Reference-based composition replacing hierarchical assemblies
+  - Explicit transform origins (no implicit rotation/scale centers)
+  - Backend-neutral operator semantics (CadQuery, CGAL, GPU SDF targets)
 - **Physical Units**: Type system exists, dimensional analysis not enforced yet
 - **Hot-reload**: Architecture designed, not implemented yet
 - **GPU Acceleration**: Via MLIR GPU dialect (planned for future phases)
