@@ -4,6 +4,12 @@
 from .field import field, Field2D, FieldOperations
 from .visual import visual, Visual, VisualOperations
 
+# Physics domains
+from .acoustics import (
+    acoustics, AcousticsOperations, PipeGeometry, WaveguideNetwork,
+    ReflectionCoeff, FrequencyResponse, create_pipe, create_expansion_chamber
+)
+
 # Base-level domains
 from . import integrators
 from . import io_storage
@@ -22,6 +28,10 @@ __all__ = [
     # Core domains
     "field", "Field2D", "FieldOperations",
     "visual", "Visual", "VisualOperations",
+
+    # Physics domains
+    "acoustics", "AcousticsOperations", "PipeGeometry", "WaveguideNetwork",
+    "ReflectionCoeff", "FrequencyResponse", "create_pipe", "create_expansion_chamber",
 
     # Base-level domains
     "integrators",
