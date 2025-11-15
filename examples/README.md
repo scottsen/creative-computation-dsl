@@ -1,277 +1,705 @@
 # Kairo Examples
 
-This directory contains example programs demonstrating Kairo's features across multiple versions and complexity levels.
-
-## 🎯 Kairo v0.3.1 Portfolio Examples (NEW!)
-
-These examples showcase the latest Kairo v0.3.1 syntax with `flow()` blocks, `@state` declarations, and field operations.
-
-### Tier 1: Beginner Examples
-Perfect for getting started - simple, clear, and immediately rewarding!
-
-#### `01_hello_heat.kairo` ⭐ **START HERE**
-Your first Kairo program! Watch heat diffuse from a hot center.
-```bash
-kairo run examples/01_hello_heat.kairo
-```
-**Demonstrates:** Field initialization, diffusion operation, visual output
-**Visual:** Colorful heat spreading from center (fire palette)
-**Lines:** ~60
-
-#### `02_pulsing_circle.kairo`
-Hypnotic animation of a circle that smoothly grows and shrinks.
-```bash
-kairo run examples/02_pulsing_circle.kairo
-```
-**Demonstrates:** Lambda expressions, coordinate math, time-based animation
-**Visual:** Pulsing circular region
-**Lines:** ~55
-
-#### `03_wave_ripples.kairo`
-Drop a stone in water - watch realistic wave ripples spread outward.
-```bash
-kairo run examples/03_wave_ripples.kairo
-```
-**Demonstrates:** Wave equation (2 fields), Laplacian operator, physics simulation
-**Visual:** Concentric circular waves with interference patterns
-**Lines:** ~65
-
-#### `04_random_walk.kairo`
-Watch random walkers create beautiful diffusion patterns from simple stochastic rules.
-```bash
-kairo run examples/04_random_walk.kairo
-```
-**Demonstrates:** Random number generation, state accumulation, emergent behavior
-**Visual:** Gaussian distribution emerging from Brownian motion (viridis palette)
-**Lines:** ~80
-**Tip:** Experiment with NUM_WALKERS to see different diffusion patterns!
-
-#### `05_gradient_flow.kairo`
-Mesmerizing color gradients swirl and mix under a rotating velocity field.
-```bash
-kairo run examples/05_gradient_flow.kairo
-```
-**Demonstrates:** Advection operation, vector fields, multi-channel visualization
-**Visual:** Colorful swirling patterns reminiscent of paint mixing in water
-**Lines:** ~75
-**Tip:** Try different ROTATION_SPEED values for faster or slower mixing!
-
-### Tier 2: Intermediate Examples
-Real simulations demonstrating multiple Kairo features working together.
-
-#### `10_heat_equation.kairo`
-Complete heat diffusion with hot sources and cold sinks.
-```bash
-kairo run examples/10_heat_equation.kairo
-```
-**Demonstrates:** Boundary conditions, physical units, thermal physics
-**Visual:** Temperature gradient from hot (top) to cold (bottom)
-**Lines:** ~70
-
-#### `11_gray_scott.kairo` ⭐ **MUST SEE**
-Stunning organic patterns from reaction-diffusion chemistry.
-```bash
-kairo run examples/11_gray_scott.kairo
-```
-**Demonstrates:** Coupled PDEs, Laplacian operator, emergent complexity
-**Visual:** Mesmerizing spots, stripes, spirals, or maze patterns
-**Lines:** ~75
-**Tip:** Experiment with F and K parameters for different patterns!
+This directory contains comprehensive examples demonstrating Kairo's capabilities across all dialects, versions, and development phases.
 
 ---
 
-## 🎬 Creative Computation DSL v0.2.2 Examples
+## 🎯 Quick Navigation
 
-These examples showcase the previous DSL version with interactive Python implementations.
+- [Beginner Examples](#tier-1-beginner-examples-) - Start here!
+- [Intermediate Examples](#tier-2-intermediate-examples-) - Real simulations
+- [Advanced Examples](#advanced-examples-) - Complex multi-domain systems
+- [Python Integration](#python-integration-examples) - Runtime and tools
+- [MLIR Development](#mlir-development-phase-examples) - Compiler internals
+- [How to Run](#running-examples)
 
-## 🎬 Interactive Python Examples (NEW!)
+---
 
-These examples showcase the new real-time interactive visualization:
+## Tier 1: Beginner Examples 🟢
 
-### `interactive_diffusion.py`
-Simple heat diffusion with live display. Perfect for getting started!
+Perfect for getting started - simple, clear, and immediately rewarding!
+
+### `01_hello_heat.kairo` ⭐ **START HERE**
+Your first Kairo program! Watch heat diffuse from a hot center.
+
+```bash
+kairo run examples/01_hello_heat.kairo
+```
+
+**Demonstrates:** Field initialization, diffusion operation, visual output
+**Visual:** Colorful heat spreading from center (fire palette)
+**Runtime:** ~1 second
+**Lines:** 58
+
+**Key concepts:**
+- `use field, visual` declarations
+- `@state` for persistent field
+- `flow(dt, steps)` temporal evolution
+- `diffuse()` operation
+- `colorize()` and `output` visualization
+
+---
+
+### `02_pulsing_circle.kairo`
+Hypnotic animation of a circle that smoothly grows and shrinks.
+
+```bash
+kairo run examples/02_pulsing_circle.kairo
+```
+
+**Demonstrates:** Lambda expressions, coordinate math, time-based animation
+**Visual:** Pulsing circular region
+**Runtime:** ~2 seconds
+**Lines:** 71
+
+---
+
+### `03_wave_ripples.kairo`
+Drop a stone in water - watch realistic wave ripples spread outward.
+
+```bash
+kairo run examples/03_wave_ripples.kairo
+```
+
+**Demonstrates:** Wave equation (2 fields), Laplacian operator, physics simulation
+**Visual:** Concentric circular waves with interference patterns
+**Runtime:** ~3 seconds
+**Lines:** 90
+
+---
+
+## Tier 2: Intermediate Examples 🟡
+
+Real simulations demonstrating multiple Kairo features working together.
+
+### `04_random_walk.kairo`
+Watch random walkers create beautiful diffusion patterns from simple stochastic rules.
+
+```bash
+kairo run examples/04_random_walk.kairo
+```
+
+**Demonstrates:** Random number generation, state accumulation, emergent behavior
+**Visual:** Gaussian distribution emerging from Brownian motion (viridis palette)
+**Runtime:** ~2 seconds
+**Lines:** 80
+**Tip:** Experiment with `NUM_WALKERS` to see different diffusion patterns!
+
+---
+
+### `05_gradient_flow.kairo`
+Mesmerizing color gradients swirl and mix under a rotating velocity field.
+
+```bash
+kairo run examples/05_gradient_flow.kairo
+```
+
+**Demonstrates:** Advection operation, vector fields, multi-channel visualization
+**Visual:** Colorful swirling patterns reminiscent of paint mixing in water
+**Runtime:** ~3 seconds
+**Lines:** 76
+**Tip:** Try different `ROTATION_SPEED` values for faster or slower mixing!
+
+---
+
+### `10_heat_equation.kairo`
+Complete heat diffusion with hot sources and cold sinks.
+
+```bash
+kairo run examples/10_heat_equation.kairo
+```
+
+**Demonstrates:** Boundary conditions, physical units, thermal physics
+**Visual:** Temperature gradient from hot (top) to cold (bottom)
+**Runtime:** ~5 seconds
+**Lines:** 77
+
+---
+
+### `11_gray_scott.kairo` ⭐ **MUST SEE**
+Stunning organic patterns from reaction-diffusion chemistry.
+
+```bash
+kairo run examples/11_gray_scott.kairo
+```
+
+**Demonstrates:** Coupled PDEs, Laplacian operator, emergent complexity
+**Visual:** Mesmerizing spots, stripes, spirals, or maze patterns
+**Runtime:** ~10 seconds
+**Lines:** 97
+**Tip:** Experiment with F and K parameters for different patterns!
+
+**Pattern parameters:**
+- **Coral:** F=0.062, K=0.060
+- **Spots:** F=0.035, K=0.065
+- **Stripes:** F=0.035, K=0.058
+
+---
+
+## Advanced Examples 🔴
+
+Showcasing v0.3.1 language features and complex simulations.
+
+### `v0_3_1_complete_demo.kairo`
+Complete showcase of all v0.3.1 language features.
+
+```bash
+kairo run examples/v0_3_1_complete_demo.kairo
+```
+
+**Demonstrates:** Functions, lambdas, structs, recursion, flow blocks
+**Lines:** 49
+
+---
+
+### `v0_3_1_lambdas_and_flow.kairo`
+Lambda expressions and flow block integration.
+
+```bash
+kairo run examples/v0_3_1_lambdas_and_flow.kairo
+```
+
+**Demonstrates:** Higher-order functions, closures, temporal evolution
+**Lines:** 23
+
+---
+
+### `v0_3_1_recursive_factorial.kairo`
+Classic recursion example computing factorial.
+
+```bash
+kairo run examples/v0_3_1_recursive_factorial.kairo
+```
+
+**Demonstrates:** Function definitions, recursion, return statements
+**Lines:** 25
+
+---
+
+### `v0_3_1_struct_physics.kairo`
+Struct-based physics simulation with vector operations.
+
+```bash
+kairo run examples/v0_3_1_struct_physics.kairo
+```
+
+**Demonstrates:** Struct definitions, methods, physics integration
+**Lines:** 82
+
+---
+
+### `v0_3_1_velocity_calculation.kairo`
+Velocity field calculations and gradient computations.
+
+```bash
+kairo run examples/v0_3_1_velocity_calculation.kairo
+```
+
+**Demonstrates:** Vector fields, gradient operators
+**Lines:** 22
+
+---
+
+## Python Integration Examples
+
+Interactive Python examples demonstrating runtime integration and advanced features.
+
+### Interactive Simulations
+
+#### `interactive_diffusion.py`
+Real-time heat diffusion with live Pygame visualization.
+
 ```bash
 python examples/interactive_diffusion.py
 ```
-**Features:** Real-time heat spreading, interactive controls, fire color palette
 
-### `smoke_simulation.py`
+**Features:** Real-time heat spreading, interactive controls, fire palette
+**Controls:** Mouse to add heat, ESC to quit
+
+---
+
+#### `smoke_simulation.py`
 Full Navier-Stokes fluid simulation with velocity and density fields.
+
 ```bash
 python examples/smoke_simulation.py
 ```
-**Features:** Incompressible flow, advection-diffusion-projection, swirling smoke patterns
 
-### `reaction_diffusion.py`
-Gray-Scott reaction-diffusion creating mesmerizing organic patterns.
+**Features:** Incompressible flow, advection-diffusion-projection, swirling smoke
+**Controls:** SPACE=pause, ←→=adjust speed, Q/ESC=quit
+
+---
+
+#### `reaction_diffusion.py`
+Python implementation of Gray-Scott reaction-diffusion.
+
 ```bash
 python examples/reaction_diffusion.py
 ```
+
 **Features:** Coral/maze patterns, self-organizing structures, stunning visuals
+**Use case:** Comparing Python vs Kairo implementations
 
-**Interactive Controls:**
-- `SPACE` — Pause/Resume
-- `→` — Step forward (when paused)
-- `↑↓` — Adjust speed
-- `Q/ESC` — Quit
+---
 
-## Directory Structure
+### Audio Examples (v0.5.0+)
 
-- **fluids/** — Fluid dynamics and PDE-based simulations (DSL files)
-- **agents/** — Agent-based and particle simulations (DSL files)
-- **audio/** — Signal processing and audio synthesis (DSL files)
-- **hybrid/** — Combined systems using multiple domains (DSL files)
-- **Root directory** — Interactive Python examples (MVP-ready)
+#### `audio_io_demo.py` ⭐
+Comprehensive audio synthesis and I/O demonstrations.
 
-## Examples
+```bash
+# Requires audio I/O dependencies
+pip install -e ".[io]"
+python examples/audio_io_demo.py
+```
 
-### Fluid Dynamics
+**Demonstrates:**
+- Real-time playback with `audio.play()`
+- WAV/FLAC export with `audio.save()`
+- Audio loading with `audio.load()`
+- Microphone recording with `audio.record()`
+- Oscillators (sine, saw, square, triangle)
+- Filters (lowpass, highpass, bandpass)
+- Effects (reverb, delay, chorus, flanger)
+- Physical modeling (Karplus-Strong strings)
+- Round-trip file I/O accuracy
 
-#### `fluids/navier_stokes.ccdsl`
-Classic incompressible Navier-Stokes simulation for smoke and fluid effects. Demonstrates:
-- Double-buffered field operations
-- Advection-diffusion-projection pipeline
-- Multiple solver methods (MacCormack advection, multigrid projection)
-- Boundary conditions
-- Parameter annotations with ranges and documentation
+**Lines:** 243
+**Status:** ✅ Production-ready
 
-#### `fluids/reaction_diffusion.ccdsl`
-Gray-Scott reaction-diffusion system generating organic patterns. Demonstrates:
-- Coupled field evolution
-- Laplacian operators
-- Field combination operations
-- Periodic boundary conditions
-- Different parameter sets for various patterns
+---
 
-### Agent-Based Systems
+#### `audio_dsp_spectral.py` ⭐
+Audio DSP and spectral analysis demonstrations.
 
-#### `agents/boids.ccdsl`
-Classic flocking behavior with separation, alignment, and cohesion rules. Demonstrates:
-- Custom record types for agents
-- Force-based agent interactions
-- Spatial acceleration (grid method)
-- Agent mapping and transformations
-- Periodic boundary wrapping
+```bash
+python examples/audio_dsp_spectral.py
+```
 
-### Audio Synthesis
+**Demonstrates:**
+- FFT/STFT transforms
+- Spectral analysis (centroid, rolloff, flux)
+- Frequency-domain processing
+- Spectral gate noise reduction
+- Convolution-based effects
+- Buffer operations (slice, concat, resample)
 
-#### `audio/fm_synthesis.ccdsl`
-Frequency modulation synthesis with ADSR envelopes. Demonstrates:
-- Signal domain operations
-- Oscillators and waveform generation
-- Signal mapping and transformation
-- ADSR envelope generation
-- Audio output
+**Features:** Complete audio DSP pipeline
+**Status:** ✅ Production-ready
 
-### Hybrid Systems
+---
 
-#### `hybrid/evolutionary_fluid.ccdsl`
-Combines fluid dynamics with evolutionary agent-based simulation. Demonstrates:
-- Integration of field and agent operations
-- Agents sampling from fields with gradients
-- Agent mutation and reproduction
-- Adaptive timestep control
-- Multi-layer visual composition
+### Visual Examples (v0.6.0+)
+
+#### `visual_composition_demo.py` ⭐
+Multi-layer visual composition and video export.
+
+```bash
+# Requires video export dependencies
+pip install -e ".[io]"
+python examples/visual_composition_demo.py
+```
+
+**Demonstrates:**
+- `visual.agents()` - Render particles with color-by-property
+- `visual.composite()` - Multi-layer blending (add, multiply, overlay)
+- `visual.video()` - MP4/GIF export
+- Frame generators for memory-efficient animations
+- Agent rendering styles (points, circles)
+- Per-layer opacity control
+
+**Lines:** 326
+**Status:** ✅ Production-ready
+
+---
+
+### Utility Examples
+
+#### `mvp_simple_test.py`
+Simple Python test of Kairo runtime fundamentals.
+
+```bash
+python examples/mvp_simple_test.py
+```
+
+**Purpose:** Understanding Python-Kairo integration
+**Use case:** Runtime testing and debugging
+
+---
+
+#### `generate_portfolio_outputs.py`
+Generate portfolio images and animations for documentation.
+
+```bash
+python examples/generate_portfolio_outputs.py
+```
+
+**Purpose:** Creating documentation visuals
+**Use case:** Marketing and showcase materials
+
+---
+
+## MLIR Development (Phase Examples)
+
+Examples demonstrating MLIR compilation infrastructure (v0.7.0+).
+
+> **Note:** Requires MLIR Python bindings. Install with:
+> `pip install mlir -f https://github.com/makslevental/mlir-wheels/releases/expanded_assets/latest`
+
+### `mlir_poc.py`
+Initial MLIR Python bindings proof-of-concept.
+
+```bash
+python examples/mlir_poc.py
+```
+
+**Purpose:** Foundation for v0.7.0 MLIR work
+**Demonstrates:** Basic MLIR integration without Kairo dialects
+**Status:** Historical reference
+
+---
+
+### `phase2_field_operations.py`
+Field operations compiled to MLIR (Phase 2 - Completed).
+
+```bash
+python examples/phase2_field_operations.py
+```
+
+**Demonstrates:**
+- Field dialect operations (create, gradient, Laplacian, diffuse)
+- Field-to-SCF lowering pass
+- Pattern-based lowering infrastructure
+- Stencil operations with boundary handling
+- MLIR IR visualization (before/after lowering)
+- Compiler integration
+
+**5 complete examples:**
+1. Field creation (allocation with fill value)
+2. Gradient computation (central difference)
+3. Laplacian computation (5-point stencil)
+4. Diffusion solver (Jacobi iteration)
+5. Combined workflow (create → gradient → Laplacian → diffuse)
+
+**Status:** ✅ Complete
+
+---
+
+### `phase3_temporal_execution.py`
+Temporal flow blocks and state management (Phase 3 - Completed).
+
+```bash
+python examples/phase3_temporal_execution.py
+```
+
+**Demonstrates:**
+- Flow operations (create, run)
+- State management (create, update, query)
+- Temporal-to-SCF lowering
+- State evolution over timesteps
+- SSA-compliant transformations
+- Integration with field operations
+
+**Concepts:**
+- `flow.create` → Flow metadata
+- `flow.run` → `scf.for` loops with state
+- `state.create/update/query` → `memref` operations
+
+**Status:** ✅ Complete
+
+---
+
+### `phase4_agent_operations.py` ⭐
+Agent simulations compiled to MLIR (Phase 4 - Completed).
+
+```bash
+python examples/phase4_agent_operations.py
+```
+
+**Demonstrates:**
+- Agent spawn, update, query, behavior operations
+- Agent-to-SCF lowering
+- Multi-agent simulations (tested up to 10K+ agents)
+- Property-based agent data structures
+- Integration with field and temporal dialects
+
+**8 complete examples:**
+1. Basic agent spawning (allocation and initialization)
+2. Agent movement (velocity-based updates)
+3. Multi-agent behaviors (flocking rules)
+4. Property updates (dynamic modifications)
+5. Bounce behavior (boundary collision handling)
+6. Agent-field integration (agents + spatial fields)
+7. Temporal agent evolution (agents over timesteps)
+8. Large-scale simulation (10,000+ agents, scalability test)
+
+**Lines:** 547
+**Status:** ✅ Complete
+
+---
+
+### `phase5_audio_operations.py` ⭐
+Audio synthesis compiled to MLIR (Phase 5 - Completed).
+
+```bash
+python examples/phase5_audio_operations.py
+```
+
+**Demonstrates:**
+- Audio buffer creation and management
+- Oscillators (sine, square, saw, triangle)
+- ADSR envelopes (attack, decay, sustain, release)
+- Filters (lowpass, highpass, bandpass)
+- Multi-signal mixing (stereo synthesis)
+- Audio-to-SCF lowering with DSP loops
+
+**8 complete examples:**
+1. Basic oscillator (440 Hz sine wave)
+2. ADSR envelope application
+3. Lowpass filter frequency sweep
+4. Chord mixing (C major triad, 3 oscillators)
+5. Complete synth patch (OSC → ENV → FILTER → MIX)
+6. Audio effects chain (reverb, delay, chorus)
+7. Multi-voice synthesis (polyphony demonstration)
+8. Bass synthesis with sub-oscillator layering
+
+**Lines:** 521
+**Status:** ✅ Complete
+
+---
+
+### `phase6_jit_aot_compilation.py` ⭐
+JIT/AOT compilation with LLVM backend (Phase 6 - Completed).
+
+```bash
+python examples/phase6_jit_aot_compilation.py
+```
+
+**Demonstrates:**
+- JIT compilation to native code with execution engine
+- AOT compilation to binaries (shared libs, executables)
+- LLVM optimization levels (O0-O3)
+- Compilation caching (in-memory and persistent disk)
+- ExecutionEngine unified API
+- Performance benchmarking
+
+**8 complete examples:**
+1. Basic JIT compilation (simple function)
+2. JIT with persistent disk caching (cache hit demonstration)
+3. AOT to shared library (.so/.dylib/.dll)
+4. AOT to executable binary (native ELF/PE)
+5. ExecutionEngine API (context manager, unified interface)
+6. Field operations JIT pipeline (full compilation chain)
+7. Audio synthesis with JIT (real-time audio generation)
+8. Performance benchmarking (compare O0/O1/O2/O3 optimization)
+
+**Lines:** 521
+**Status:** ✅ Complete
+
+---
 
 ## Running Examples
 
-To run an example program:
+### Kairo Language Files (`.kairo`)
 
 ```bash
-ccdsl run examples/fluids/navier_stokes.ccdsl
+# Basic execution
+kairo run examples/01_hello_heat.kairo
+
+# View available options
+kairo run --help
 ```
 
-With custom parameters:
+### Python Files (`.py`)
 
 ```bash
-ccdsl run examples/fluids/navier_stokes.ccdsl --param viscosity=0.001
+# Run directly
+python examples/reaction_diffusion.py
+
+# Or make executable
+chmod +x examples/reaction_diffusion.py
+./examples/reaction_diffusion.py
 ```
 
-To validate without running:
+### Dependencies
+
+Some examples require optional dependencies:
 
 ```bash
-ccdsl check examples/fluids/navier_stokes.ccdsl
+# Core Kairo (required)
+pip install -e .
+
+# Audio I/O (for audio_io_demo.py, audio_dsp_spectral.py)
+pip install -e ".[io]"
+
+# MLIR (for phase*.py examples)
+pip install mlir -f https://github.com/makslevental/mlir-wheels/releases/expanded_assets/latest
 ```
+
+---
 
 ## Learning Path
 
-Recommended order for learning the DSL:
+### Path 1: Absolute Beginner → Intermediate
 
-1. **Start with Fields** — `fluids/reaction_diffusion.ccdsl`
-   - Understand field operations, double buffering, and basic PDE operations
+**Goal:** Learn Kairo language and core concepts
 
-2. **Agent Basics** — `agents/boids.ccdsl`
-   - Learn agent types, force calculations, and spatial methods
+1. `01_hello_heat.kairo` - Understand basic syntax
+2. `02_pulsing_circle.kairo` - Temporal animation
+3. `10_heat_equation.kairo` - PDE simulation
+4. `04_random_walk.kairo` - Agent basics
+5. `11_gray_scott.kairo` - Complex patterns
+6. `audio_io_demo.py` - Audio synthesis
+7. `visual_composition_demo.py` - Multi-layer visuals
 
-3. **Signal Processing** — `audio/fm_synthesis.ccdsl`
-   - Explore time-varying signals and audio synthesis
+**Expected time:** 2-4 hours
+**Outcome:** Master all four dialects (field, agent, audio, visual)
 
-4. **Advanced Integration** — `fluids/navier_stokes.ccdsl`
-   - Study complex solver configurations and method selection
+---
 
-5. **Hybrid Systems** — `hybrid/evolutionary_fluid.ccdsl`
-   - Combine multiple domains and understand cross-domain operations
+### Path 2: Advanced Developer → MLIR Compiler
 
-## Key Concepts Demonstrated
+**Goal:** Understand MLIR integration and compilation
 
-### Determinism
-All examples are fully deterministic and will produce identical results across runs with the same seed.
+1. `phase2_field_operations.py` - Custom MLIR dialects
+2. `phase3_temporal_execution.py` - Temporal dialect and state
+3. `phase4_agent_operations.py` - Agent dialect and scalability
+4. `phase5_audio_operations.py` - Audio dialect and DSP
+5. `phase6_jit_aot_compilation.py` - LLVM backend and optimization
 
-### Profiles
-Examples use different performance/precision profiles:
-- `low` — Fast, reduced precision (audio, real-time)
-- `medium` — Balanced (most simulations)
-- `high` — Maximum precision (scientific computing)
+**Expected time:** 4-8 hours
+**Outcome:** Deep understanding of Kairo's compilation pipeline
 
-### Solver Methods
-Examples demonstrate various solver methods:
-- **Advection:** Semi-Lagrangian, MacCormack
-- **Diffusion:** Jacobi, Conjugate Gradient
-- **Projection:** Jacobi, Multigrid
-- **Integration:** Euler, Verlet
+---
 
-### Unit System
-Examples show proper unit annotations:
-- Velocity: `Vec2[m/s]`
-- Position: `Vec2[m]`
-- Frequency: `f32[Hz]`
-- The type system enforces unit compatibility
+## Example Categories
 
-## Extending Examples
+### By Dialect
 
-Each example can be extended with:
+- **Field:** `01`, `02`, `03`, `05`, `10`, `11`, `phase2`, `smoke_simulation.py`
+- **Agent:** `04`, `phase4`, `v0_3_1_struct_physics.kairo`
+- **Audio:** `audio_io_demo.py`, `audio_dsp_spectral.py`, `phase5`
+- **Visual:** `visual_composition_demo.py`, all `.kairo` files with `output`
 
-1. **Different Solvers** — Try different `method` parameters
-2. **Custom Functions** — Define your own `fn` for field/agent operations
-3. **Additional Forces** — Add more force calculations for agents
-4. **Visual Effects** — Experiment with different palettes and blend modes
-5. **Benchmarking** — Add `@benchmark` decorators to measure performance
+### By Complexity
 
-## Common Patterns
+- **Beginner (🟢):** `01`, `02`, `03` (< 100 lines, single dialect)
+- **Intermediate (🟡):** `04`, `05`, `10`, `11` (100-150 lines, multiple features)
+- **Advanced (🔴):** `v0_3_1_*.kairo`, all `phase*.py` (200+ lines, compiler internals)
 
-### Double Buffering
-```dsl
-@double_buffer state : Field2D<f32>
+### By Version
+
+- **v0.3.1 Language:** `01`-`11`, `v0_3_1_*.kairo`
+- **v0.4.0 Agents:** `04`, `phase4_agent_operations.py`
+- **v0.5.0 Audio:** `audio_io_demo.py`, `phase5_audio_operations.py`
+- **v0.6.0 I/O:** `audio_io_demo.py`, `visual_composition_demo.py`
+- **v0.7.0 MLIR:** `phase2`-`phase6` examples
+
+---
+
+## Example Statistics
+
+- **Total files:** 26 (12 Kairo + 14 Python)
+- **Total Kairo lines:** 750 lines
+- **Beginner examples:** 3 files
+- **Intermediate examples:** 4 files
+- **Advanced examples:** 5 files
+- **Python integration:** 14 files
+- **MLIR phases:** 6 files (POC + phases 2-6)
+- **Audio examples:** 2 files (243 + variable lines)
+- **Visual examples:** 1 file (326 lines)
+
+---
+
+## Troubleshooting
+
+### Example won't run
+
+```bash
+# Check installation
+kairo --version
+
+# Reinstall if needed
+pip install -e .
 ```
-Automatically manages read/write buffers for in-place updates.
 
-### Adaptive Timestep
-```dsl
-set dt = adaptive_dt(cfl=0.5, max_dt=0.02, min_dt=0.002)
-```
-Dynamically adjusts timestep for stability.
+### Missing dependencies
 
-### Multi-stage Integration
-```dsl
-substep(4) {
-  # Run 4 times with dt/4
-}
-```
-Subdivide timesteps for accuracy.
+```bash
+# Install all optional dependencies
+pip install -e ".[io]"
 
-### Field-Agent Coupling
-```dsl
-agents = agent.sample_field(agents, field, grad=true)
-deposit = agent.deposit(agents, field, kernel="gaussian")
+# Or install individually
+pip install sounddevice soundfile scipy imageio imageio-ffmpeg
 ```
-Bidirectional interaction between continuous fields and discrete agents.
+
+### MLIR examples fail
+
+```bash
+# Install MLIR Python bindings
+pip install mlir -f https://github.com/makslevental/mlir-wheels/releases/expanded_assets/latest
+```
+
+If MLIR is unavailable, phase examples will gracefully skip or fall back to legacy mode.
+
+### Import errors
+
+```bash
+# Ensure you're in the Kairo directory
+cd /path/to/kairo
+
+# Reinstall in development mode
+pip install -e .
+```
+
+---
+
+## Contributing Examples
+
+Want to add your own example? Follow these guidelines:
+
+### Kairo Language Examples (`.kairo`)
+
+1. **Naming:** Use descriptive verb-noun format (`heat_diffusion.kairo`)
+2. **Comments:** Explain key concepts inline
+3. **Length:** Keep beginner examples < 100 lines
+4. **Style:** Use consistent formatting (4-space indents)
+5. **Testing:** Verify it runs successfully
+
+### Python Examples (`.py`)
+
+1. **Docstrings:** Add module-level docstring explaining purpose
+2. **Dependencies:** List required packages in comments
+3. **Focus:** Demonstrate one clear concept per example
+4. **Documentation:** Add entry to this README with description
+
+### Documentation
+
+For each new example, add to this README:
+- Category (beginner/intermediate/advanced)
+- Dialect(s) used
+- What it demonstrates
+- Key concepts
+- Runtime estimate
+- Line count
+
+---
+
+## Additional Resources
+
+- **[docs/GETTING_STARTED.md](../docs/GETTING_STARTED.md)** - Complete beginner's guide
+- **[SPECIFICATION.md](../SPECIFICATION.md)** - Full language reference
+- **[ARCHITECTURE.md](../ARCHITECTURE.md)** - System architecture
+- **[docs/v0.7.0_DESIGN.md](../docs/v0.7.0_DESIGN.md)** - MLIR integration roadmap
+- **[AUDIO_SPECIFICATION.md](../AUDIO_SPECIFICATION.md)** - Audio dialect details
+
+---
+
+**Happy coding!** 🎨🎵🔬
+
+Explore, experiment, and create amazing simulations, sounds, and visualizations with Kairo!
+
+---
+
+**Last Updated:** 2025-11-15
+**Version:** v0.6.0 (stable) / v0.7.0-dev (development)

@@ -1,330 +1,588 @@
-# Getting Started with Creative Computation DSL
+# Getting Started with Kairo
 
-Welcome to Creative Computation DSL! This guide will help you get up and running in under 30 minutes.
+Welcome to Kairo! This guide will help you get up and running in under 30 minutes.
+
+## What is Kairo?
+
+**Kairo** is a typed, deterministic domain-specific language for creative computation. It unifies **simulation**, **sound**, **visualization**, and **procedural design** within a single, reproducible execution model.
+
+### Key Features
+
+- ✅ **Deterministic by default** - Bitwise-identical results across runs and platforms
+- ✅ **Explicit temporal model** - Time evolution via `flow(dt)` blocks
+- ✅ **Declarative state** - `@state` annotations make persistence clear
+- ✅ **Multi-domain** - Fields, agents, signals, and visuals in one language
+- ✅ **Hot-reload ready** - Interactive development with live code updates
+- ✅ **MLIR-based** - Compiles to optimized native code (v0.7.0+)
+
+---
 
 ## Installation
 
 ### Prerequisites
 
-- Python 3.9 or higher
-- pip package manager
+- **Python 3.9 or higher**
+- **pip package manager**
 
 ### Install from Source
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd tia-projects
+git clone https://github.com/scottsen/kairo.git
+cd kairo
 
 # Install the package
 pip install -e .
 ```
 
-This will install Creative Computation DSL and its dependencies:
+This will install Kairo and its core dependencies:
 - **numpy** - For numerical operations
 - **pillow** - For image output
+
+### Optional I/O Dependencies
+
+For audio I/O and video export (v0.6.0+ features):
+
+```bash
+pip install -e ".[io]"
+```
+
+This adds:
+- **sounddevice** - Real-time audio playback/recording
+- **soundfile** - WAV/FLAC file I/O
+- **scipy** - Audio processing utilities
+- **imageio** - Video export (MP4, GIF)
 
 ### Verify Installation
 
 ```bash
 # Check version
-ccdsl version
+kairo --version
 
 # You should see:
-# Creative Computation DSL v0.2.2
-# A typed, semantics-first DSL for expressive, deterministic simulations
+# Kairo v0.6.0 (stable) / v0.7.0-dev (development)
 ```
 
-## Your First Simulation
+---
+
+## Your First Program
 
 Let's create a simple heat diffusion simulation to understand the basics.
 
 ### Example: Heat Diffusion
 
-Create a new file called `heat.py`:
+Create a new file called `hello.kairo`:
 
-```python
-from creative_computation.stdlib.field import field
-from creative_computation.stdlib.visual import visual
+```kairo
+# hello.kairo - Heat diffusion simulation
 
-# Create a random temperature field (64x64 grid)
-temperature = field.random((64, 64), seed=42, low=0.0, high=1.0)
+use field, visual
 
-# Apply diffusion over 20 iterations
-temperature = field.diffuse(temperature, rate=0.3, dt=0.1, iterations=20)
+@state temp : Field2D<f32 [K]> = random_normal(
+    seed=42,
+    shape=(128, 128),
+    mean=300.0,
+    std=50.0
+)
 
-# Apply boundary conditions (heat reflects at edges)
-temperature = field.boundary(temperature, spec="reflect")
+const KAPPA : f32 [m²/s] = 0.1
 
-# Visualize the result
-vis = visual.colorize(temperature, palette="fire")
-visual.output(vis, path="heat_diffusion.png")
-
-print("Simulation complete! Check heat_diffusion.png")
+flow(dt=0.01, steps=100) {
+    temp = diffuse(temp, rate=KAPPA, dt, iterations=20)
+    output colorize(temp, palette="fire", min=250.0, max=350.0)
+}
 ```
 
 Run it:
 
 ```bash
-python heat.py
+kairo run hello.kairo
 ```
 
-You should see a `heat_diffusion.png` file showing the smoothed temperature field with a fire color palette.
+You should see a visualization of heat spreading across the field, smoothing out over 100 timesteps.
+
+---
 
 ## Core Concepts
 
-### 1. Fields
+### 1. Temporal Model - `flow` blocks
 
-Fields are dense 2D grids that store scalar or vector values. They're the foundation for simulations.
+Kairo programs describe time-evolving systems through `flow` blocks:
 
-**Create a field:**
-```python
-# Random field
-field = field.random((128, 128), seed=0)
-
-# Allocated field (all zeros)
-field = field.alloc((256, 256), fill_value=0.0)
+```kairo
+flow(dt=0.01, steps=1000) {
+    # This block executes 1000 times with timestep 0.01
+    temp = diffuse(temp, rate=0.1, dt)
+    output colorize(temp, palette="fire")
+}
 ```
 
-**Field operations:**
-```python
-# Advection (move values along velocity field)
-scalar = field.advect(scalar, velocity, dt=0.01)
+**Parameters:**
+- `dt` - Timestep duration (in seconds or dimensionless)
+- `steps` - Number of iterations to execute
 
-# Diffusion (smooth values)
-field = field.diffuse(field, rate=0.1, dt=0.01, iterations=20)
+### 2. State Management - `@state`
 
-# Projection (make velocity divergence-free)
-velocity = field.project(velocity, iterations=20)
+Persistent variables are declared with `@state`:
 
-# Element-wise operations
-result = field.combine(field_a, field_b, operation="add")
+```kairo
+@state vel : Field2D<Vec2<f32>> = zeros((256, 256))
+@state agents : Agents<Particle> = alloc(count=1000)
 
-# Apply function to each element
-squared = field.map(field, func="square")
-
-# Boundary conditions
-field = field.boundary(field, spec="reflect")  # or "periodic"
+flow(dt=0.01) {
+    vel = advect(vel, vel, dt)      # Updates vel for next step
+    agents = integrate(agents, dt)   # Updates agents for next step
+}
 ```
 
-### 2. Visualization
+**Without `@state`**, variables are local to each timestep.
 
-The visual module helps you see your simulation results.
+### 3. Type System with Physical Units
 
-**Color Palettes:**
-- `grayscale` - Black to white
-- `fire` - Black → red → orange → yellow → white
-- `viridis` - Perceptually uniform, colorblind-friendly
-- `coolwarm` - Blue → white → red
+Types can carry dimensional information:
 
-**Example:**
-```python
-vis = visual.colorize(field, palette="viridis")
-visual.output(vis, path="output.png")
+```kairo
+temp : Field2D<f32 [K]>           # Temperature in Kelvin
+pos : Vec2<f32 [m]>               # Position in meters
+vel : Vec2<f32 [m/s]>             # Velocity in m/s
+
+# Unit checking (annotations, not enforced yet)
+dist : f32 [m] = 10.0
+time : f32 [s] = 2.0
+speed = dist / time               # Implicitly: f32 [m/s]
 ```
 
-### 3. Determinism
+### 4. Deterministic Randomness
 
-All operations with the same seed produce identical results:
+All randomness is explicit via seeded functions:
 
-```python
-# These will produce identical fields
-field1 = field.random((100, 100), seed=42)
-field2 = field.random((100, 100), seed=42)
-# field1.data == field2.data  → True
+```kairo
+@state field : Field2D<f32> = random_normal(
+    seed=42,      # Explicit seed
+    shape=(100, 100),
+    mean=0.0,
+    std=1.0
+)
+
+# Same seed → same output every time
 ```
+
+---
+
+## Four Dialects
+
+### 1. Field Dialect - Dense Grid Operations
+
+For simulations on spatial grids (PDEs, fluid dynamics, reaction-diffusion):
+
+```kairo
+use field
+
+@state temp : Field2D<f32> = random_normal(seed=42, shape=(256, 256))
+
+flow(dt=0.1, steps=100) {
+    # PDE operations
+    temp = diffuse(temp, rate=0.2, dt, iterations=20)
+    temp = advect(temp, velocity, dt)
+
+    # Stencil operations
+    let grad = gradient(temp)
+    let lap = laplacian(temp)
+
+    # Element-wise operations
+    temp = temp.map(|x| clamp(x, 0.0, 1.0))
+}
+```
+
+**Common operations:**
+- `diffuse()` - Heat/mass diffusion
+- `advect()` - Transport along velocity field
+- `project()` - Incompressibility constraint
+- `gradient()`, `laplacian()`, `divergence()` - Differential operators
+
+### 2. Agent Dialect - Sparse Particle Systems
+
+For agent-based simulations (particles, boids, crowds):
+
+```kairo
+use agent
+
+struct Boid {
+    pos: Vec2<f32>
+    vel: Vec2<f32>
+}
+
+@state boids : Agents<Boid> = alloc(count=200, init=spawn_boid)
+
+fn spawn_boid(id: u32, rng: RNG) -> Boid {
+    return Boid {
+        pos: rng.uniform_vec2(min=(0, 0), max=(100, 100)),
+        vel: rng.normal_vec2(mean=(0, 0), std=(1, 1))
+    }
+}
+
+flow(dt=0.01, steps=1000) {
+    boids = boids.map(|b| {
+        vel: b.vel + flocking_force(b) * dt,
+        pos: b.pos + b.vel * dt
+    })
+}
+```
+
+**Status:** ✅ Production-ready as of v0.4.0
+
+### 3. Audio Dialect - Sound Synthesis and Processing
+
+For audio synthesis and processing:
+
+```kairo
+use audio
+
+# Simple synthesis
+let pluck = noise(seed=1) |> lowpass(6000)
+let string = string(pluck, freq=220, t60=1.5)
+let final = string |> reverb(mix=0.12)
+
+# Real-time playback (v0.6.0+)
+audio.play(final)
+
+# Export to file (v0.6.0+)
+audio.save(final, "output.wav")
+```
+
+**Status:** ✅ Production-ready as of v0.5.0 (synthesis) and v0.6.0 (I/O)
+
+**Features:**
+- Oscillators (sine, saw, square, triangle, noise)
+- Filters (lowpass, highpass, bandpass, EQ)
+- Envelopes (ADSR, AR, exponential decay)
+- Effects (delay, reverb, chorus, flanger, limiter)
+- Physical modeling (Karplus-Strong strings, modal synthesis)
+
+### 4. Visual Dialect - Rendering and Composition
+
+For visualization and video export:
+
+```kairo
+use visual
+
+# Colorize fields
+let field_vis = colorize(temp, palette="viridis")
+
+# Render agents (v0.6.0+)
+let agent_vis = visual.agents(
+    particles,
+    width=256,
+    height=256,
+    color_property='vel',
+    palette='fire',
+    size=3.0
+)
+
+# Layer composition (v0.6.0+)
+let combined = visual.composite(
+    field_vis,
+    agent_vis,
+    mode="add",
+    opacity=[1.0, 0.7]
+)
+
+# Video export (v0.6.0+)
+visual.video(frames, "animation.mp4", fps=30)
+
+output combined
+```
+
+**Palettes:** `grayscale`, `fire`, `viridis`, `coolwarm`
+
+---
 
 ## Complete Examples
 
 ### Example 1: Reaction-Diffusion (Gray-Scott)
 
-```python
-from creative_computation.stdlib.field import field
-from creative_computation.stdlib.visual import visual
+Create `grayscott.kairo`:
 
-# Initialize chemical concentrations
-u = field.random((256, 256), seed=10, low=0.9, high=1.0)
-v = field.random((256, 256), seed=20, low=0.0, high=0.1)
+```kairo
+use field, visual
 
-# Parameters
-F = 0.055  # Feed rate
-k = 0.062  # Kill rate
-Du = 0.16  # Diffusion rate for U
-Dv = 0.08  # Diffusion rate for V
-dt = 1.0
+@state u : Field2D<f32> = ones((256, 256))
+@state v : Field2D<f32> = zeros((256, 256))
 
-# Simulate 100 steps
-for step in range(100):
-    # Diffusion
-    u_diffused = field.diffuse(u, rate=Du, dt=dt, iterations=10)
-    v_diffused = field.diffuse(v, rate=Dv, dt=dt, iterations=10)
+const Du : f32 = 0.16
+const Dv : f32 = 0.08
+const F : f32 = 0.060
+const K : f32 = 0.062
 
-    # Reaction (simplified - for MVP we'd need custom functions)
-    # In full DSL: u = u - u*v*v + F*(1-u)
-    # For MVP demo, just use diffused fields
-    u = u_diffused
-    v = v_diffused
+flow(dt=1.0, steps=10000) {
+    # Gray-Scott reaction
+    let uvv = u * v * v
+    let du_dt = Du * laplacian(u) - uvv + F * (1.0 - u)
+    let dv_dt = Dv * laplacian(v) + uvv - (F + K) * v
 
-    # Boundaries
-    u = field.boundary(u, spec="periodic")
-    v = field.boundary(v, spec="periodic")
+    u = u + du_dt * dt
+    v = v + dv_dt * dt
 
-    if step % 20 == 0:
-        print(f"Step {step}/100")
-
-# Visualize
-vis = visual.colorize(v, palette="viridis")
-visual.output(vis, path="reaction_diffusion.png")
-print("Complete! See reaction_diffusion.png")
+    output colorize(v, palette="viridis")
+}
 ```
 
-### Example 2: Velocity Field Smoothing
-
-```python
-from creative_computation.stdlib.field import field
-from creative_computation.stdlib.visual import visual
-import numpy as np
-
-# Create a velocity field (2-channel: vx, vy)
-h, w = 128, 128
-vx = field.random((h, w), seed=1, low=-1.0, high=1.0)
-vy = field.random((h, w), seed=2, low=-1.0, high=1.0)
-
-# Stack into velocity field
-velocity_data = np.stack([vx.data, vy.data], axis=-1)
-velocity = field.Field2D(velocity_data, dx=1.0, dy=1.0)
-
-# Make divergence-free (incompressible flow)
-velocity = field.project(velocity, iterations=30)
-
-# Visualize velocity magnitude
-vx_proj = velocity.data[:, :, 0]
-vy_proj = velocity.data[:, :, 1]
-magnitude = np.sqrt(vx_proj**2 + vy_proj**2)
-mag_field = field.Field2D(magnitude)
-
-vis = visual.colorize(mag_field, palette="coolwarm")
-visual.output(vis, path="velocity_magnitude.png")
-print("Velocity field projected and visualized!")
+Run with:
+```bash
+kairo run grayscott.kairo
 ```
 
-## API Quick Reference
+### Example 2: Particle System with Gravity
 
-### Field Operations
+Create `particles.kairo`:
 
-| Operation | Purpose | Key Parameters |
-|-----------|---------|----------------|
-| `field.alloc` | Create new field | `shape`, `fill_value` |
-| `field.random` | Random initialization | `shape`, `seed`, `low`, `high` |
-| `field.advect` | Transport by velocity | `field`, `velocity`, `dt` |
-| `field.diffuse` | Smooth/blur | `rate`, `dt`, `iterations` |
-| `field.project` | Remove divergence | `iterations` |
-| `field.combine` | Element-wise ops | `operation` ("add", "mul", etc.) |
-| `field.map` | Apply function | `func` ("abs", "sin", "square", etc.) |
-| `field.boundary` | Edge conditions | `spec` ("reflect", "periodic") |
+```kairo
+use agent, visual
 
-### Visual Operations
+struct Particle {
+    pos: Vec2<f32 [m]>
+    vel: Vec2<f32 [m/s]>
+    age: u32
+}
 
-| Operation | Purpose | Key Parameters |
-|-----------|---------|----------------|
-| `visual.colorize` | Map values to colors | `palette`, `vmin`, `vmax` |
-| `visual.output` | Save to file | `path`, `format` |
+@state particles : Agents<Particle> = alloc(count=1000, init=spawn)
 
-## Common Patterns
+fn spawn(id: u32, rng: RNG) -> Particle {
+    return Particle {
+        pos: rng.uniform_vec2(min=(0, 0), max=(100, 100)),
+        vel: rng.normal_vec2(mean=(0, 0), std=(1, 1)),
+        age: 0
+    }
+}
 
-### Pattern 1: Smooth Random Noise
+const GRAVITY : Vec2<f32 [m/s²]> = Vec2(0.0, -9.8)
 
-```python
-# Create and smooth noise
-noise = field.random((200, 200), seed=123)
-smooth = field.diffuse(noise, rate=1.0, dt=0.1, iterations=30)
+flow(dt=0.01, steps=1000) {
+    # Apply gravity
+    particles = particles.map(|p| {
+        vel: p.vel + GRAVITY * dt,
+        pos: p.pos + p.vel * dt,
+        age: p.age + 1
+    })
+
+    # Bounce off floor
+    particles = particles.map(|p| {
+        vel: if p.pos.y < 0.0 { Vec2(p.vel.x, -p.vel.y * 0.8) } else { p.vel },
+        pos: if p.pos.y < 0.0 { Vec2(p.pos.x, 0.0) } else { p.pos }
+    })
+
+    output visual.agents(particles, width=512, height=512, size=2.0)
+}
 ```
 
-### Pattern 2: Iterative Refinement
+### Example 3: Simple Audio Synthesis
 
-```python
-# Iteratively improve a solution
-field = field.random((128, 128), seed=0)
+Create `synth.kairo`:
 
-for i in range(10):
-    field = field.diffuse(field, rate=0.2, dt=0.1, iterations=5)
-    field = field.boundary(field, spec="reflect")
+```kairo
+use audio
+
+# Generate a plucked string sound
+let excitation = noise(seed=7) |> lowpass(cutoff=6000) |> envexp(time=5ms)
+let string_tone = string(excitation, freq=220, t60=1.5)
+let final = string_tone |> reverb(mix=0.12) |> limiter(threshold=-1dB)
+
+# Play it (requires audio I/O dependencies)
+audio.play(final)
+
+# Or save to file
+audio.save(final, "pluck.wav")
 ```
 
-### Pattern 3: Multi-Scale Visualization
+---
 
-```python
-# Visualize at different value ranges
-vis_full = visual.colorize(field, palette="viridis")  # Auto range
-vis_detail = visual.colorize(field, palette="viridis", vmin=0.3, vmax=0.7)
+## Project Structure
 
-visual.output(vis_full, path="full_range.png")
-visual.output(vis_detail, path="detail.png")
+A typical Kairo project:
+
 ```
+my-project/
+├── main.kairo           # Main program
+├── lib/
+│   ├── forces.kairo     # Custom force functions
+│   └── visuals.kairo    # Custom visualizations
+├── examples/
+│   ├── 01_simple.kairo
+│   └── 02_advanced.kairo
+└── output/
+    ├── frames/          # Rendered frames
+    └── audio/           # Exported audio
+```
+
+---
+
+## Running Kairo Programs
+
+### Basic Execution
+
+```bash
+kairo run program.kairo
+```
+
+### With Arguments (future)
+
+```bash
+kairo run program.kairo --steps 10000 --dt 0.001
+```
+
+### Interactive Mode (future)
+
+```bash
+kairo repl
+```
+
+---
+
+## Next Steps
+
+### 1. Explore Examples
+
+Check out the `examples/` directory for:
+- **Beginner**: `01_hello_heat.kairo`, `02_pulsing_circle.kairo`
+- **Intermediate**: `10_heat_equation.kairo`, `11_gray_scott.kairo`
+- **Advanced**: `v0_3_1_complete_demo.kairo`, MLIR phase examples
+
+See `examples/README.md` for a complete guide.
+
+### 2. Read the Specification
+
+For complete language reference:
+- **[SPECIFICATION.md](../SPECIFICATION.md)** - Full language specification
+- **[LANGUAGE_REFERENCE.md](../LANGUAGE_REFERENCE.md)** - Quick reference guide
+- **[AUDIO_SPECIFICATION.md](../AUDIO_SPECIFICATION.md)** - Audio dialect details
+
+### 3. Understand the Architecture
+
+For implementors and advanced users:
+- **[ARCHITECTURE.md](../ARCHITECTURE.md)** - Kairo Stack architecture
+- **[docs/v0.7.0_DESIGN.md](v0.7.0_DESIGN.md)** - MLIR integration roadmap
+
+### 4. Join the Community
+
+- **GitHub**: https://github.com/scottsen/kairo
+- **Issues**: https://github.com/scottsen/kairo/issues
+- **Discussions**: Share your creations and get help
+
+---
 
 ## Performance Tips
 
-1. **Field Size**: Start with 64×64 or 128×128 for experimentation. Larger fields (512×512+) take more time.
+### Field Operations
+
+1. **Field Size**: Start with 128×128 or 256×256 for experimentation
+   - Larger fields (512×512+) require more computation
+   - v0.7.0+ MLIR compilation significantly improves performance
 
 2. **Iteration Count**: For diffusion and projection:
    - **Quick preview**: 10 iterations
-   - **Good quality**: 20 iterations
+   - **Good quality**: 20 iterations (default)
    - **High accuracy**: 40+ iterations
 
-3. **Deterministic Seeds**: Always use fixed seeds for reproducible results:
-   ```python
-   field = field.random((100, 100), seed=42)  # ✓ Reproducible
+3. **Timestep Selection**:
+   - Smaller `dt` = more stable but slower
+   - Larger `dt` = faster but may diverge
+   - Typical range: 0.001 to 0.1
+
+### Agent Operations
+
+1. **Agent Count**: Performance scales linearly
+   - 1,000 agents: Near-instant
+   - 10,000 agents: ~0.01s per frame
+   - 100,000+ agents: Consider spatial hashing optimizations
+
+2. **Force Calculations**: Use spatial hashing for N-body forces
+   ```kairo
+   forces = compute_pairwise_forces(
+       agents,
+       radius=5.0,  # Interaction radius
+       force_func=gravity
+   )
    ```
+
+---
 
 ## Troubleshooting
 
 ### Import Errors
 
-If you see `ModuleNotFoundError`:
+If you see `ModuleNotFoundError: No module named 'kairo'`:
+
 ```bash
 # Reinstall with dependencies
 pip install -e .
 ```
 
-### No Output Image
+### Audio I/O Not Working
 
-Check that:
-1. You called `visual.output()`
-2. The path is writable
-3. Pillow is installed: `pip install pillow`
+If `audio.play()` or `audio.save()` fail:
+
+```bash
+# Install I/O dependencies
+pip install -e ".[io]"
+```
+
+### MLIR Features Not Available (v0.7.0+)
+
+MLIR compilation requires additional setup:
+
+```bash
+# Install MLIR Python bindings (optional)
+pip install mlir -f https://github.com/makslevental/mlir-wheels/releases/expanded_assets/latest
+```
+
+If MLIR is not available, Kairo falls back to Python NumPy interpreter.
 
 ### Simulation Too Slow
 
 - Reduce field size: `(256, 256)` → `(128, 128)`
 - Reduce iterations: `iterations=40` → `iterations=20`
-- Profile your code: Focus on operations inside loops
-
-## Next Steps
-
-1. **Explore Examples**: Check `examples/` directory for more simulations
-2. **Read Language Reference**: See `LANGUAGE_REFERENCE.md` for full language spec
-3. **Understand Architecture**: See `docs/architecture.md` for implementation details
-4. **Write Tests**: Add your own examples and verify determinism
-
-## Getting Help
-
-- **Documentation**: Check `docs/` directory
-- **Examples**: Browse `examples/` for working code
-- **Issues**: Report bugs or request features via GitHub issues
-
-## MVP Limitations
-
-The current MVP (v0.2.2) focuses on field operations. Not yet implemented:
-
-- ❌ Agent-based systems
-- ❌ Signal processing / audio
-- ❌ Full DSL parser (tuple syntax, complex expressions)
-- ❌ MLIR compilation (using NumPy interpreter)
-- ❌ Real-time rendering
-- ❌ GPU acceleration
-
-These features are planned for future releases. See `MVP_ROADMAP.md` for details.
+- Enable MLIR compilation for 10-100x speedup (v0.7.0+)
 
 ---
 
-**Congratulations!** You're now ready to create your own simulations with Creative Computation DSL. Happy coding! 🎨
+## Current Limitations
+
+### v0.6.0 (Stable)
+
+- ✅ Field operations (production-ready)
+- ✅ Agent operations (production-ready)
+- ✅ Audio synthesis (production-ready)
+- ✅ Audio/visual I/O (production-ready)
+- ⏳ Physical unit checking (annotations only, not enforced)
+- ⏳ Hot-reload (designed, not implemented)
+- ⏳ GPU acceleration (planned for v0.7.0 MLIR phases)
+
+### v0.7.0 (Development)
+
+- ✅ MLIR integration foundation (Phase 1)
+- ✅ Field operations dialect (Phase 2)
+- ✅ Temporal execution (Phase 3)
+- ✅ Agent operations dialect (Phase 4)
+- ✅ Audio operations dialect (Phase 5)
+- ✅ JIT/AOT compilation (Phase 6)
+- ⏳ GPU compilation (Phase 7, in progress)
+
+See [docs/v0.7.0_DESIGN.md](v0.7.0_DESIGN.md) for the complete roadmap.
+
+---
+
+## Getting Help
+
+- **Documentation**: Check `docs/` directory for detailed guides
+- **Examples**: Browse `examples/` for working code
+- **Issues**: Report bugs or request features at https://github.com/scottsen/kairo/issues
+- **Specification**: See `SPECIFICATION.md` for language details
+
+---
+
+**Congratulations!** You're now ready to create your own simulations, sounds, and visualizations with Kairo. Happy coding! 🎨🎵🔬
+
+---
+
+**Version**: v0.6.0 (stable) / v0.7.0-dev (development)
+**Last Updated**: 2025-11-15
