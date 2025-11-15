@@ -332,6 +332,71 @@ Eventually MLIR gives you:
 * Differentiable physics
 * Learned operators (replacing hand-tuned kernels)
 
+### 3.8 Circuit / Electrical Engineering ⭐ **NEW - November 2025**
+
+**Status:** Architecture complete (PR #43) — **`docs/SPEC-CIRCUIT.md`** (1,136 lines)
+
+The most natural domain for Kairo — circuits ARE typed operator graphs!
+
+* **Atomic operators**: R, C, L, voltage/current sources
+* **Composite operators**: Op-amps, transistors, transformers
+* **Analysis**: DC, AC, transient, harmonic balance, noise
+* **Multi-domain**: Circuit ↔ Audio (guitar pedals), Geometry ↔ Circuit (PCB parasitics)
+
+**See:** `examples/circuit/` (5 complete examples)
+
+### 3.9 Acoustics & Fluid Dynamics ⭐ **NEW - November 2025**
+
+**Status:** Architecture complete (PR #44) — **`docs/DOMAIN_ARCHITECTURE.md`** sections 2.9, 2.10
+
+Unified fluid + acoustic pipeline for exhaust systems, instruments, HVAC:
+
+* **FluidDynamics**: 1D compressible flow, Navier-Stokes, thermodynamic coupling, engine pulses
+* **Acoustics**: 1D waveguides, FDTD, Helmholtz resonators, radiation impedance
+* **Pipeline**: FluidDynamics → Acoustics → Audio → WAV files
+
+**See:** `docs/USE_CASES/2-stroke-muffler-modeling.md`
+
+### 3.10 Instrument Modeling ⭐ **NEW - November 2025**
+
+**Status:** Architecture complete (PR #45) — **`docs/SPEC-TIMBRE-EXTRACTION.md`** (752 lines)
+
+The "holy grail" of audio DSP — recordings → synthesis models:
+
+* **Analysis** (15 ops): Pitch tracking, harmonic extraction, modal fitting, inharmonicity
+* **Synthesis** (12 ops): Additive, modal, granular, spectral filtering
+* **Modeling** (8 ops): InstrumentModel type, timbre morphing, virtual acoustics
+
+**Use case:** Record acoustic guitar → extract timbre → synthesize new MIDI notes
+
+### 3.11 Optimization ⭐ **NEW - November 2025**
+
+**Status:** Architecture complete (PR #48) — **`docs/LEARNINGS/OPTIMIZATION_ALGORITHMS_CATALOG.md`** (1,529 lines)
+
+16 algorithms transforming Kairo: simulation → design discovery:
+
+* **Evolutionary** (4): GA, DE, CMA-ES, PSO
+* **Local** (3): Gradient Descent, L-BFGS, Nelder-Mead
+* **Surrogate** (3): Bayesian Optimization, Response Surface, Kriging
+* **Multi-Objective** (3): NSGA-II, SPEA2, MOPSO
+
+**Cross-domain:** Optimize J-tube geometry, muffler design, PID tuning, filter parameters
+
+### 3.12 Multi-Physics Engineering ⭐ **NEW - November 2025**
+
+**Status:** Architecture complete (PR #47) — **`docs/SPEC-PHYSICS-DOMAINS.md`** (1,079 lines)
+
+Four specialized domains for engineering simulation:
+
+* **FluidNetwork**: Lumped fluid networks (pipes, valves, pumps)
+* **ThermalODE**: ODE-based thermal models (heat transfer, radiation)
+* **FluidJet**: Jet/flame dynamics (velocity, spread, entrainment)
+* **CombustionLight**: Reaction kinetics, flame modeling
+
+**Pipeline:** Geometry → FluidNetwork → ThermalODE → CombustionLight
+
+**See:** `docs/EXAMPLES/J-TUBE-FIREPIT-MULTIPHYSICS.md`
+
 ---
 
 ## 4. Frontend Surfaces (not domains, but modules)

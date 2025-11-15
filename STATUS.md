@@ -33,15 +33,78 @@
 - **MLIR Text-Based IR**: Legacy `ir_builder.py` and `optimizer.py` (marked deprecated)
 - Will be maintained during v0.7.0 transition, removed in v0.8.0+
 
+### 🎉 NEW: Domain Architecture Expansion (November 15, 2025)
+
+**Major Milestone**: Kairo's domain specifications massively expanded with 10+ new domains, establishing comprehensive architecture for universal multi-domain simulation platform.
+
+**New Domain Specifications** (6 PRs merged today):
+
+1. **Circuit/Electrical Engineering Domain** ⭐ (PR #43)
+   - Complete specification: `SPEC-CIRCUIT.md` (1,136 lines)
+   - ADR-003: Circuit modeling domain design rationale
+   - 5 circuit examples: RC filters, op-amps, guitar pedals, PCB parasitic extraction
+   - Cross-domain: Circuit ↔ Audio, Geometry, Physics
+   - Status: **Architecture Complete**, ready for implementation
+
+2. **Fluid Dynamics & Acoustics Domains** ⭐ (PR #44)
+   - FluidDynamics: Compressible/incompressible flow, gas dynamics, engine operators
+   - Acoustics: 1D waveguides, FDTD, Helmholtz resonators, radiation impedance
+   - Use case: 2-stroke muffler modeling (FluidDynamics → Acoustics → Audio)
+   - Complete specification in `DOMAIN_ARCHITECTURE.md` sections 2.9, 2.10
+   - Status: **Architecture Complete**, ready for implementation
+
+3. **Instrument Modeling & Timbre Extraction** ⭐ (PR #45)
+   - Complete specification: `SPEC-TIMBRE-EXTRACTION.md` (752 lines)
+   - 35 operators: analysis, synthesis, modeling
+   - Enables: Record guitar → extract timbre → synthesize new notes
+   - ADR-003: Instrument modeling domain rationale
+   - Status: **Architecture Complete**, ready for implementation
+
+4. **Audio Time Alignment Operators** (PR #46)
+   - Measurement, analysis, and alignment operator families
+   - New operator catalog: `LEARNINGS/TIME_ALIGNMENT_OPERATORS.md` (862 lines)
+   - Solves pro audio problems: speaker alignment, crossover phase matching
+   - Status: **Architecture Complete**, ready for Audio dialect integration
+
+5. **Multi-Physics Engineering Domains** ⭐ (PR #47)
+   - Complete specification: `SPEC-PHYSICS-DOMAINS.md` (1,079 lines)
+   - Four domains: FluidNetwork, ThermalODE, FluidJet, CombustionLight
+   - J-tube fire pit example: Geometry → Fluid → Thermal → Combustion
+   - Validates operator graph paradigm for engineering physics
+   - Status: **Architecture Complete**, ready for implementation
+
+6. **Optimization Algorithms Domain** ⭐ (PR #48)
+   - Complete catalog: `LEARNINGS/OPTIMIZATION_ALGORITHMS_CATALOG.md` (1,529 lines)
+   - 16 algorithms across 5 categories
+   - Evolutionary, Local, Surrogate, Combinatorial, Multi-Objective
+   - Transforms Kairo: simulation platform → design discovery platform
+   - Status: **Architecture Complete**, ready for implementation
+
+**Documentation Added**:
+- 6 major specifications (6,400+ lines of detailed domain design)
+- 2 new ADRs (architectural decision records)
+- 3 comprehensive operator catalogs (LEARNINGS/)
+- 2 example directories (EXAMPLES/, USE_CASES/)
+- 6 circuit examples (examples/circuit/)
+- Updated CHANGELOG with all 6 PRs
+
+**Complete Domain Catalog** (20+ domains now specified):
+
+**Implemented** (v0.7.4):
+- Transform, Stochastic, Fields/Grids, Agent/Particle, Audio/DSP, Visual
+
+**Architecture Complete** (Specs ready for implementation):
+- **Geometry**, **Circuit**, **Acoustics**, **FluidDynamics**, **InstrumentModeling**
+- **Optimization**, **Physics** (FluidNetwork, ThermalODE, FluidJet, CombustionLight)
+- Sparse Linear Algebra, Graph/Network, Image/Vision
+
+**Planned** (Next wave):
+- Symbolic/Algebraic, Neural Operators, Control & Robotics
+
+See `docs/DOMAIN_ARCHITECTURE.md` (2,266 lines) for complete vision.
+
 ### 📋 Planned (Future Enhancements)
-- **Geometry Domain (v0.9+)** ⭐ **Architecture Complete**:
-  - Unified reference & frame model inspired by TiaCAD v3.x
-  - Complete specifications: SPEC-COORDINATE-FRAMES.md, SPEC-GEOMETRY.md
-  - ADR-001: Unified Reference Model (approved for implementation)
-  - Cross-domain anchor system (geometry, audio, physics, agents, fields)
-  - Reference-based composition replacing hierarchical assemblies
-  - Explicit transform origins (no implicit rotation/scale centers)
-  - Backend-neutral operator semantics (CadQuery, CGAL, GPU SDF targets)
+- **Domain Implementation** (v0.9+): Implement specification-ready domains (Circuit, Geometry, etc.)
 - **Physical Units**: Type system exists, dimensional analysis not enforced yet
 - **Hot-reload**: Architecture designed, not implemented yet
 - **GPU Acceleration**: Via MLIR GPU dialect (planned for future phases)
