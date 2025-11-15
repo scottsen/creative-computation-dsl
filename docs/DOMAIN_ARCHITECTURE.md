@@ -861,6 +861,713 @@ This unification makes Kairo's multi-domain vision coherent and practical.
 
 ---
 
+### 2.9 Fluid Dynamics Domain
+
+**Purpose**: Compressible and incompressible fluid flow, pressure wave propagation, gas dynamics, thermodynamic coupling.
+
+**Why Needed**: Essential for exhaust acoustics, aerodynamics, combustion modeling, HVAC simulation, and any application involving gas or liquid flow. Particularly critical for multi-domain problems like 2-stroke engine exhaust systems where fluid pulses drive acoustic behavior.
+
+**Status**: 🔲 Planned (v1.0+)
+
+**Key Applications**:
+- **2-Stroke Exhaust Systems** — Pressure pulse generation, backpressure timing, scavenging analysis
+- **Aeroacoustics** — Flow-induced noise, jet noise, wind turbine acoustics
+- **HVAC** — Air duct flow, ventilation system design
+- **Combustion** — Engine cycles, burner design
+
+---
+
+#### Operator Families
+
+**1. Compressible 1D Flow (Gas Dynamics)**
+
+Fast, accurate simulation of wave propagation in ducts and pipes:
+
+```kairo
+# 1D Euler equations (inviscid compressible flow)
+fluid.euler_1d(
+    pressure: Field1D<Pa>,
+    velocity: Field1D<m/s>,
+    density: Field1D<kg/m³>,
+    dt: Time
+) -> (pressure', velocity', density')
+
+# Gas properties
+fluid.gas_properties(
+    temperature: Field1D<K>,
+    composition: GasType  # "air", "exhaust", "steam", etc.
+) -> GasProperties
+
+fluid.sound_speed(gas_properties: GasProperties) -> Field1D<m/s>
+
+# Pressure pulse generation (engine, explosion, valve opening)
+fluid.pressure_pulse(
+    peak_pressure: Pa,
+    rise_time: Time,
+    duration: Time,
+    shape: "gaussian" | "square" | "exponential"
+) -> PressurePulse
+```
+
+**Use Case:**
+```kairo
+# 2-stroke engine combustion pulse
+let pulse = fluid.pressure_pulse(
+    peak_pressure = 15 bar,
+    rise_time = 0.5 ms,
+    duration = 2.0 ms,
+    shape = "exponential"
+)
+
+# Propagate through exhaust pipe
+let (p', v', rho') = fluid.euler_1d(pressure, velocity, density, dt)
+```
+
+---
+
+**2. Incompressible Flow (Navier-Stokes)**
+
+For liquid flow and low-speed gas flow:
+
+```kairo
+# 2D/3D incompressible Navier-Stokes
+fluid.navier_stokes(
+    velocity: Field2D<Vec2<m/s>>,  # or Field3D<Vec3<m/s>>
+    pressure: Field2D<Pa>,
+    viscosity: f32 [Pa·s],
+    density: f32 [kg/m³],
+    dt: Time
+) -> (velocity', pressure')
+
+# Individual operations
+fluid.advect(velocity: Field, advector: Field, dt: Time) -> Field
+fluid.diffuse(field: Field, viscosity: f32, dt: Time) -> Field
+fluid.project(velocity: Field, dt: Time) -> Field  # Divergence-free projection
+```
+
+**Use Case:**
+```kairo
+# Classic smoke simulation
+velocity = fluid.advect(velocity, velocity, dt)
+velocity = fluid.diffuse(velocity, viscosity, dt)
+velocity = fluid.project(velocity, dt)  # Ensure incompressibility
+```
+
+---
+
+**3. Thermodynamic Coupling**
+
+Temperature affects gas properties (density, viscosity, sound speed):
+
+```kairo
+# Temperature-dependent properties
+fluid.thermal_properties(
+    temperature: Field<K>,
+    gas_type: GasType
+) -> ThermalProperties
+
+# Convective heat transfer
+fluid.convection(
+    temperature: Field<K>,
+    velocity: Field<m/s>,
+    thermal_diffusivity: f32 [m²/s],
+    dt: Time
+) -> temperature'
+
+# Buoyancy force (hot gas rises)
+fluid.buoyancy_force(
+    temperature: Field<K>,
+    reference_temp: K,
+    gravity: Vec3<m/s²>
+) -> Field<Vec3<N/m³>>
+```
+
+---
+
+**4. Boundary Conditions**
+
+```kairo
+# Inlet boundary (fixed pressure or velocity)
+fluid.inlet_bc(field: Field, inlet_region: Region, value: T) -> Field
+
+# Outlet boundary (zero-gradient or pressure)
+fluid.outlet_bc(field: Field, outlet_region: Region) -> Field
+
+# No-slip boundary (velocity = 0 at wall)
+fluid.no_slip_bc(velocity: Field, wall_region: Region) -> Field
+
+# Slip boundary (frictionless wall)
+fluid.slip_bc(velocity: Field, wall_region: Region) -> Field
+```
+
+---
+
+**5. Engine-Specific Operators**
+
+For 2-stroke and 4-stroke engine modeling:
+
+```kairo
+# Combustion pulse for piston engine
+engine.combustion_pulse(
+    rpm: f32,
+    displacement: f32 [cm³],
+    compression_ratio: f32,
+    fuel_type: "gasoline_2stroke" | "diesel" | "methanol"
+) -> PressurePulse
+
+# Backpressure timing analysis
+engine.backpressure_timing(
+    pressure_field: Field1D<Pa>,
+    cycle_time: Time,
+    scavenge_window: TimeRange
+) -> BackpressureAnalysis {
+    efficiency: f32,          # 0.0 to 1.0
+    resonant_rpm: f32,
+    peak_power_rpm: f32
+}
+
+# Scavenging efficiency (how much fresh mixture stays in cylinder)
+engine.scavenging_efficiency(
+    backpressure: Field1D<Pa>,
+    port_timing: PortTiming
+) -> f32  # 0.0 to 1.0
+```
+
+---
+
+#### Dependencies
+
+- **FieldDomain** — Fluid properties live on grids
+- **IntegratorsDomain** — Time-stepping for PDEs
+- **ThermalDomain** — Temperature coupling
+- **GeometryDomain** — Flow through shaped ducts
+- **AcousticsDomain** — Pressure waves become sound
+
+---
+
+#### Cross-Domain Integration
+
+**FluidDynamics → Acoustics (2-Stroke Exhaust)**
+```kairo
+# Fluid dynamics generates pressure pulse
+let pulse = engine.combustion_pulse(rpm, displacement, compression_ratio)
+
+# Acoustics propagates pulse through pipe geometry
+let waveguide = acoustic.waveguide_from_geometry(exhaust_pipe)
+let sound = acoustic.propagate(pulse, waveguide, dt)
+```
+
+**FluidDynamics → Thermal → FluidDynamics (Feedback)**
+```kairo
+# Temperature affects gas properties
+let gas_props = fluid.thermal_properties(temperature, "exhaust")
+
+# Gas properties affect wave propagation
+let wave_speed = fluid.sound_speed(gas_props)
+
+# Flow heats up pipe walls (future: conjugate heat transfer)
+```
+
+---
+
+#### Testing Strategy
+
+**1. Conservation Tests**
+```kairo
+# Mass conservation
+assert total_mass(density_field) ≈ total_mass(density_field')
+
+# Energy conservation (inviscid flow)
+assert total_energy(p, v, rho) ≈ total_energy(p', v', rho')
+```
+
+**2. Shock Tube (Riemann Problem)**
+```kairo
+# Standard gas dynamics test: discontinuity propagation
+let (p_left, p_right) = (100 kPa, 10 kPa)
+let shock_tube = fluid.riemann_problem(p_left, p_right)
+# Verify shock speed, contact discontinuity, rarefaction wave
+```
+
+**3. Pipe Resonance**
+```kairo
+# Fundamental mode of organ pipe
+let resonant_freq = fluid.pipe_resonance(length, open_ends=true)
+assert resonant_freq ≈ sound_speed / (2 * length)
+```
+
+---
+
+#### References
+
+- **"Computational Fluid Dynamics"** — Anderson (2009)
+- **"Gas Dynamics"** — James E. John (1984)
+- **"Two-Stroke Engine Exhaust Systems"** — Gorr, Benson
+- **Ricardo WAVE** — Commercial 1D gas dynamics software
+
+---
+
+### 2.10 Acoustics Domain
+
+**Purpose**: Sound wave propagation, resonance, impedance, filtering, radiation, and multi-domain coupling of mechanical/fluid systems to audio output.
+
+**Why Needed**: Critical for musical instrument modeling, architectural acoustics, noise control, exhaust system design, speaker design, and any application where vibration or pressure waves produce sound. Bridges physics simulation to audio output.
+
+**Status**: 🔲 Planned (v1.0+)
+
+**Key Applications**:
+- **2-Stroke Exhaust Acoustics** — Muffler design, sound prediction, backpressure tuning
+- **Musical Instruments** — Physical modeling synthesis (brass, woodwinds, strings)
+- **Architectural Acoustics** — Room modes, reverberation, absorption
+- **Noise Control** — Muffler design, sound barriers, active noise cancellation
+- **Speaker Design** — Enclosure resonance, port tuning, radiation patterns
+
+---
+
+#### Core Concepts
+
+**1. Acoustic Impedance**
+
+Ratio of pressure to volume velocity (analogous to electrical impedance):
+- **High Impedance** — Hard to move air (small opening, stiff boundary)
+- **Low Impedance** — Easy to move air (large opening, compliant boundary)
+- **Matched Impedance** — Maximum energy transfer (no reflections)
+
+**2. Wave Propagation**
+
+Sound travels as pressure waves:
+- **1D Waveguides** — Pipes, ducts (plane wave approximation)
+- **2D/3D Fields** — Rooms, open air (spherical/cylindrical waves)
+- **Modal Resonance** — Standing waves at specific frequencies
+
+**3. Reflection & Transmission**
+
+At acoustic discontinuities (area changes, material boundaries):
+- **Reflection Coefficient** — How much wave bounces back
+- **Transmission Coefficient** — How much wave passes through
+
+---
+
+#### Operator Families
+
+**1. Waveguide Construction (1D Acoustics)**
+
+Convert geometry to acoustic network (fast, accurate for pipes):
+
+```kairo
+# Build digital waveguide from pipe geometry
+acoustic.waveguide_from_geometry(
+    geometry: PipeGeometry,
+    discretization: Length,  # segment length
+    sample_rate: Hz
+) -> WaveguideNetwork
+
+# Compute reflection coefficients at area discontinuities
+acoustic.reflection_coefficients(
+    waveguide: WaveguideNetwork
+) -> Vec<ReflectionCoeff>  # -1.0 (open) to +1.0 (closed)
+
+# Update waveguide with temperature-dependent properties
+acoustic.update_properties(
+    waveguide: WaveguideNetwork,
+    wave_speed: Field1D<m/s>,
+    impedance: Field1D<Pa·s/m³>
+) -> WaveguideNetwork
+```
+
+**Use Case:**
+```kairo
+# 2-stroke expansion chamber
+let chamber = geom.expansion_chamber(inlet=40mm, belly=120mm, outlet=50mm)
+let waveguide = acoustic.waveguide_from_geometry(chamber, dx=1mm, sr=44100Hz)
+let reflections = acoustic.reflection_coefficients(waveguide)
+```
+
+---
+
+**2. Waveguide Propagation**
+
+Sample-accurate wave propagation (digital waveguide algorithm):
+
+```kairo
+# Single time step of waveguide simulation
+acoustic.waveguide_step(
+    pressure_forward: Field1D<Pa>,   # right-traveling wave
+    pressure_backward: Field1D<Pa>,  # left-traveling wave
+    waveguide: WaveguideNetwork,
+    reflections: Vec<ReflectionCoeff>,
+    dt: Time
+) -> (pressure_forward', pressure_backward')
+
+# Combined pressure + velocity formulation
+acoustic.waveguide_step_pv(
+    pressure: Field1D<Pa>,
+    velocity: Field1D<m/s>,
+    waveguide: WaveguideNetwork,
+    reflections: Vec<ReflectionCoeff>,
+    absorption: Vec<AbsorptionCoeff>,
+    radiation: RadiationImpedance,
+    dt: Time
+) -> (pressure', velocity')
+```
+
+---
+
+**3. Helmholtz Resonators**
+
+Classic acoustic component (volume + neck = tuned resonator):
+
+```kairo
+# Compute resonant frequency of Helmholtz resonator
+acoustic.helmholtz_frequency(
+    volume: m³,
+    neck_length: m,
+    neck_area: m²
+) -> Hz
+
+# Create resonator operator
+acoustic.helmholtz_resonator(
+    volume: m³,
+    neck_length: m,
+    neck_area: m²,
+    damping: f32  # 0.0 (lossless) to 1.0 (heavily damped)
+) -> Resonator
+
+# Embed in waveguide network
+acoustic.attach_resonator(
+    waveguide: WaveguideNetwork,
+    position: Length,
+    resonator: Resonator
+) -> WaveguideNetwork
+```
+
+**Use Case:**
+```kairo
+# Muffler with quarter-wave resonator
+let resonator = acoustic.helmholtz_resonator(
+    volume = 500 cm³,
+    neck_length = 50 mm,
+    neck_area = 20 cm²
+)
+# Resonant frequency ≈ 340 / (2π) * sqrt(A / (V * L)) ≈ 150 Hz
+```
+
+---
+
+**4. Perforated Pipes & Absorption**
+
+Muffler components:
+
+```kairo
+# Perforated pipe (partial reflection, partial transmission)
+acoustic.perforated_pipe(
+    hole_diameter: Length,
+    hole_spacing: Length,
+    open_area_ratio: f32,  # 0.0 to 1.0
+    pipe_diameter: Length
+) -> AcousticImpedance
+
+# Absorption material (fiberglass, foam, rock wool)
+acoustic.absorption_material(
+    type: "fiberglass" | "foam" | "rockwool",
+    density: kg/m³,
+    thickness: Length,
+    frequency_range: (Hz, Hz)
+) -> FrequencyDependentAbsorption
+
+# Apply absorption to waveguide segment
+acoustic.absorptive_segment(
+    waveguide: WaveguideNetwork,
+    start: Length,
+    end: Length,
+    absorption: FrequencyDependentAbsorption
+) -> WaveguideNetwork
+```
+
+---
+
+**5. Radiation Impedance**
+
+Sound radiating from pipe exit to open air:
+
+```kairo
+# Radiation impedance (frequency-dependent)
+acoustic.radiation_impedance(
+    diameter: Length,
+    type: "unflanged" | "flanged" | "infinite_baffle"
+) -> FrequencyDependentImpedance
+
+# Radiate to specific point in space
+acoustic.radiate_to_point(
+    source_pressure: Pa,
+    distance: Length,
+    angle: Angle,  # 0° = on-axis, 90° = perpendicular
+    radiation: RadiationImpedance
+) -> Pa  # Sound pressure at listener position
+
+# Directivity pattern (how sound spreads in 3D)
+acoustic.directivity_pattern(
+    source: AcousticSource,
+    frequencies: Vec<Hz>
+) -> Field2D<dB>  # Polar plot of radiation
+```
+
+**Use Case:**
+```kairo
+# Tailpipe exit radiation
+let radiation = acoustic.radiation_impedance(diameter=45mm, type="unflanged")
+let mic_pressure = acoustic.radiate_to_point(
+    source_pressure = tailpipe_pressure,
+    distance = 1.0m,
+    angle = 90deg,
+    radiation
+)
+```
+
+---
+
+**6. FDTD Acoustics (2D/3D)**
+
+Finite-difference time-domain for complex geometries:
+
+```kairo
+# 2D/3D acoustic field simulation
+acoustic.fdtd_step(
+    pressure: Field2D<Pa>,       # or Field3D
+    velocity: Field2D<Vec2<m/s>>, # or Field3D<Vec3<m/s>>
+    geometry: SDF,  # Signed distance field for boundaries
+    absorption: Field2D<f32>,  # Wall absorption coefficient
+    dt: Time
+) -> (pressure', velocity')
+
+# Boundary conditions
+acoustic.pressure_boundary(field, region, pressure_value)
+acoustic.velocity_boundary(field, region, velocity_value)
+acoustic.absorbing_boundary(field, region)  # Anechoic (no reflections)
+```
+
+**Use Case:**
+```kairo
+# Room acoustics simulation
+let room = geom.box(5m, 4m, 3m)
+let sdf = field.from_solid(room, resolution=1cm)
+let (p', v') = acoustic.fdtd_step(pressure, velocity, sdf, absorption, dt)
+```
+
+---
+
+**7. Transfer Functions & Frequency Analysis**
+
+```kairo
+# Compute acoustic transfer function (input → output)
+acoustic.transfer_function(
+    waveguide: WaveguideNetwork,
+    freq_range: (Hz, Hz),
+    resolution: Hz
+) -> FrequencyResponse {
+    frequencies: Vec<Hz>,
+    magnitude: Vec<dB>,
+    phase: Vec<rad>
+}
+
+# Find resonant frequencies (peaks in transfer function)
+acoustic.resonant_frequencies(
+    waveguide: WaveguideNetwork,
+    threshold_db: f32
+) -> Vec<Hz>
+
+# Insertion loss (difference with/without muffler)
+acoustic.insertion_loss(
+    system_with_muffler: WaveguideNetwork,
+    system_without_muffler: WaveguideNetwork
+) -> FrequencyResponse
+```
+
+---
+
+**8. Lumped Acoustic Networks (Circuit Analogy)**
+
+**Concept:** Acoustics ≈ Electrical circuits
+- **Acoustic Compliance** (volume) ≈ Capacitance
+- **Acoustic Inertance** (pipe mass) ≈ Inductance
+- **Acoustic Resistance** (friction) ≈ Resistance
+
+```kairo
+# Convert acoustic system to lumped circuit
+acoustic.to_lumped_network(
+    geometry: PipeGeometry
+) -> AcousticCircuit {
+    nodes: Vec<Node>,
+    elements: Vec<AcousticElement>
+}
+
+# Solve lumped network (fast, analytical)
+acoustic.solve_lumped(
+    circuit: AcousticCircuit,
+    excitation: PressurePulse,
+    freq_range: (Hz, Hz)
+) -> FrequencyResponse
+```
+
+**Use Case:**
+```kairo
+# Quick muffler design iteration
+let circuit = acoustic.to_lumped_network(muffler_geometry)
+let response = acoustic.solve_lumped(circuit, engine_pulse, (50Hz, 5000Hz))
+# 100x faster than full waveguide simulation
+```
+
+---
+
+#### Dependencies
+
+- **GeometryDomain** — Pipe shapes, chambers, room geometry
+- **FieldDomain** — 2D/3D acoustic fields (FDTD)
+- **TransformDomain** — FFT for frequency analysis
+- **FluidDynamicsDomain** — Pressure pulse generation
+- **AudioDomain** — Convert pressure to audio samples
+
+---
+
+#### Cross-Domain Integration
+
+**Acoustics → Audio (Sound Synthesis)**
+```kairo
+# Acoustic pressure → Audio signal
+let audio_sample = audio.pressure_to_sample(
+    acoustic_pressure_pa,
+    reference_pressure = 20e-6 Pa  # 0 dB SPL
+)
+
+# Apply microphone model
+let mic_signal = audio.microphone_response(
+    acoustic_signal,
+    mic_type = "condenser",
+    frequency_response = "flat"
+)
+```
+
+**FluidDynamics → Acoustics → Audio (Complete Chain)**
+```kairo
+# 1. Fluid dynamics: Combustion pulse
+let pulse = engine.combustion_pulse(rpm=8000)
+
+# 2. Acoustics: Propagate through exhaust
+let waveguide = acoustic.waveguide_from_geometry(exhaust_system)
+let tailpipe_pressure = acoustic.propagate(pulse, waveguide, dt)
+
+# 3. Acoustics: Radiate to microphone
+let mic_pressure = acoustic.radiate_to_point(tailpipe_pressure, distance=1m)
+
+# 4. Audio: Convert to WAV
+let audio = audio.pressure_to_sample(mic_pressure)
+audio.export_wav("engine_sound.wav", audio)
+```
+
+**Geometry → Acoustics (Shape Determines Sound)**
+```kairo
+# Parametric pipe design
+let chamber = geom.expansion_chamber(
+    diverge_angle = 12 deg,  # ← Change this
+    belly_diameter = 120 mm  # ← Or this
+)
+
+# Automatically affects acoustic behavior
+let waveguide = acoustic.waveguide_from_geometry(chamber)
+let resonant_freqs = acoustic.resonant_frequencies(waveguide)
+# Different geometry → different resonances
+```
+
+---
+
+#### Testing Strategy
+
+**1. Pipe Resonance Tests**
+```kairo
+# Open-open pipe: f = n * c / (2L)
+let pipe = geom.cylinder(diameter=50mm, length=1m)
+let resonances = acoustic.resonant_frequencies(pipe)
+assert resonances[0] ≈ 340 Hz / (2 * 1m) = 170 Hz
+```
+
+**2. Reflection Coefficient Tests**
+```kairo
+# Area expansion: negative reflection
+let expansion = geom.area_change(from=10cm², to=40cm²)
+let R = acoustic.reflection_coefficient(expansion)
+assert R < 0  # Negative reflection (pressure inversion)
+
+# Open end: R ≈ -1.0
+# Closed end: R ≈ +1.0
+```
+
+**3. Helmholtz Resonator Tests**
+```kairo
+let resonator = acoustic.helmholtz_resonator(V=1L, L=10cm, A=1cm²)
+let f_res = acoustic.resonant_frequency(resonator)
+assert f_res ≈ (340 / 2π) * sqrt(1e-4 / (1e-3 * 0.1)) ≈ 54 Hz
+```
+
+**4. Energy Conservation (Lossless Waveguide)**
+```kairo
+let energy_before = acoustic.total_energy(pressure, velocity)
+let (p', v') = acoustic.waveguide_step(pressure, velocity, ...)
+let energy_after = acoustic.total_energy(p', v')
+assert energy_before ≈ energy_after  # (if no absorption)
+```
+
+---
+
+#### Use Cases
+
+1. **2-Stroke Exhaust System**
+   - Design expansion chamber for peak power at target RPM
+   - Predict exhaust sound at different RPMs
+   - Optimize muffler for noise reduction without power loss
+
+2. **Musical Instrument Modeling**
+   - Brass instrument bore design (trumpet, trombone)
+   - Woodwind tone hole placement (flute, clarinet)
+   - Physical modeling synthesis (real-time audio)
+
+3. **Architectural Acoustics**
+   - Concert hall modal analysis
+   - Room reverberation time
+   - Sound absorption treatment placement
+
+4. **Noise Control**
+   - HVAC duct silencer design
+   - Industrial muffler optimization
+   - Active noise cancellation (predict cancellation signal)
+
+5. **Speaker Design**
+   - Bass reflex port tuning
+   - Transmission line design
+   - Directivity control
+
+---
+
+#### Documentation
+
+- **`docs/domains/ACOUSTICS.md`** — Full acoustics domain specification
+- **`docs/USE_CASES/2-stroke-muffler-modeling.md`** — Complete multi-domain example
+- **`examples/acoustics/pipe_resonance.kairo`** — Simple resonance demo
+- **`examples/acoustics/helmholtz_resonator.kairo`** — Resonator tuning
+- **`examples/acoustics/expansion_chamber.kairo`** — 2-stroke chamber
+
+---
+
+#### References
+
+- **"Acoustics: An Introduction"** — Kinsler, Frey, Coppens, Sanders
+- **"Acoustic Wave Propagation in Ducts and Mufflers"** — Munjal (2014)
+- **"Digital Waveguide Networks for Acoustic Modeling"** — Van Duyne, Smith (1993)
+- **"Physical Audio Signal Processing"** — Julius O. Smith III (online book)
+- **Yamaha VL1** — Commercial physical modeling synthesizer (uses waveguides)
+- **Ricardo WAVE** — 1D engine/exhaust simulation software
+
+---
+
 ## 3. Advanced Domains (FUTURE EXPANSION)
 
 These are "Version 2+" ideas — realistic but not urgent. They represent specialized use cases that extend Kairo into new application areas.
@@ -988,6 +1695,8 @@ Here is the likely full spectrum of domains Kairo will eventually want:
 | Image/Vision | 🔲 Planned | P1 |
 | Symbolic/Algebraic | 🔲 Planned | P2 |
 | I/O & Storage | 🔲 Planned | P1 |
+| Fluid Dynamics | 🔲 Planned | P1 |
+| Acoustics | 🔲 Planned | P1 |
 
 ### 3. Advanced Future — v1.1+
 | Domain | Status | Priority |
