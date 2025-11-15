@@ -17,32 +17,86 @@ tags:
 - deterministic
 ---
 
-# Kairo v0.7.0 (In Development)
+# Kairo
 
-**A semantic, deterministic transform kernel with two human-friendly faces:**
-- **Kairo.Audio** for composition
-- **RiffStack** for performance
+> *Where computation becomes composition*
 
-*Where computation becomes composition*
+**Kairo** is a universal, deterministic computation platform that unifies domains that have never talked to each other before: **audio synthesis meets physics simulation meets circuit design meets geometry meets optimization** — all in one type system, one scheduler, one language.
 
-> 📐 **Architecture**: See **[ARCHITECTURE.md](ARCHITECTURE.md)** for the complete Kairo Stack design (kernel, frontends, Graph IR, transforms)
-> 🚀 **v0.7.0 Development**: Real MLIR Integration underway - see [docs/v0.7.0_DESIGN.md](docs/v0.7.0_DESIGN.md) for the 12-month roadmap
+## Why Kairo Exists
+
+Current tools force you to:
+- Export CAD → import to FEA → export mesh → import to CFD → manually couple results
+- Write audio DSP in C++ → physics in Python → visualization in JavaScript
+- Bridge domains with brittle scripts and incompatible data formats
+
+**Kairo eliminates this fragmentation.** Model a guitar string's physics, synthesize its sound, optimize its geometry, and visualize the result — all in the same deterministic execution environment.
+
+## Two Surfaces, One Kernel
+
+Kairo presents **two human-friendly faces** powered by a single semantic kernel:
+
+- **Kairo.Audio** — Declarative language for compositional audio, physics, and multi-domain scenes
+- **RiffStack** — Live performance environment for real-time interaction and improvisation
+
+Both compile to the same Graph IR, share the same operator registry, and guarantee deterministic, reproducible results.
+
+> 📐 **Deep Dive**: See [ARCHITECTURE.md](ARCHITECTURE.md) for the complete stack design (kernel, frontends, Graph IR, MLIR compilation)
+
+## What Makes Kairo Different
+
+**Cross-Domain Composition**
+- Audio synthesis + fluid dynamics + circuit simulation in the same program
+- Type-safe connections between domains (e.g., field → agent force, geometry → audio impulse response)
+- Single execution model handles multiple rates (audio @ 48kHz, control @ 60Hz, physics @ 240Hz)
+
+**Deterministic by Design**
+- Bitwise-identical results across runs, platforms, and GPU vendors
+- Explicit RNG seeding, sample-accurate event scheduling
+- Three profiles: `strict` (bit-exact), `repro` (deterministic FP), `live` (low-latency)
+
+**Transform-First Thinking**
+- FFT, STFT, wavelets, DCT as first-class operations
+- Domain changes (time ↔ frequency, space ↔ k-space) are core primitives
+- Uniform transform API across all domains
+
+**Production-Grade Compilation**
+- MLIR-based compiler with 6 custom dialects
+- Lowers to optimized CPU/GPU code via LLVM
+- Field operations, agents, audio DSP, temporal execution all compile to native code
 
 ---
 
-## What is Kairo?
+## Cross-Domain in Action
 
-**Kairo** is a typed, deterministic domain-specific language for creative computation. It unifies **simulation**, **sound**, **visualization**, and **procedural design** within a single, reproducible execution model.
+Here's what sets Kairo apart — domains working together seamlessly:
 
-### Key Features
+```kairo
+# Couple fluid dynamics → acoustics → audio synthesis
+use fluid, acoustics, audio
 
-- ✅ **Deterministic by default** - Bitwise-identical results across runs and platforms
-- ✅ **Explicit temporal model** - Time evolution via `flow(dt)` blocks
-- ✅ **Declarative state** - `@state` annotations make persistence clear
-- ✅ **Physical units** - Type system includes dimensional analysis
-- ✅ **Multi-domain** - Fields, agents, signals, and visuals in one language
-- ✅ **MLIR-based** - Compiles to optimized native code
-- ✅ **Hot-reload** - Interactive development with live code updates
+# Simulate airflow in a 2-stroke engine exhaust
+@state flow : FluidNetwork1D = engine_exhaust(length=2.5m, diameter=50mm)
+@state acoustic : AcousticField1D = waveguide_from_flow(flow)
+
+flow(dt=0.1ms) {
+    # Fluid dynamics: pressure pulses from engine
+    flow = flow.advance(engine_pulse(t), method="lax_wendroff")
+
+    # Couple to acoustics: flow → sound propagation
+    acoustic = acoustic.couple_from_fluid(flow, impedance_match=true)
+
+    # Synthesize audio from acoustic field
+    let exhaust_sound = acoustic.to_audio(mic_position=1.5m)
+
+    # Real-time output
+    audio.play(exhaust_sound)
+}
+```
+
+**One program. Three domains. Zero glue code.**
+
+See [docs/use-cases/2-stroke-muffler-modeling.md](docs/use-cases/2-stroke-muffler-modeling.md) for the complete example.
 
 ---
 
@@ -401,153 +455,127 @@ See `examples/` directory for more!
 
 ---
 
-## Domain Architecture Expansion (November 2025)
+## The Ecosystem Vision
 
-**Major Milestone**: Kairo's domain architecture has been massively expanded with comprehensive specifications for 10+ new domains, establishing Kairo as a **universal multi-domain simulation and design platform**.
+Kairo's domain architecture has been massively expanded in November 2025, establishing it as a **universal multi-domain platform**.
 
-### New Core Domains
+### Domain Coverage (20+ Domains Specified)
 
-**Circuit/Electrical Engineering** ⭐ (PR #43)
-- Complete circuit modeling domain with typed operator graphs (R → C → Op-Amp)
-- Multi-domain integration: Circuit ↔ Audio, Geometry, Physics
-- Reference-based composition with auto-anchors
-- 5 complete examples: RC filters, op-amps, guitar pedals, PCB parasitic extraction
-- **Specs**: `docs/SPEC-CIRCUIT.md`, `docs/ADR/003-circuit-modeling-domain.md`
-- **Examples**: `examples/circuit/` (6 files)
+**Production-Ready** (v0.6-0.7):
+- Audio/DSP, Fields/Grids, Agents/Particles, Visual Rendering, Transform Dialect
 
-**Fluid Dynamics & Acoustics** ⭐ (PR #44)
-- FluidDynamics: Compressible/incompressible flow, gas dynamics, thermodynamic coupling
-- Acoustics: 1D waveguides, FDTD, Helmholtz resonators, radiation impedance
-- Multi-domain flows: FluidDynamics → Acoustics → Audio → Geometry
-- Use case: 2-stroke engine exhaust system modeling
-- **Specs**: `docs/DOMAIN_ARCHITECTURE.md` (sections 2.9, 2.10)
-- **Use Cases**: `docs/USE_CASES/2-stroke-muffler-modeling.md`
+**Architecture Complete** (Comprehensive Specs):
+- Circuit Design & Analog Electronics
+- Fluid Dynamics & Acoustics
+- Instrument Modeling & Timbre Extraction
+- Video/Audio Encoding & Synchronization
+- Multi-Physics Engineering (Thermal, Combustion, FluidJet)
+- Optimization (16 algorithms: GA, CMA-ES, Bayesian, NSGA-II)
+- Geometry & Parametric CAD
+- Chemistry & Molecular Dynamics
+- Procedural Generation & Emergence
 
-**Instrument Modeling & Timbre Extraction** ⭐ (PR #45)
-- 35 operators for acoustic analysis and synthesis
-- Record instrument → extract timbre → synthesize new notes
-- MIDI instrument creation, timbre morphing, luthier analysis
-- Addresses "holy grail" of audio DSP: recordings → reusable synthesis models
-- **Specs**: `docs/SPEC-TIMBRE-EXTRACTION.md`, `docs/ADR/003-instrument-modeling-domain.md`
+**Planned**:
+- Graph/Network Analysis, Symbolic Math, Neural Operators, BI/Analytics
 
-**Audio Time Alignment** (PR #46)
-- Measurement operators (sine sweep, MLS, impulse train)
-- Analysis operators (IR extraction, group delay, cross-correlation)
-- Alignment operators (delay designer, crossover phase alignment)
-- Solves critical pro audio problems (car audio, studio monitors)
-- **Specs**: `docs/LEARNINGS/TIME_ALIGNMENT_OPERATORS.md`
+**Why This Matters**: These aren't isolated silos — they're integrated domains sharing:
+- One type system (with physical units)
+- One scheduler (multirate, sample-accurate)
+- One compiler (MLIR → LLVM/GPU)
+- One determinism model (strict/repro/live profiles)
 
-**Multi-Physics Engineering** ⭐ (PR #47)
-- Four physics domains: FluidNetwork, ThermalODE, FluidJet, CombustionLight
-- Complete multi-domain pipeline: Geometry → Fluid → Thermal → Combustion
-- J-tube fire pit example validates operator graph paradigm for engineering
-- **Specs**: `docs/SPEC-PHYSICS-DOMAINS.md`
-- **Examples**: `docs/EXAMPLES/J-TUBE-FIREPIT-MULTIPHYSICS.md`
+**Circuit simulation can drive audio synthesis. Fluid dynamics can generate acoustic fields. Geometry can define boundary conditions for PDEs. Optimization can tune parameters across all domains.**
 
-**Optimization & Design Discovery** ⭐ (PR #48)
-- 16 optimization algorithms across 5 categories
-- Evolutionary (GA, DE, CMA-ES), Local (L-BFGS, Nelder-Mead), Surrogate (Bayesian)
-- Multi-objective (NSGA-II, SPEA2), Combinatorial (Simulated Annealing)
-- Transforms Kairo from simulation platform → design discovery platform
-- **Specs**: `docs/LEARNINGS/OPTIMIZATION_ALGORITHMS_CATALOG.md`
+> 📚 **Complete Vision**: See [ECOSYSTEM_MAP.md](ECOSYSTEM_MAP.md) for the full ecosystem architecture and [docs/architecture/domain-architecture.md](docs/architecture/domain-architecture.md) for deep technical specifications (2,266 lines covering all domains)
 
-**Video & Audio Encoding** ⭐ (PR #51)
-- VideoDomain: Structural video operations (decode, encode, scale, crop, composition)
-- AudioFilterDomain: Multimedia audio processing (loudness, EQ, dynamics, timing)
-- FilterDomain: Visual filters (blur, sharpen, color correction, denoise, stabilize)
-- CodecDomain: Typed codec operators (H.264, H.265, ProRes, GPU acceleration)
-- SyncDomain: Audio/video synchronization (drift correction, event alignment, lip-sync)
-- BatchDomain: Parallel batch processing for multimedia workflows
-- Magic operator: `video.fix()` — Auto-magic video correction (sync, denoise, stabilize, color correct)
-- **Key insight**: Video = operator DAG on AV streams (perfect fit for Kairo)
-- **Specs**: `docs/SPEC-VIDEO-AUDIO-ENCODING.md`
+---
 
-### Complete Domain Catalog
+## Professional Applications & Long-Term Vision
 
-Kairo now has **comprehensive specifications** for these domains:
+Kairo's unified multi-domain architecture addresses fundamental problems across professional fields:
 
-**Core Implemented**:
-- Transform (FFT, STFT, wavelets)
-- Stochastic (RNG, distributions, Monte Carlo)
-- Fields/Grids (PDEs, stencils, boundary conditions)
-- Agent/Particle (sparse systems, N-body, behaviors)
-- Audio/DSP (synthesis, filters, effects, I/O)
-- Visual (rendering, composition, video export)
+### Engineering & Design
+**Current Pain**: CAD → FEA → CFD → optimization requires manual data export/import, incompatible formats, weeks of iteration
+**Kairo Solution**: Geometry → Physics → Optimization in one deterministic pipeline
+- **Aerospace**: Optimize wing geometry based on CFD results and structural constraints
+- **Automotive**: Couple exhaust acoustics + fluid dynamics + thermal analysis for muffler design
+- **HVAC**: Model airflow + thermal + acoustic performance in building ventilation systems
 
-**Architecture Complete (Specs Ready)**:
-- **Video & Audio Encoding** (ffmpeg-style pipelines, sync correction, batch processing)
-- **Geometry** (TiaCAD-inspired, reference-based composition)
-- **Circuit** (electrical engineering, PCB, analog audio)
-- **Acoustics** (waveguides, FDTD, resonators, radiation)
-- **FluidDynamics** (compressible/incompressible, gas dynamics, engines)
-- **InstrumentModeling** (timbre extraction, synthesis, MIDI creation)
-- **Optimization** (16 algorithms for design discovery)
-- **Physics** (thermal, combustion, multi-physics coupling)
-- **Sparse Linear Algebra** (iterative solvers, preconditioning)
+### Audio Production & Lutherie
+**Current Pain**: Physical modeling requires separate tools for mechanics, acoustics, and DSP
+**Kairo Solution**: Physics → Acoustics → Audio synthesis in unified framework
+- Record acoustic guitar → extract timbre → create playable virtual instrument
+- Design guitar body geometry → simulate acoustics → hear the sound before building
+- Model pickup placement + circuit design → optimize tone before winding coils
 
-**Planned (Next Wave)**:
-- Image/Vision, Graph/Network, Symbolic/Algebraic, Neural Operators
+### Scientific Computing
+**Current Pain**: Multi-physics simulations require coupling incompatible solvers (COMSOL + MATLAB + custom code)
+**Kairo Solution**: Unified PDE solver + Monte Carlo + optimization + visualization
+- Chemistry: Molecular dynamics + reaction kinetics + thermodynamics
+- Ecology: Agent-based modeling + field diffusion + spatial statistics
+- Climate: Fluid dynamics + thermal transport + stochastic processes
 
-See **[docs/DOMAIN_ARCHITECTURE.md](docs/DOMAIN_ARCHITECTURE.md)** for the complete vision (2,266 lines covering 20+ domains).
+### Creative Coding & Generative Art
+**Current Pain**: Real-time graphics + procedural audio + physics simulation = three separate frameworks
+**Kairo Solution**: All creative domains in one deterministic, reproducible environment
+- Couple particle systems to audio synthesis (visual state → sound parameters)
+- Procedural geometry generation driven by audio analysis
+- Deterministic generative art: same seed = identical output every time
 
-### Why This Matters
+### Finance & Risk Analysis
+**Current Pain**: Monte Carlo in R + optimization in Python + visualization in Tableau = integration hell
+**Kairo Solution**: Stochastic processes + optimization + real-time analytics
+- GPU-accelerated Monte Carlo with 100x speedup
+- Optimize portfolio with multi-objective algorithms (NSGA-II, CMA-ES)
+- Deterministic backtesting: reproducible risk analysis
 
-**Kairo is now the only platform that unifies**:
-- Video encoding + audio filtering + sync correction
-- Circuit simulation + PCB layout + analog audio modeling
-- Fluid dynamics + acoustics + audio synthesis
-- Multi-physics engineering + geometry + optimization
-- All domains share the same type system, scheduler, and MLIR compilation
+**Key Insight**: These fields don't need *separate tools* — they need *integrated domains*. Kairo is the only platform that unifies them with a single type system, scheduler, and compiler.
 
-This positions Kairo as a **universal deterministic compute kernel** for creative computation, engineering simulation, and design optimization.
+> 💼 **Professional Impact Analysis**: See [docs/reference/professional-domains.md](docs/reference/professional-domains.md) for detailed value proposition across 10+ professional fields
 
 ---
 
 ## Documentation
 
-### Architecture & Design
-- **[Architecture](ARCHITECTURE.md)** ⭐ - Finalized Kairo Stack architecture (v1.0 Draft)
-- **[Domain Architecture](docs/DOMAIN_ARCHITECTURE.md)** ⭐⭐ - Complete multi-domain vision (2,266 lines, 20+ domains)
-- **[Ecosystem Map](ECOSYSTEM_MAP.md)** ⭐ - Comprehensive map of all Kairo domains, modules, and libraries
-- **[Professional Domains](docs/PROFESSIONAL_DOMAINS.md)** ⭐ - Value proposition analysis across 10 professional fields
-- **[Transform Dialect](docs/SPEC-TRANSFORM.md)** - First-class domain transforms (FFT, STFT, wavelets, etc.)
-- **[Graph IR](docs/SPEC-GRAPH-IR.md)** - Frontend-kernel boundary specification
+> 📚 **Start Here**: [docs/README.md](docs/README.md) — Complete documentation navigation guide
 
-### Domain Specifications (NEW - November 2025)
-- **[Video & Audio Encoding](docs/SPEC-VIDEO-AUDIO-ENCODING.md)** ⭐ - Video encoding, audio/video filtering, sync correction, ffmpeg-style pipelines
-- **[Circuit Domain](docs/SPEC-CIRCUIT.md)** - Electrical engineering, PCB layout, analog audio
-- **[Timbre Extraction](docs/SPEC-TIMBRE-EXTRACTION.md)** - Instrument modeling and synthesis
-- **[Physics Domains](docs/SPEC-PHYSICS-DOMAINS.md)** - Multi-physics engineering (thermal, fluid, combustion)
-- **[Geometry Domain](docs/SPEC-GEOMETRY.md)** - TiaCAD-inspired parametric modeling
-- **[Coordinate Frames](docs/SPEC-COORDINATE-FRAMES.md)** - Unified reference and anchor system
-- **[Operator Registry](docs/SPEC-OPERATOR-REGISTRY.md)** - Complete operator catalog (1,244 lines)
+### Essential Reading
 
-### Architectural Decision Records (ADRs)
-- **[ADR-001: Unified Reference Model](docs/ADR/001-unified-reference-model.md)** - Cross-domain reference system
-- **[ADR-002: Cross-Domain Patterns](docs/ADR/002-cross-domain-architectural-patterns.md)** - TiaCAD/RiffStack patterns
-- **[ADR-003: Circuit Modeling](docs/ADR/003-circuit-modeling-domain.md)** - Circuit domain rationale
-- **[ADR-003: Instrument Modeling](docs/ADR/003-instrument-modeling-domain.md)** - Timbre extraction rationale
+**Architecture & Vision**
+- **[Architecture](ARCHITECTURE.md)** ⭐ — The Kairo Stack: kernel, frontends, Graph IR, MLIR compilation
+- **[Ecosystem Map](ECOSYSTEM_MAP.md)** ⭐ — Complete map of all domains, modules, and expansion roadmap
+- **[Domain Architecture](docs/architecture/domain-architecture.md)** — Deep technical vision (2,266 lines, 20+ domains)
 
-### Implementation Guides & Learnings
-- **[Domain Implementation Guide](docs/GUIDES/DOMAIN_IMPLEMENTATION_GUIDE.md)** - Step-by-step domain creation
-- **[Operator Registry Expansion](docs/LEARNINGS/OPERATOR_REGISTRY_EXPANSION.md)** - 8 priority domains catalog
-- **[Optimization Algorithms](docs/LEARNINGS/OPTIMIZATION_ALGORITHMS_CATALOG.md)** - 16 algorithms across 5 categories
-- **[Time Alignment Operators](docs/LEARNINGS/TIME_ALIGNMENT_OPERATORS.md)** - Audio measurement and alignment
+**Getting Started**
+- **[Getting Started Guide](docs/getting-started.md)** — Installation, first program, core concepts
+- **[Language Specification](SPECIFICATION.md)** — Complete Kairo language reference
+- **[Audio Specification](AUDIO_SPECIFICATION.md)** — Kairo.Audio compositional DSL
 
-### Examples & Use Cases
-- **[Circuit Examples](examples/circuit/)** - RC filters, op-amps, guitar pedals, PCB (6 examples)
-- **[J-tube Fire Pit](docs/EXAMPLES/J-TUBE-FIREPIT-MULTIPHYSICS.md)** - Multi-physics engineering showcase
-- **[2-Stroke Muffler](docs/USE_CASES/2-stroke-muffler-modeling.md)** - Fluid dynamics + acoustics + audio
-- **[Examples Guide](docs/EXAMPLES/README.md)** - Comprehensive examples documentation
+**Professional Applications**
+- **[Professional Domains](docs/reference/professional-domains.md)** ⭐ — Value proposition across engineering, science, finance, creative fields
+- **[Use Cases](docs/use-cases/)** — Real-world applications (2-stroke muffler, chemistry framework)
+- **[Examples](docs/examples/)** — Working examples (multi-physics, emergence, cross-domain)
 
-### Language Reference
-- **[Complete Specification](SPECIFICATION.md)** - Full language reference
-- **[Audio Specification](AUDIO_SPECIFICATION.md)** - Kairo.Audio dialect specification (composer surface)
+### Domain Specifications (19 Comprehensive Specs)
 
-### Project History
-- **[Evolution Summary](docs/KAIRO_v0.3.1_SUMMARY.md)** - Why Kairo v0.3.1
-- **[Project Review](PROJECT_REVIEW_AND_NEXT_STEPS.md)** - Comprehensive assessment & roadmap
-- **[Legacy Docs](docs/legacy/)** - v0.2.2 CCDSL documentation
+All specifications are in **[docs/specifications/](docs/specifications/)**:
+- **Circuit**, **Chemistry**, **Emergence**, **Procedural Generation**, **Video/Audio Encoding**
+- **Geometry**, **Coordinate Frames**, **Physics Domains**, **Timbre Extraction**
+- **Graph IR**, **MLIR Dialects**, **Operator Registry**, **Scheduler**, **Transform**, **Type System**
+- **Profiles**, **Snapshot ABI**, **BI Domain**, **KAX Language**
+
+See [docs/specifications/README.md](docs/specifications/README.md) for full catalog.
+
+### Architectural Decision Records
+
+See **[docs/adr/](docs/adr/)** for why key decisions were made:
+- Unified Reference Model, Cross-Domain Patterns, Circuit/Instrument/Chemistry Domains, GPU-First Approach
+
+### Implementation Resources
+
+- **[Domain Implementation Guide](docs/guides/domain-implementation.md)** — How to add new domains
+- **[Reference Catalogs](docs/reference/)** — Operator catalogs, patterns, domain overviews
+- **[Roadmap](docs/roadmap/)** — MVP, v0.1, implementation progress, testing strategy
 
 ---
 
@@ -573,16 +601,42 @@ RiffStack is a stack-based, YAML-driven performance environment that serves as t
 
 ## Contributing
 
-Kairo is in active development. Contributions welcome!
+Kairo is building toward something transformative: a universal platform where professional domains that have never talked before can seamlessly compose. Contributions welcome at all levels!
 
-**Priority areas:**
-- Runtime engine implementation
-- Field operations (NumPy-based)
-- Visualization backend
-- Example programs
-- Documentation improvements
+### High-Impact Areas
 
-See `SPECIFICATION.md` Section 19 for implementation guidance.
+**Domain Expansion** — Help implement new domains:
+- Geometry/CAD integration (TiaCAD-inspired reference system)
+- Chemistry & molecular dynamics
+- Graph/network analysis
+- Neural operator support
+
+**Core Infrastructure** — Strengthen the foundation:
+- MLIR lowering passes and optimization
+- GPU acceleration for field operations
+- Multi-GPU support and distributed execution
+- Cross-domain type checking and unit validation
+
+**Professional Applications** — Build real-world examples:
+- Engineering workflows (CAD → FEA → optimization)
+- Scientific computing (multi-physics simulations)
+- Audio production (lutherie, timbre extraction)
+- Creative coding (generative art, live visuals)
+
+**Documentation & Education**
+- Tutorials for specific domains
+- Professional field guides
+- Implementation examples
+- Performance benchmarks
+
+### Getting Involved
+
+1. **Explore** — Read [ARCHITECTURE.md](ARCHITECTURE.md) and [ECOSYSTEM_MAP.md](ECOSYSTEM_MAP.md)
+2. **Pick a Domain** — See [docs/architecture/domain-architecture.md](docs/architecture/domain-architecture.md) for specs
+3. **Follow the Guide** — Use [docs/guides/domain-implementation.md](docs/guides/domain-implementation.md)
+4. **Join the Vision** — Help build the future of multi-domain computation
+
+See [SPECIFICATION.md](SPECIFICATION.md) Section 19 for detailed implementation guidance.
 
 ---
 

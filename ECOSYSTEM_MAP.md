@@ -1,16 +1,24 @@
 # Kairo Ecosystem Map
 
-**A comprehensive map of all potential Kairo domains, modules, and libraries**
+> **A comprehensive map of all Kairo domains, modules, and expansion roadmap**
 
-> This document defines the **complete Kairo ecosystem** — from the non-negotiable kernel to optional domain libraries to user-facing frontends. It serves as both an architectural guide and a roadmap for future expansion.
+## Purpose of This Document
+
+**For architects**: Understand how all pieces fit together (kernel → domains → frontends)
+**For contributors**: See where to add new domains and what's already specified
+**For users**: Understand Kairo's scope and what's possible today vs. planned
+
+This document defines the **complete Kairo ecosystem** — from the non-negotiable kernel to optional domain libraries to user-facing frontends. It serves as both an architectural guide and a roadmap for future expansion.
+
+> 💡 **New to Kairo?** Start with [README.md](README.md) for the vision. This document is a detailed catalog of all domains and their relationships.
 
 ---
 
 ## Overview
 
-**One-sentence summary:**
+Kairo's world consists of a **minimal kernel** (types, units, domains, scheduler, transforms, registry, MLIR) that supports **optional domain libraries** (audio, physics, circuits, chemistry, video, optimization, etc.) and **human-friendly DSL frontends** that all compile to the same deterministic Graph IR.
 
-Kairo's world consists of a **minimal kernel** (types, units, domains, scheduler, transforms, registry, MLIR) that supports **optional domain libraries** (audio, physics, fractals, visuals, geometry, particles) and **human-friendly DSL frontends** that all compile to the same deterministic Graph IR.
+**Key Insight**: All domains — audio synthesis, fluid dynamics, circuit simulation, geometry, optimization — share the same execution model. This enables **cross-domain composition** impossible in traditional tools.
 
 ---
 
@@ -613,19 +621,29 @@ The Kairo ecosystem is designed for **sustainable growth**. The kernel remains m
 
 This architecture ensures that a physics simulation, a fractal renderer, and an audio synthesizer can **compose seamlessly** — because they speak the same language.
 
-**Professional Impact:** This unified ecosystem unlocks transformative value across science, engineering, finance, agriculture, and trades — domains that currently suffer from fragmented tools and lack cross-domain integration. See **[PROFESSIONAL_DOMAINS.md](docs/PROFESSIONAL_DOMAINS.md)** for detailed analysis of Kairo's value proposition in 10 professional fields.
+**Professional Impact:** This unified ecosystem unlocks transformative value across science, engineering, finance, agriculture, and trades — domains that currently suffer from fragmented tools and lack cross-domain integration. See **[docs/reference/professional-domains.md](docs/reference/professional-domains.md)** for detailed analysis of Kairo's value proposition in 10 professional fields.
 
 ---
 
 **Related Documentation:**
 
-* [ARCHITECTURE.md](ARCHITECTURE.md) — The Kairo Stack architecture
-* [DOMAIN_ARCHITECTURE.md](docs/DOMAIN_ARCHITECTURE.md) — Complete multi-domain technical vision
-* [PROFESSIONAL_DOMAINS.md](docs/PROFESSIONAL_DOMAINS.md) — Professional domain value proposition and market analysis ⭐ **NEW**
-* [SPEC-TYPE-SYSTEM.md](docs/SPEC-TYPE-SYSTEM.md) — Type system specification
-* [SPEC-TRANSFORM.md](docs/SPEC-TRANSFORM.md) — Transform dialect specification
-* [SPEC-OPERATOR-REGISTRY.md](docs/SPEC-OPERATOR-REGISTRY.md) — Operator registry specification
+**Architecture**:
+* [ARCHITECTURE.md](ARCHITECTURE.md) — The Kairo Stack architecture (kernel, frontends, Graph IR, MLIR)
+* [docs/architecture/domain-architecture.md](docs/architecture/domain-architecture.md) — Complete multi-domain technical vision (2,266 lines)
+* [docs/architecture/gpu-mlir-principles.md](docs/architecture/gpu-mlir-principles.md) — GPU lowering and MLIR integration
+
+**Professional Impact**:
+* [docs/reference/professional-domains.md](docs/reference/professional-domains.md) — Value proposition across engineering, science, finance, creative fields
+
+**Specifications**:
+* [docs/specifications/type-system.md](docs/specifications/type-system.md) — Type system specification
+* [docs/specifications/transform.md](docs/specifications/transform.md) — Transform dialect specification
+* [docs/specifications/operator-registry.md](docs/specifications/operator-registry.md) — Operator registry specification
 * [AUDIO_SPECIFICATION.md](AUDIO_SPECIFICATION.md) — Audio domain library specification
+
+**Guides**:
+* [docs/guides/domain-implementation.md](docs/guides/domain-implementation.md) — Step-by-step guide for adding new domains
+* [docs/README.md](docs/README.md) — Complete documentation navigation
 
 ---
 

@@ -1,6 +1,18 @@
 # The Kairo Stack — Finalized Architecture & Specs (v1.0 Draft)
 
-> Goal: keep what's great, shed historical baggage, and define the **cleanest possible layering** for deterministic, creative, multi-domain computation — with audio first, visuals/fields next.
+> **For newcomers**: Start with [README.md](README.md) for the vision and [ECOSYSTEM_MAP.md](ECOSYSTEM_MAP.md) for domain coverage. This document is the **technical architecture** for implementers.
+
+## Overview
+
+Kairo is architected as a **semantic kernel** that unifies multi-domain computation through:
+- **One type system** with physical units (Stream, Field, Event, Agent)
+- **One scheduler** handling multiple rates (audio @ 48kHz, control @ 60Hz, physics @ 240Hz)
+- **One compiler** (MLIR → LLVM/GPU) for all domains
+- **Two human-friendly surfaces** (Kairo.Audio DSL + RiffStack performance environment)
+
+This architecture enables **cross-domain composition** that's impossible in traditional systems: circuit simulation can drive audio synthesis, fluid dynamics can generate acoustic fields, geometry can define PDE boundary conditions — all in one deterministic execution environment.
+
+**Goal**: Keep what's great, shed historical baggage, and define the **cleanest possible layering** for deterministic, creative, multi-domain computation.
 
 ---
 
@@ -280,3 +292,30 @@ let out = transform.from(shaped, domain="time")
 ### One-liner
 
 > Kairo is a **semantic, deterministic transform kernel** with two human-friendly faces: **Kairo.Audio** for composition and **RiffStack** for performance — all powered by a single operator registry, a neutral graph IR, and first-class domain transforms.
+
+---
+
+## See Also
+
+**Related Architecture Documents**:
+- **[ECOSYSTEM_MAP.md](ECOSYSTEM_MAP.md)** — Complete map of kernel domains, domain libraries, and frontends
+- **[docs/architecture/domain-architecture.md](docs/architecture/domain-architecture.md)** — Deep technical vision covering 20+ domains (2,266 lines)
+- **[docs/architecture/gpu-mlir-principles.md](docs/architecture/gpu-mlir-principles.md)** — GPU lowering patterns and MLIR integration
+
+**Domain Specifications**:
+- **[docs/specifications/](docs/specifications/)** — 19 comprehensive domain specs (Circuit, Chemistry, Physics, Video, etc.)
+- **[docs/specifications/graph-ir.md](docs/specifications/graph-ir.md)** — Graph IR specification (frontend-kernel boundary)
+- **[docs/specifications/operator-registry.md](docs/specifications/operator-registry.md)** — Complete operator catalog
+
+**Implementation Guides**:
+- **[docs/guides/domain-implementation.md](docs/guides/domain-implementation.md)** — Step-by-step guide for adding new domains
+- **[docs/adr/](docs/adr/)** — Architectural decision records explaining key design choices
+
+**Professional Applications**:
+- **[docs/reference/professional-domains.md](docs/reference/professional-domains.md)** — Value proposition across engineering, science, finance, creative fields
+
+---
+
+**Version:** 1.0 Draft
+**Last Updated:** 2025-11-15
+**Status:** Finalized Architecture

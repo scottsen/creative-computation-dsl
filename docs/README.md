@@ -2,9 +2,13 @@
 
 Welcome to the Kairo documentation! This guide will help you navigate the documentation based on what you want to accomplish.
 
+> 💡 **First time here?** Start with the main [README.md](../README.md) to understand Kairo's vision and what makes it unique. Then come back here for detailed technical documentation.
+
 ## Quick Start
 
-- **New to Kairo?** Start with [Getting Started](getting-started.md)
+- **New to Kairo?** Start with [Getting Started](getting-started.md) for installation and your first program
+- **Understand the architecture?** Read [Architecture Overview](architecture/overview.md) or the main [ARCHITECTURE.md](../ARCHITECTURE.md)
+- **See the full ecosystem?** Check [ECOSYSTEM_MAP.md](../ECOSYSTEM_MAP.md) for all domains and roadmap
 - **Need help?** Check [Troubleshooting](troubleshooting.md)
 
 ## Documentation Structure
@@ -76,7 +80,9 @@ Deprecated CCDSL v0.2.2 documentation (for historical reference)
 
 **I want to...**
 
+- **Understand Kairo's vision and impact** → Read the main [README.md](../README.md) and [Professional Applications](reference/professional-domains.md)
 - **Understand Kairo's architecture** → Start with [Architecture Overview](architecture/overview.md), then [Domain Architecture](architecture/domain-architecture.md)
+- **See the complete ecosystem** → Check [ECOSYSTEM_MAP.md](../ECOSYSTEM_MAP.md) for all domains and roadmap
 - **Implement a new domain** → Read [Domain Implementation Guide](guides/domain-implementation.md) and relevant [ADRs](adr/)
 - **Learn about a specific domain** → Check [Specifications](specifications/) for the domain spec, then related [ADRs](adr/)
 - **See Kairo in action** → Browse [Examples](examples/) and [Use Cases](use-cases/)
