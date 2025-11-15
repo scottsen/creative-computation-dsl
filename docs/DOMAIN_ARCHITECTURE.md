@@ -350,6 +350,120 @@ Circuits are fundamentally **typed operator graphs** (resistor → capacitor →
 
 ---
 
+### 1.9 Video & Audio Encoding Dialect
+
+**Purpose**: Video encoding, audio/video filtering, sync correction, transcoding, and ffmpeg-style multimedia pipelines.
+
+**Why Essential**: Video processing is fundamentally stream-based, operator-based, filter-based, parameterizable, batchable, GPU-accelerable, and graph-representable. **This is literally Kairo's native shape.** ffmpeg already behaves like a domain-specific operator graph with streams, filters, and codecs — video fits Kairo as naturally as audio, perhaps **more naturally** than any other domain.
+
+**Status**: 🔲 Planned (SPEC-VIDEO-AUDIO-ENCODING.md)
+
+**Key Insight**: Video processing pipelines are **typed operator DAGs** with **temporal constraints** (sync, frame rate, time alignment).
+
+```
+Kairo = operator DAG on structured data
+Video = operator DAG on AV streams
+```
+
+**Subdomains**:
+
+**VideoDomain** — Structural operations on video streams
+- Decoding/encoding: `video.decode()`, `video.encode()`
+- Transformation: `video.scale()`, `video.crop()`, `video.fps()`, `video.rotate()`
+- Composition: `video.concat()`, `video.overlay()`, `video.blend()`
+- Conversion: `video.to_audio()`, `video.from_frames()`, `video.color_convert()`
+
+**AudioFilterDomain** — Audio processing for multimedia
+- Loudness: `audio.normalize()`, `audio.loudnorm()` (EBU R128), `audio.measure_loudness()`
+- Dynamics: `audio.compress()`, `audio.limiter()`, `audio.gate()`
+- Timing: `audio.delay()`, `audio.trim()`, `audio.fade_in()`, `audio.fade_out()`
+- EQ: `audio.equalize()`, `audio.bass_boost()`, `audio.treble_boost()`
+
+**FilterDomain** — Visual filters (ffmpeg `-vf` equivalents)
+- Spatial: `filter.blur()`, `filter.sharpen()`, `filter.unsharp()`, `filter.denoise()`
+- Color: `filter.brightness()`, `filter.contrast()`, `filter.saturation()`, `filter.colorgrade()`
+- Temporal: `filter.time_blend()`, `filter.deflicker()`, `filter.stabilize()`
+- Quality: `filter.deband()`, `filter.deinterlace()`, `filter.upscale()`
+
+**CodecDomain** — Codec configuration as typed operators
+- Video: `codec.h264()`, `codec.h265()`, `codec.av1()`, `codec.prores()`
+- Image: `codec.jpeg()`, `codec.png()`, `codec.webp()`, `codec.jpegxl()`
+- Audio: `codec.aac()`, `codec.opus()`, `codec.flac()`
+- GPU: `codec.h264_nvenc()`, `codec.h265_nvenc()`, `codec.h264_qsv()`
+
+**SyncDomain** — Audio/video synchronization (Kairo's sweet spot)
+- Offset detection: `sync.detect_constant_offset()`, `sync.detect_drift()`
+- Correction: `sync.apply_offset()`, `sync.timewarp()`, `sync.resample_with_drift_compensation()`
+- Event alignment: `vision.detect_flash()`, `audio.detect_clap()`, `sync.align_events()`
+- Lip-sync: `vision.detect_mouth_open()`, `audio.envelope()`, `sync.align_signals()`
+
+**BatchDomain** — Parallel batch processing
+- `batch.apply_to_files()` — Apply pipeline to file pattern
+- `batch.parallel()` — Parallel execution with N workers
+- `batch.map()` — Map function over file list
+
+**Example Pipeline** (ffmpeg equivalent):
+```kairo
+# ffmpeg -i input.mp4 -vf "scale=1920:-1, unsharp" -c:v libx264 -crf 18 output.mp4
+pipeline:
+  - input = video.decode("input.mp4")
+  - scaled = video.scale(input, width=1920, height=-1)
+  - sharpened = filter.unsharp(scaled, amount=1.5)
+  - codec = codec.h264(crf=18, preset="fast")
+  - video.encode(sharpened, codec, "output.mp4")
+```
+
+**Cross-Domain Integration**:
+- **Video ↔ Audio**: `video.to_audio()`, `video.add_audio()`
+- **Video ↔ Vision**: `video.to_frames()`, `vision.detect_objects()`, `vision.draw_bboxes()`
+- **Video ↔ Geometry**: Render 3D scenes to video frames
+- **Video ↔ Fields**: Overlay fluid simulations on video
+
+**Why This Matters**:
+
+Kairo becomes the only platform that unifies audio synthesis, video encoding, sync correction, field simulation, agent systems, geometry, circuit modeling, and optimization — all with the same type system, scheduler, and MLIR compilation.
+
+**Unique Capabilities**:
+- ✅ **Cleaner than ffmpeg** — Typed operators, composable pipelines
+- ✅ **More powerful than ffmpeg** — GPU-aware, cross-domain integration, AI upscaling
+- ✅ **More deterministic than ffmpeg** — Same code → same output, always
+- ✅ **More accessible than DaVinci Resolve** — Scripted, batchable, version-controllable
+
+**Magic Operator**: `video.fix()` — One-liner to detect sync issues, denoise, stabilize, color correct, loudness normalize, upscale, and encode (auto-magic like DaVinci Resolve, but scripted and deterministic).
+
+**Dependencies**:
+- **Transform** (FFT for cross-correlation sync detection)
+- **Audio** (existing Kairo.Audio domain for DSP)
+- **Visual** (frame rendering and export)
+- **Stochastic** (for noise modeling in denoise)
+- **Image/Vision** (for flash detection, object tracking) [future]
+
+**Backend Strategy**:
+
+Kairo doesn't reimplement ffmpeg — it **orchestrates** ffmpeg as a backend:
+
+```
+Kairo Pipeline → Graph IR → Backend Compiler → ffmpeg command
+```
+
+Advantages: Leverage ffmpeg's 20+ years of development, add type safety, enable composability, ensure determinism, optimize filter graphs, auto-select GPU codecs.
+
+Alternative backends: GStreamer, custom C++, GPU compute shaders, hardware APIs (NVENC, VAAPI, VideoToolbox).
+
+**References**:
+- `SPEC-VIDEO-AUDIO-ENCODING.md` — Complete video/audio encoding specification
+- ffmpeg, DaVinci Resolve, Audacity (reference implementations)
+- EBU R128 loudness standard
+- NVENC, QuickSync, AMF (GPU acceleration APIs)
+
+**Why This is a Perfect Fit for Kairo**:
+
+Video processing already behaves like Kairo's operator DAG architecture. ffmpeg filter graphs map one-to-one to Kairo pipelines. Audio/video sync leverages Kairo's existing strength in time-domain signal processing. Batch processing exploits Kairo's deterministic execution model. GPU acceleration fits naturally into Kairo's MLIR compilation pipeline.
+
+**Video belongs in Kairo.** This is a huge new capability slice that fits perfectly with Kairo's core architecture.
+
+---
+
 ## 2. Next-Wave Domains (HIGHLY LIKELY)
 
 These domains naturally emerge once you have a computational kernel that is deterministic, multirate, type+unit safe, GPU/CPU pluggable, and graph-IR based. This is where Kairo becomes **superdomain-capable**, not just an audio/visual kernel.

@@ -451,6 +451,17 @@ See `examples/` directory for more!
 - Transforms Kairo from simulation platform → design discovery platform
 - **Specs**: `docs/LEARNINGS/OPTIMIZATION_ALGORITHMS_CATALOG.md`
 
+**Video & Audio Encoding** ⭐ (PR #51)
+- VideoDomain: Structural video operations (decode, encode, scale, crop, composition)
+- AudioFilterDomain: Multimedia audio processing (loudness, EQ, dynamics, timing)
+- FilterDomain: Visual filters (blur, sharpen, color correction, denoise, stabilize)
+- CodecDomain: Typed codec operators (H.264, H.265, ProRes, GPU acceleration)
+- SyncDomain: Audio/video synchronization (drift correction, event alignment, lip-sync)
+- BatchDomain: Parallel batch processing for multimedia workflows
+- Magic operator: `video.fix()` — Auto-magic video correction (sync, denoise, stabilize, color correct)
+- **Key insight**: Video = operator DAG on AV streams (perfect fit for Kairo)
+- **Specs**: `docs/SPEC-VIDEO-AUDIO-ENCODING.md`
+
 ### Complete Domain Catalog
 
 Kairo now has **comprehensive specifications** for these domains:
@@ -464,6 +475,7 @@ Kairo now has **comprehensive specifications** for these domains:
 - Visual (rendering, composition, video export)
 
 **Architecture Complete (Specs Ready)**:
+- **Video & Audio Encoding** (ffmpeg-style pipelines, sync correction, batch processing)
 - **Geometry** (TiaCAD-inspired, reference-based composition)
 - **Circuit** (electrical engineering, PCB, analog audio)
 - **Acoustics** (waveguides, FDTD, resonators, radiation)
@@ -481,6 +493,7 @@ See **[docs/DOMAIN_ARCHITECTURE.md](docs/DOMAIN_ARCHITECTURE.md)** for the compl
 ### Why This Matters
 
 **Kairo is now the only platform that unifies**:
+- Video encoding + audio filtering + sync correction
 - Circuit simulation + PCB layout + analog audio modeling
 - Fluid dynamics + acoustics + audio synthesis
 - Multi-physics engineering + geometry + optimization
@@ -500,6 +513,7 @@ This positions Kairo as a **universal deterministic compute kernel** for creativ
 - **[Graph IR](docs/SPEC-GRAPH-IR.md)** - Frontend-kernel boundary specification
 
 ### Domain Specifications (NEW - November 2025)
+- **[Video & Audio Encoding](docs/SPEC-VIDEO-AUDIO-ENCODING.md)** ⭐ - Video encoding, audio/video filtering, sync correction, ffmpeg-style pipelines
 - **[Circuit Domain](docs/SPEC-CIRCUIT.md)** - Electrical engineering, PCB layout, analog audio
 - **[Timbre Extraction](docs/SPEC-TIMBRE-EXTRACTION.md)** - Instrument modeling and synthesis
 - **[Physics Domains](docs/SPEC-PHYSICS-DOMAINS.md)** - Multi-physics engineering (thermal, fluid, combustion)
