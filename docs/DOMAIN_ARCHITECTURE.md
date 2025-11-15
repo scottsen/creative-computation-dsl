@@ -19,6 +19,16 @@ This is not aspirational fluff — these are the domains that consistently appea
 - **Architecture Vision**: Ensure coherent integration across domains
 - **Engineering Resource**: Define operator requirements and dependencies
 
+### Related Documentation
+
+This document is part of a comprehensive domain architecture learning system:
+
+- **[ADR-002: Cross-Domain Architectural Patterns](ADR/002-cross-domain-architectural-patterns.md)** — Battle-tested patterns from TiaCAD, RiffStack, and Strudel (reference systems, auto-anchors, operator registries, passes)
+- **[Domain Implementation Guide](GUIDES/DOMAIN_IMPLEMENTATION_GUIDE.md)** — Step-by-step guide for implementing new domains (checklists, templates, best practices)
+- **[Operator Registry Expansion](LEARNINGS/OPERATOR_REGISTRY_EXPANSION.md)** — Detailed catalog of 7 priority domains with complete operator specifications (Audio, Physics, Geometry, Finance, Graphics, Neural, Pattern)
+
+**For domain implementers**: Start with ADR-002 for architectural principles, then follow the Domain Implementation Guide for practical steps.
+
 ---
 
 ## Domain Classification
@@ -990,12 +1000,23 @@ This document will evolve as new domains are designed, prototyped, and integrate
 
 ## References
 
+### Core Specifications
 - **SPEC-MLIR-DIALECTS.md** — Current dialect definitions (kairo.stream, kairo.field, kairo.transform, kairo.schedule)
 - **architecture.md** — Overall system architecture
 - **GPU_MLIR_PRINCIPLES.md** — GPU lowering design rules
 - **SPEC-TYPE-SYSTEM.md** — Type system and unit tracking
 - **SPEC-SCHEDULER.md** — Multirate scheduling semantics
 - **SPEC-OPERATOR-REGISTRY.md** — Operator metadata and registration
+- **SPEC-COORDINATE-FRAMES.md** — Unified frame and anchor system
+- **SPEC-GEOMETRY.md** — Geometry domain specification (TiaCAD patterns)
+
+### Architectural Decision Records
+- **ADR/001-unified-reference-model.md** — Decision on unified reference system
+- **ADR/002-cross-domain-architectural-patterns.md** — Patterns from TiaCAD, RiffStack, and Strudel
+
+### Implementation Guides
+- **GUIDES/DOMAIN_IMPLEMENTATION_GUIDE.md** — Step-by-step domain implementation guide
+- **LEARNINGS/OPERATOR_REGISTRY_EXPANSION.md** — Detailed operator catalogs for 7 priority domains
 
 ---
 
