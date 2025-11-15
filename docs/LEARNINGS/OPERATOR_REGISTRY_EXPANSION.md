@@ -36,6 +36,7 @@ Each domain follows the unified architecture defined in **ADR-002**:
 | **5. GraphicsDomain** | **P2** | High | Geometry | v1.0 |
 | **6. NeuralDomain** | **P2** | Very High | Linalg, Tensor | v1.1+ |
 | **7. PatternDomain** | **P1** | Low | Temporal | v0.9 |
+| **8. InstrumentModelingDomain** | **P1** | High | Audio, Transform, Stochastic | v0.9-v1.0 |
 
 **Priority Levels:**
 - **P0:** Critical for core Kairo platform
@@ -847,6 +848,299 @@ PatternRef.bpm → float                      # Tempo (beats per minute)
 
 ---
 
+## 8. InstrumentModelingDomain (Timbre Extraction → Synthesis)
+
+### 8.1 Overview
+
+**Purpose:** Analyze acoustic recordings, extract timbre characteristics, and synthesize new notes with the same sonic character.
+
+**Inspiration:**
+- Yamaha VL1/VL70m (physical modeling synthesizers)
+- Karplus-Strong algorithm (plucked string synthesis)
+- Google Magenta NSynth (neural audio synthesis)
+- Modal synthesis (IRCAM Modalys)
+- Additive resynthesis (SPEAR, AudioSculpt)
+
+**Status:** Planned (v0.9+)
+- Design documented in SPEC-TIMBRE-EXTRACTION.md and ADR-003
+
+**Key Capability:** Record acoustic guitar → extract timbre → synthesize new notes
+
+---
+
+### 8.2 Operators
+
+#### Layer 1: Atomic Operators (Analysis Primitives)
+
+| Operator | Signature | Description | Determinism |
+|----------|-----------|-------------|-------------|
+| `pitch.autocorrelation` | `(signal: AudioSignal) → f32[Hz]` | Pitch detection via autocorrelation | DETERMINISTIC |
+| `pitch.yin` | `(signal: AudioSignal, threshold: f32) → f32[Hz]` | YIN pitch detector (robust) | DETERMINISTIC |
+| `spectral.centroid` | `(spectrum: Field2D<Complex>) → f32[Hz]` | Spectral centroid (brightness) | DETERMINISTIC |
+| `spectral.envelope` | `(spectrum: Field2D<Complex>, smoothing: f32) → Field1D<f32>` | Smooth spectral envelope | DETERMINISTIC |
+| `resonance.peaks` | `(spectrum: Field1D<f32>, threshold: dB) → Array<(f32[Hz], f32)>` | Detect resonant peaks | DETERMINISTIC |
+| `decay.fit_exponential` | `(envelope: Field1D<f32>, time: Field1D<s>) → f32[1/s]` | Fit exponential decay rate | REPRO |
+| `decay.t60` | `(envelope: Field1D<f32>) → f32[s]` | Compute T60 (time to -60dB) | DETERMINISTIC |
+| `inharmonicity.measure` | `(signal: AudioSignal, f0: f32[Hz]) → f32` | Measure inharmonicity coefficient | REPRO |
+| `transient.detect` | `(signal: AudioSignal, threshold: dB) → Array<f32[s]>` | Detect percussive transients | DETERMINISTIC |
+| `cepstral.transform` | `(spectrum: Field1D<Complex>) → Field1D<f32>` | Cepstrum (log spectrum → IFFT) | DETERMINISTIC |
+
+#### Layer 2: Composite Operators (Feature Extraction)
+
+| Operator | Signature | Description | Composed From |
+|----------|-----------|-------------|---------------|
+| `harmonic.track_fundamental` | `(signal: AudioSignal) → Ctl[Hz]` | Track fundamental frequency over time | `stft` → `pitch.yin` → smooth |
+| `harmonic.track_partials` | `(signal: AudioSignal, f0: Ctl[Hz], num_partials: int) → Field2D<f32>` | Track harmonic amplitudes (time × partial) | `stft` → peak tracking |
+| `modal.extract_modes` | `(spectrum: Field1D<f32>) → Array<ModalPeak>` | Extract resonant peaks (freq, amplitude, Q) | `resonance.peaks` → fit |
+| `envelope.extract` | `(signal: AudioSignal, type: Amplitude\|Spectral) → Env` | Extract amplitude or spectral envelope | `stft` → envelope follower |
+| `excitation.extract` | `(signal: AudioSignal, onset: f32[s]) → AudioSignal` | Extract attack/pluck transient | `transient.detect` → window |
+| `noise.extract_broadband` | `(signal: AudioSignal, harmonics: Field2D<f32>) → NoiseModel` | Extract noise residual (signal - harmonics) | Subtraction + band analysis |
+| `vibrato.extract` | `(f0: Ctl[Hz]) → (rate: f32[Hz], depth: f32[cents], phase: f32[rad])` | Extract vibrato parameters | Pitch modulation analysis |
+
+#### Layer 3: Constructs (High-Level Analysis & Synthesis)
+
+| Operator | Signature | Description | Use Case |
+|----------|-----------|-------------|----------|
+| `modal.analyze` | `(signal: AudioSignal, num_modes: int) → ModalModel` | Fit damped sinusoid modes: `A*e^(-dt)*sin(2πft+φ)` | Body resonance modeling |
+| `deconvolve` | `(signal: AudioSignal, f0: Ctl[Hz]) → (excitation: AudioSignal, body_ir: IR)` | Separate excitation and resonator via homomorphic deconvolution | Excitation/resonator separation |
+| `additive.synth` | `(harmonics: Field2D<f32>, f0: Ctl[Hz]) → AudioSignal` | Sum of harmonics with time-varying envelopes | Harmonic resynthesis |
+| `modal.synth` | `(modes: ModalModel, excitation: AudioSignal) → AudioSignal` | Damped sinusoid resonator bank | Body resonance synthesis |
+| `excitation.pluck` | `(type: Karplus\|Noise, params: Map) → AudioSignal` | Pluck/noise excitation generator | Physical model excitation |
+| `spectral.filter` | `(signal: AudioSignal, envelope: Field1D<f32>) → AudioSignal` | Reapply spectral envelope (formant filtering) | Timbre shaping |
+| `granular.resynth` | `(signal: AudioSignal, grain_size: s, density: f32) → AudioSignal` | Granular resynthesis for textures | Extended techniques |
+| `instrument.analyze` | `(signal: AudioSignal) → InstrumentModel` | Full analysis pipeline (harmonics + modes + excitation + noise) | End-to-end analysis |
+| `instrument.synthesize` | `(model: InstrumentModel, pitch: f32[Hz], velocity: f32) → AudioSignal` | Generate new note from model | Resynthesis |
+| `instrument.morph` | `(model_a: InstrumentModel, model_b: InstrumentModel, blend: f32) → InstrumentModel` | Morph between two timbres | Hybrid instruments |
+
+#### Layer 4: Presets (Pre-Configured Workflows)
+
+| Preset | Description | Configuration |
+|--------|-------------|---------------|
+| `guitar_model` | Acoustic guitar timbre extraction | Harmonic tracking + modal analysis + pluck detection |
+| `violin_model` | Bowed string timbre extraction | Harmonic tracking + bow noise + vibrato |
+| `piano_model` | Piano timbre extraction | Inharmonic partials + hammer noise + sustain pedal |
+| `brass_model` | Brass instrument timbre extraction | Harmonic tracking + lip buzz + bell resonance |
+| `hybrid_synth` | Morph acoustic + synth | 50% guitar model + 50% sawtooth oscillator |
+
+---
+
+### 8.3 Reference Types
+
+#### Primary: `InstrumentModelRef`
+
+**Purpose:** Reference to an extracted instrument model.
+
+**Auto-Anchors:**
+```python
+InstrumentModelRef.fundamental → f32[Hz]              # Base pitch
+InstrumentModelRef.harmonics → Field2D<f32>           # Time × partial amplitudes
+InstrumentModelRef.modes → ModalModel                 # Resonant body modes
+InstrumentModelRef.body_ir → IR                       # Body impulse response
+InstrumentModelRef.excitation → ExcitationModel       # Attack/pluck model
+InstrumentModelRef.noise → NoiseModel                 # Noise signature
+InstrumentModelRef.decay_rates → Field1D<f32>        # Per-partial decay
+InstrumentModelRef.inharmonicity → f32                # Inharmonicity coefficient
+InstrumentModelRef.synth_params → Map<str, f32>      # Runtime parameters
+```
+
+**Example:**
+```python
+# Analyze recording
+guitar = instrument.analyze(load("guitar_e3.wav"))
+
+# Access extracted features
+f0 = guitar.fundamental                  # 164.81 Hz (E3)
+harmonics = guitar.harmonics             # 20 partials over time
+body_modes = guitar.modes                # Guitar body resonances
+
+# Synthesize new note
+note_a3 = instrument.synthesize(guitar, pitch=220.0, velocity=0.8)
+```
+
+#### Secondary: `ModalModel`
+
+**Purpose:** Resonant mode parameters (damped sinusoids).
+
+```python
+ModalModel.modes → Array<(freq: f32[Hz], amplitude: f32, decay: f32[1/s], phase: f32[rad])>
+ModalModel.num_modes → int
+```
+
+#### Secondary: `NoiseModel`
+
+**Purpose:** Broadband noise characteristics.
+
+```python
+NoiseModel.bands → Array<(center: f32[Hz], amplitude: f32, bandwidth: f32[Hz])>
+NoiseModel.type → WhiteNoise | PinkNoise | Brownian
+```
+
+---
+
+### 8.4 Passes
+
+#### 8.4.1 Harmonic Tracking Pass
+
+**Purpose:** Extract time-varying harmonic amplitudes.
+
+**Input:** AudioSignal
+**Output:** Field2D<f32> (time × partial)
+
+**Algorithm:**
+1. Compute STFT
+2. Detect fundamental frequency (YIN, autocorrelation)
+3. For each time frame:
+   - Locate harmonic peaks (f0, 2*f0, 3*f0, ...)
+   - Measure amplitude of each partial
+4. Return time × partial amplitude matrix
+
+**Determinism:** DETERMINISTIC (fixed STFT parameters)
+
+---
+
+#### 8.4.2 Modal Analysis Pass
+
+**Purpose:** Fit damped sinusoid modes to spectrum.
+
+**Input:** AudioSignal
+**Output:** ModalModel (array of modes)
+
+**Algorithm:**
+1. Compute impulse response (via excitation removal)
+2. Apply Prony's method or Matrix Pencil to fit modes
+3. Extract (frequency, amplitude, decay rate, phase) for each mode
+4. Return ModalModel
+
+**Determinism:** REPRO (iterative least-squares fitting)
+
+**Reference:** Morrison & Adrien (1993) - Modal Synthesis
+
+---
+
+#### 8.4.3 Deconvolution Pass
+
+**Purpose:** Separate excitation and body resonance.
+
+**Input:** AudioSignal, fundamental frequency
+**Output:** (excitation: AudioSignal, body_ir: IR)
+
+**Algorithm (Homomorphic Deconvolution):**
+1. Compute cepstrum: `cepstrum = IFFT(log(|FFT(signal)|))`
+2. Separate quefrency domains:
+   - Low quefrency → excitation (attack/pluck)
+   - High quefrency → resonator (body)
+3. Reconstruct via inverse cepstrum
+4. Return excitation and body IR
+
+**Determinism:** REPRO (division in frequency domain)
+
+**Reference:** Oppenheim & Schafer - Homomorphic Signal Processing
+
+---
+
+#### 8.4.4 Synthesis Pass
+
+**Purpose:** Generate new note from InstrumentModel.
+
+**Input:** InstrumentModel, pitch (Hz), velocity (0-1)
+**Output:** AudioSignal
+
+**Algorithm:**
+1. Scale harmonics by pitch ratio: `new_freq = old_freq * (pitch / model.fundamental)`
+2. Generate additive synthesis: Sum of time-varying sinusoids
+3. Apply excitation (pluck/bow noise) scaled by velocity
+4. Convolve with body IR
+5. Add noise layer
+6. Return synthesized signal
+
+**Determinism:** DETERMINISTIC (deterministic sinusoid summation)
+
+---
+
+### 8.5 Integration with Other Domains
+
+#### 8.5.1 Transform Domain (Layer 2)
+
+**Dependency:** STFT, FFT for spectral analysis
+
+```python
+spectrum = stft(signal)                    # Transform domain
+harmonics = harmonic.track_partials(spectrum)  # InstrumentModeling domain
+```
+
+---
+
+#### 8.5.2 Audio Domain (Layer 5)
+
+**Dependency:** Filters, oscillators, effects
+
+```python
+model = instrument.analyze(guitar_recording)
+synth_signal = instrument.synthesize(model, pitch=440)
+output = synth_signal |> reverb(0.15) |> lowpass(8000)  # Audio domain
+```
+
+---
+
+#### 8.5.3 Stochastic Domain (Layer 3)
+
+**Dependency:** Noise modeling
+
+```python
+noise = noise_model.sample(seed=42)        # Stochastic domain
+combined = additive_synth + noise * 0.1    # InstrumentModeling + Stochastic
+```
+
+---
+
+#### 8.5.4 Physics Domain (Layer 4)
+
+**Use extracted parameters to drive physical models:**
+
+```python
+model = instrument.analyze(guitar)
+modes = model.modes  # Extract modal parameters
+
+# Use modes in physics simulation
+string = physics.string(
+    freq = model.fundamental,
+    damping = modes[0].decay,
+    stiffness = derived_from(model.inharmonicity)
+)
+```
+
+---
+
+### 8.6 Use Cases
+
+| Use Case | Workflow | Output |
+|----------|----------|--------|
+| **MIDI instrument creation** | Analyze one note → synthesize any pitch | Virtual instrument playable via MIDI |
+| **Timbre morphing** | `instrument.morph(guitar, violin, 0.5)` | Hybrid guitar-violin timbre |
+| **Luthier analysis** | Measure decay rates, resonances, inharmonicity | Quantitative instrument metrics |
+| **Virtual acoustics** | Extract body IR → apply to other sounds | Guitar body applied to synth/drums |
+| **Physics-informed synthesis** | Modal parameters → physical model | Expressive, controllable synthesis |
+| **Archive preservation** | Digitize vintage instruments | Historical instrument model library |
+
+---
+
+### 8.7 References
+
+#### Academic Papers
+- **Karplus & Strong (1983)** — Digital Synthesis of Plucked String and Drum Timbres
+- **Smith (1992)** — Physical Modeling Using Digital Waveguides
+- **Morrison & Adrien (1993)** — MOSAIC: A Framework for Modal Synthesis
+- **Serra & Smith (1990)** — Spectral Modeling Synthesis
+- **Engel et al. (2017)** — Neural Audio Synthesis (NSynth)
+
+#### Kairo Documentation
+- **[SPEC-TIMBRE-EXTRACTION.md](../SPEC-TIMBRE-EXTRACTION.md)** — Full technical specification
+- **[ADR-003](../ADR/003-instrument-modeling-domain.md)** — Architectural decision record
+- **[SPEC-TRANSFORM.md](../SPEC-TRANSFORM.md)** — Transform operators (FFT, STFT)
+- **[AUDIO_SPECIFICATION.md](../AUDIO_SPECIFICATION.md)** — Audio domain
+
+---
+
 ## Cross-Domain Integration Matrix
 
 | Source Domain | Target Domain | Flow Type | Example Use Case | Priority |
@@ -859,6 +1153,11 @@ PatternRef.bpm → float                      # Tempo (beats per minute)
 | **Pattern** | **Audio** | Sequencing | TidalCycles → audio events | **P1** |
 | **Pattern** | **Graphics** | Animation | Euclidean rhythms → keyframes | **P2** |
 | **Physics** | **Graphics** | Rendering | Particle positions → instanced rendering | **P1** |
+| **Audio** | **InstrumentModeling** | Analysis | Recording → timbre extraction | **P1** |
+| **InstrumentModeling** | **Audio** | Synthesis | InstrumentModel → synthesized notes | **P1** |
+| **InstrumentModeling** | **Physics** | Parameters | Modal analysis → physical model params | **P1** |
+| **Transform** | **InstrumentModeling** | Spectral | STFT → harmonic tracking | **P1** |
+| **Stochastic** | **InstrumentModeling** | Noise | Noise model → resynthesis layer | **P1** |
 
 ---
 
@@ -881,34 +1180,41 @@ PatternRef.bpm → float                      # Tempo (beats per minute)
    - Euclidean rhythms
    - Integration with AudioDomain
 
-### Medium-term (v1.0)
+### Medium-term (v0.9-v1.0)
 
-4. **Complete GeometryDomain**
+4. **Implement InstrumentModelingDomain**
+   - Layer 1: Analysis primitives (pitch tracking, spectral analysis)
+   - Layer 2: Feature extraction (harmonic tracking, modal analysis)
+   - Layer 3: Synthesis (additive, modal, deconvolution)
+   - Layer 4: End-to-end workflows (analyze, synthesize, morph)
+
+5. **Complete GeometryDomain**
    - Boolean operations
    - Advanced features (loft, sweep, fillet)
 
-5. **Implement FinanceDomain**
+6. **Implement FinanceDomain**
    - Monte Carlo engine
    - Stochastic processes
    - Variance reduction
 
-6. **Implement GraphicsDomain**
+7. **Implement GraphicsDomain**
    - Scene graph
    - Shader pipelines
    - Integration with Geometry + Physics
 
 ### Long-term (v1.1+)
 
-7. **Implement NeuralDomain**
+8. **Implement NeuralDomain**
    - Tensor operations
    - Layer building blocks
    - Integration with Finance (ML models)
+   - Integration with InstrumentModeling (neural timbre embeddings)
 
 ---
 
 ## Conclusion
 
-These **seven domains** form the foundation of Kairo as a **multi-domain platform**:
+These **eight domains** form the foundation of Kairo as a **multi-domain platform**:
 
 1. ✅ **AudioDomain** - Proven patterns from RiffStack
 2. ✅ **PhysicsDomain** - N-body, integrators, forces
@@ -917,6 +1223,7 @@ These **seven domains** form the foundation of Kairo as a **multi-domain platfor
 5. ✅ **GraphicsDomain** - Scene graphs, rendering
 6. ✅ **NeuralDomain** - ML/AI tensor operations
 7. ✅ **PatternDomain** - Strudel/TidalCycles sequencing
+8. ✅ **InstrumentModelingDomain** - Timbre extraction and synthesis (v0.9+)
 
 **Each domain follows the unified architecture:**
 - ✅ 4-layer operator hierarchy

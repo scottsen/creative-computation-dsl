@@ -679,7 +679,175 @@ This unification makes Kairo's multi-domain vision coherent and practical.
 
 ---
 
-### 2.7 Symbolic / Algebraic Domain
+### 2.7 Instrument Modeling Domain
+
+**Purpose**: Extract timbre from acoustic recordings and synthesize new notes with the same sonic character.
+
+**Why Needed**: Convert recordings into reusable synthesis models (MIDI instruments, timbre morphing, luthier analysis, virtual acoustics).
+
+**Status**: 🔲 Planned (v0.9-v1.0) — **The holy grail of audio DSP**
+
+**Key Innovation**: Record acoustic guitar → extract timbre → synthesize new notes at any pitch.
+
+---
+
+#### Core Capabilities
+
+**Analysis:**
+- Extract fundamental frequency evolution (pitch tracking, vibrato)
+- Track harmonic amplitudes over time (spectral envelope, timbre)
+- Fit resonant body modes (damped sinusoids, modal analysis)
+- Separate excitation from resonator (deconvolution)
+- Measure decay rates per partial (T60, inharmonicity)
+- Extract noise signatures (broadband residual)
+
+**Synthesis:**
+- Additive synthesis (sum of time-varying harmonics)
+- Modal synthesis (damped sinusoid banks)
+- Excitation generators (pluck, bow, hammer models)
+- Spectral filtering (reapply timbre shape)
+- Granular resynthesis (texture extension)
+
+**Instrument Modeling:**
+- Full analysis pipeline (`instrument.analyze`)
+- Resynthesis at arbitrary pitch (`instrument.synthesize`)
+- Timbre morphing (`instrument.morph`)
+- Serialization (save/load models)
+
+---
+
+#### Operator Families
+
+**Analysis Operators (13 new):**
+```kairo
+pitch.autocorrelation(signal) → f32[Hz]
+pitch.yin(signal, threshold) → f32[Hz]
+harmonic.track_fundamental(signal) → Ctl[Hz]
+harmonic.track_partials(signal, f0, num_partials) → Field2D<f32>
+modal.analyze(signal, num_modes) → ModalModel
+modal.extract_modes(spectrum) → Array<ModalPeak>
+spectral.envelope(spectrum, smoothing) → Field1D<f32>
+spectral.centroid(spectrum) → f32[Hz]
+resonance.peaks(spectrum, threshold) → Array<(f32[Hz], f32)>
+deconvolve(signal, f0) → (excitation: AudioSignal, body_ir: IR)
+envelope.extract(signal, type) → Env
+decay.fit_exponential(envelope, time) → f32[1/s]
+decay.t60(envelope) → f32[s]
+inharmonicity.measure(signal, f0) → f32
+transient.detect(signal, threshold) → Array<f32[s]>
+noise.extract_broadband(signal, harmonics) → NoiseModel
+vibrato.extract(f0) → (rate: f32[Hz], depth: f32[cents], phase: f32[rad])
+cepstral.transform(spectrum) → Field1D<f32>
+```
+
+**Synthesis Operators (6 new/extended):**
+```kairo
+additive.synth(harmonics, f0) → AudioSignal
+modal.synth(modes, excitation) → AudioSignal
+excitation.pluck(type, params) → AudioSignal
+spectral.filter(signal, envelope) → AudioSignal
+granular.resynth(signal, grain_size, density) → AudioSignal
+```
+
+**High-Level Operators (5 new):**
+```kairo
+instrument.analyze(signal) → InstrumentModel
+instrument.synthesize(model, pitch, velocity) → AudioSignal
+instrument.morph(model_a, model_b, blend) → InstrumentModel
+instrument.save(model, path) → void
+instrument.load(path) → InstrumentModel
+```
+
+---
+
+#### Core Type: InstrumentModel
+
+```kairo
+type InstrumentModel {
+  id: String
+  type: Enum  // "modal_string", "additive", etc.
+
+  // Analysis results
+  fundamental: Ctl[Hz]
+  harmonics: Field2D<f32>          // Time × partial amplitudes
+  modes: ModalModel                // Resonant body modes
+  body_ir: IR                      // Body impulse response
+  noise: NoiseModel                // Noise signature
+  excitation: ExcitationModel      // Attack/pluck model
+  decay_rates: Field1D<f32>        // Per-partial decay
+  inharmonicity: f32               // Deviation from perfect harmonics
+
+  // Synthesis parameters
+  synth_params: Map<String, f32>
+}
+```
+
+---
+
+#### Cross-Domain Dependencies
+
+- **Transform Domain (Layer 2)** — STFT, FFT for spectral analysis
+- **Stochastic Domain (Layer 3)** — Noise modeling
+- **Audio Domain (Layer 5)** — Filters, oscillators, effects
+- **Physics Domain (Layer 4)** — Modal analysis (damped oscillators)
+
+**Example workflow:**
+```kairo
+// Analysis (cross-domain composition)
+let spectrum = stft(recording)              // Transform domain
+let f0 = harmonic.track_fundamental(spectrum)  // InstrumentModeling
+let harmonics = harmonic.track_partials(spectrum, f0, 20)
+let modes = modal.analyze(recording, 10)
+
+// Build model
+let guitar = InstrumentModel {
+  fundamental: f0,
+  harmonics: harmonics,
+  modes: modes,
+  ...
+}
+
+// Synthesis
+let note_a3 = instrument.synthesize(guitar, pitch=220Hz, velocity=0.8)
+let output = note_a3 |> reverb(0.15)        // Audio domain
+```
+
+---
+
+#### Use Cases
+
+| Use Case | Description | Output |
+|----------|-------------|--------|
+| **MIDI instrument creation** | Analyze one note → synthesize any pitch | Virtual instrument playable via MIDI |
+| **Timbre morphing** | Blend two instruments | Hybrid guitar-violin timbre |
+| **Luthier analysis** | Measure decay, resonance, inharmonicity | Quantitative instrument metrics |
+| **Virtual acoustics** | Extract body IR → apply to other sounds | Guitar body applied to synth/drums |
+| **Physics-informed synthesis** | Modal parameters → physical model | Expressive, controllable synthesis |
+| **Archive preservation** | Digitize vintage instruments | Historical instrument model library |
+
+---
+
+#### Real-World Precedents
+
+- **Yamaha VL1/VL70m** — Physical modeling synthesizers (1994)
+- **Karplus-Strong** — Plucked string synthesis (1983)
+- **Google Magenta NSynth** — Neural audio synthesis (2017)
+- **IRCAM Modalys** — Modal synthesis framework
+- **SPEAR, AudioSculpt** — Additive resynthesis tools
+
+**Kairo unifies all of these** in an extensible, GPU-accelerated, deterministic framework.
+
+---
+
+#### References
+
+- **[SPEC-TIMBRE-EXTRACTION.md](SPEC-TIMBRE-EXTRACTION.md)** — Full technical specification
+- **[ADR-003: Instrument Modeling Domain](ADR/003-instrument-modeling-domain.md)** — Architectural decision
+- **[OPERATOR_REGISTRY_EXPANSION.md](LEARNINGS/OPERATOR_REGISTRY_EXPANSION.md)** — Complete operator catalog
+
+---
+
+### 2.8 Symbolic / Algebraic Domain
 
 **Purpose**: Symbolic manipulation, algebraic simplification, analytic transforms.
 
@@ -849,6 +1017,7 @@ Here is the likely full spectrum of domains Kairo will eventually want:
 | Autodiff | 🔲 Planned | P1 |
 | Graph/Network | 🔲 Planned | P1 |
 | Image/Vision | 🔲 Planned | P1 |
+| Instrument Modeling | 🔲 Planned | P1 |
 | Symbolic/Algebraic | 🔲 Planned | P2 |
 | I/O & Storage | 🔲 Planned | P1 |
 
@@ -943,8 +1112,8 @@ This demonstrates Kairo's **cross-domain composability** — all domains share t
 - **Conformance Tests**: Determinism guarantees for all core ops
 
 ### v0.9-v0.10 (Next Wave Phase 1)
-- **Add**: Geometry/Mesh, Sparse Linear Algebra, I/O & Storage
-- **Focus**: 3D simulation, large-scale PDEs, asset loading
+- **Add**: Geometry/Mesh, Sparse Linear Algebra, I/O & Storage, Instrument Modeling
+- **Focus**: 3D simulation, large-scale PDEs, asset loading, timbre extraction & synthesis
 
 ### v1.0 (Next Wave Phase 2)
 - **Add**: Optimization, Autodiff, Graph/Network, Image/Vision
@@ -1009,14 +1178,16 @@ This document will evolve as new domains are designed, prototyped, and integrate
 - **SPEC-OPERATOR-REGISTRY.md** — Operator metadata and registration
 - **SPEC-COORDINATE-FRAMES.md** — Unified frame and anchor system
 - **SPEC-GEOMETRY.md** — Geometry domain specification (TiaCAD patterns)
+- **SPEC-TIMBRE-EXTRACTION.md** — Timbre extraction and instrument modeling specification
 
 ### Architectural Decision Records
 - **ADR/001-unified-reference-model.md** — Decision on unified reference system
 - **ADR/002-cross-domain-architectural-patterns.md** — Patterns from TiaCAD, RiffStack, and Strudel
+- **ADR/003-instrument-modeling-domain.md** — Instrument modeling domain decision
 
 ### Implementation Guides
 - **GUIDES/DOMAIN_IMPLEMENTATION_GUIDE.md** — Step-by-step domain implementation guide
-- **LEARNINGS/OPERATOR_REGISTRY_EXPANSION.md** — Detailed operator catalogs for 7 priority domains
+- **LEARNINGS/OPERATOR_REGISTRY_EXPANSION.md** — Detailed operator catalogs for 8 priority domains (including InstrumentModeling)
 
 ---
 
