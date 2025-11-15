@@ -7,7 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased] - 2025-11-14
+## [Unreleased] - 2025-11-15
+
+### Changed
+- **Code cleanup**: Removed stale TODOs and updated documentation
+  - `kairo/mlir/context.py`: Updated dialect registration docs to reflect implemented dialects (Phases 2-5)
+  - `kairo/mlir/compiler_v2.py`: Replaced outdated "Phase 1" TODOs with clear implementation status notes
 
 ---
 

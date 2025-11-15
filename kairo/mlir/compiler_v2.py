@@ -81,9 +81,18 @@ class MLIRCompilerV2:
         Returns:
             MLIR Module
 
-        Status: TODO - Phase 1
+        Note:
+            Full AST-to-MLIR compilation is not yet implemented.
+            Use domain-specific compilation methods instead:
+            - compile_field_program() for field operations
+            - compile_temporal_program() for temporal operations
+            - compile_agent_program() for agent operations
+            - compile_audio_program() for audio operations
         """
-        raise NotImplementedError("Phase 1 implementation in progress")
+        raise NotImplementedError(
+            "Full AST compilation not implemented. "
+            "Use domain-specific compile_*_program() methods instead."
+        )
 
     def compile_literal(self, literal: Literal, builder: Optional[Any]) -> Any:
         """Compile literal using arith.constant.
@@ -133,9 +142,14 @@ class MLIRCompilerV2:
         Example:
             x + y → %result = arith.addf %x, %y : f32
 
-        Status: TODO - Phase 1
+        Note:
+            General binary operation compilation is not yet implemented.
+            Binary operations are handled within domain-specific lowering passes.
         """
-        raise NotImplementedError("Phase 1 implementation in progress")
+        raise NotImplementedError(
+            "General binary operation compilation not implemented. "
+            "Binary ops are handled in domain-specific lowering passes."
+        )
 
     # Phase 2: Field Operations Support
 

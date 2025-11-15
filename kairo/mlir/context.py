@@ -64,22 +64,19 @@ class KairoMLIRContext:
         - scf: Structured control flow
         - memref: Memory reference operations
 
-        Custom dialects (TODO):
-        - kairo.field: Field operations dialect
-        - kairo.agent: Agent-based modeling dialect
-        - kairo.audio: Audio synthesis dialect
-        - kairo.visual: Visual rendering dialect
+        Custom dialects:
+        - kairo.field: Field operations dialect (Phase 2, implemented)
+        - kairo.temporal: Temporal execution dialect (Phase 3, implemented)
+        - kairo.agent: Agent-based modeling dialect (Phase 4, implemented)
+        - kairo.audio: Audio synthesis dialect (Phase 5, implemented)
+        - kairo.visual: Visual rendering dialect (Phase 6, planned)
         """
         with self.ctx:
             # Load standard dialects
             # Note: In MLIR Python bindings, dialects are loaded on-demand
             # We just ensure the context is set up correctly
+            # Custom Kairo dialects are defined in kairo.mlir.dialects
             pass
-
-            # TODO: Register custom Kairo dialects
-            # This will be implemented in Phase 2+ of v0.7.0
-            # Example:
-            # self.ctx.register_dialect(KairoFieldDialect)
 
     def create_module(self, name: Optional[str] = None) -> "ir.Module":
         """Create a new MLIR module in this context.
