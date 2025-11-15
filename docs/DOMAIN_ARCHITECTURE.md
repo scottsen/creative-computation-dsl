@@ -213,6 +213,143 @@ These domains form the bare minimum for a universal transform/simulation kernel.
 
 ---
 
+### 1.8 Circuit / Electrical Engineering Dialect
+
+**Purpose**: Circuit simulation (SPICE-like), analog modeling, PCB parasitic extraction, multi-physics coupling (electrical + thermal + EM).
+
+**Why Essential**: EE/circuit modeling is one of the most natural domains for Kairo because it combines differential equations, spatial geometry (PCB traces), physics (EM fields), audio/analog modeling, discrete-time simulation, nonlinear systems, constraints solving, and multi-domain coupling. **No existing tool unifies circuit simulation + PCB layout + audio modeling + EM fields in one framework.**
+
+**Status**: 🔲 Planned (ADR-003, SPEC-CIRCUIT.md)
+
+**Key Innovation**: Circuits as **typed operator graphs** with **reference-based composition** (no manual node numbering), seamless PCB geometry integration, and cross-domain flows (Circuit → Audio, Geometry → Circuit, Circuit → Physics).
+
+**Operators**:
+
+**Layer 1: Atomic Components**
+- `resistor(R)` / `capacitor(C)` / `inductor(L)` — Linear passive components
+- `voltage_source(V)` / `current_source(I)` — Independent sources
+- `diode(Is, n)` / `bjt_npn(beta)` / `mosfet_n(Vth)` — Nonlinear semiconductors
+- `op_amp(model)` / `comparator(Vref)` — Integrated components
+
+**Layer 2: Composite Blocks**
+- `voltage_divider(R1, R2)` / `rc_filter(R, C, type)` — Passive networks
+- `rlc_resonator(R, L, C)` / `pi_matching(Zin, Zout)` — RF networks
+
+**Layer 3: Circuit Constructs**
+- `opamp_inverting_amp(gain, Rin)` / `sallen_key_filter(fc, Q)` — Analog circuits
+- `triode_stage(tube_model, bias)` / `pentode_output_stage(tube_model)` — Tube amps
+- `buck_converter(Vin, Vout, Iout, fsw)` / `ldo_regulator(Vin, Vout)` — Power electronics
+
+**Layer 4: Circuit Presets**
+- `guitar_pedal_overdrive(drive, tone, level)` — Guitar pedals (Tube Screamer, etc.)
+- `tube_amp_preamp(channels, gain_stages)` — Tube amplifier preamps
+- `synth_vcf_moog(cutoff, resonance)` — Synthesizer filters (Moog ladder, Roland)
+
+**Analysis Methods**:
+- `dc_operating_point(circuit)` — DC steady-state solution (Modified Nodal Analysis)
+- `ac_sweep(circuit, freq_start, freq_end)` — Frequency response (Bode plot)
+- `transient(circuit, duration, timestep)` — Time-domain simulation (Euler, RK4, trapezoidal)
+- `harmonic_balance(circuit, fundamental_freq)` — Periodic steady-state (for oscillators, RF)
+- `noise_analysis(circuit, freq_range)` — Noise spectral density
+- `sensitivity_analysis(circuit, output, params)` — Parameter sensitivity (∂V/∂R)
+
+**Circuit Reference System** (following ADR-002 pattern):
+- **`CircuitRef`** — Unified reference to nodes/components/nets/ports
+- **Auto-anchors**: `.port["p"]`, `.port["n"]`, `.voltage`, `.current`, `.power`, `.impedance`
+- **Type-safe connections**: Can't connect incompatible ports (voltage to current source, etc.)
+- **No manual node numbering**: Auto-generated from topology
+
+**Multi-Domain Integration**:
+
+*Circuit ↔ Geometry (PCB Layout):*
+- PCB trace parasitic extraction (inductance, capacitance, resistance)
+- FastHenry/FastCap algorithms or full EM solve (FDTD)
+- Automatic coupling: geometry → circuit parasitics
+
+*Circuit ↔ Audio (Analog Modeling):*
+- Guitar pedal simulation (asymmetric clipping, harmonic generation)
+- Tube amplifier modeling (nonlinear triode/pentode characteristics)
+- Audio input → circuit simulation → audio output (WAV export)
+- Oversampling for harmonic accuracy (192kHz+)
+
+*Circuit ↔ Physics (Thermal Coupling):*
+- Power dissipation in components → heat source
+- Thermal model (heatsink, PCB) → temperature distribution
+- Temperature feedback → circuit parameters (beta, Vbe, resistance)
+- Iterative coupling until convergence
+
+*Circuit ↔ Pattern (Modulation):*
+- PWM pattern generation for switch-mode power supplies
+- Audio-rate modulation for synthesis
+- Control signal generation
+
+*Circuit ↔ ML (Optimization):*
+- Gradient-based circuit optimization (component values)
+- Differentiable circuit simulation (JAX-like)
+- Objective: minimize loss(frequency_response, target)
+
+**Solver Architecture**:
+- **Direct solvers**: LU, QR, Cholesky (dense, < 100 nodes)
+- **Iterative solvers**: CG, GMRES, BiCGSTAB (sparse, > 1000 nodes)
+- **Nonlinear solvers**: Newton-Raphson, damped Newton (diodes, transistors)
+- **Time integrators**: Euler, backward Euler, trapezoidal, RK4
+- **Auto-selection**: Based on circuit size, stiffness, linearity
+- **GPU acceleration**: CUDA/HIP for large circuits
+
+**Circuit Domain Passes**:
+- **Validation**: Kirchhoff's laws (KCL, KVL), component value ranges
+- **Optimization**: Series/parallel reduction, Thevenin/Norton equivalents, symbolic simplification
+- **Lowering**: Circuit netlist → state-space ODE → MLIR (scf + linalg)
+- **Parasitic extraction**: Geometry → inductance/capacitance/resistance
+
+**Determinism Profile**:
+- DC/AC analysis: **Strict** (same netlist → same results, bit-exact)
+- Transient (fixed timestep): **Strict**
+- Transient (adaptive timestep): **Reproducible** (timestep adapts, but deterministic given tolerance)
+- Newton-Raphson convergence: **Reproducible** (initial guess affects path)
+
+**Unique Capabilities (vs. SPICE, KiCad, LTspice)**:
+1. **Unified circuit + PCB + audio + EM** — No other tool does this
+2. **Declarative netlist** (YAML, reference-based) — Not text-based manual node numbering
+3. **Type + unit safety** — Prevents mixing Ω + F, enforces dimensional analysis
+4. **Cross-domain flows** — Circuit → Audio, Geometry → Circuit, Circuit → Thermal
+5. **ML optimization** — Gradient descent on component values (differentiable programming)
+6. **GPU acceleration** — For large circuits (> 1000 nodes)
+7. **Multi-physics** — Electrical + thermal + EM + mechanical in one framework
+
+**Example Applications**:
+- Guitar pedal design (analog modeling + audio export)
+- Tube amplifier design (nonlinear modeling + harmonic analysis)
+- PCB signal integrity (trace parasitics + eye diagram)
+- Power supply design (buck converter + thermal analysis)
+- RF circuit design (S-parameters + matching networks)
+- Audio synthesizer design (VCF + VCO + ADSR)
+- Mixed-signal circuits (analog + digital co-simulation)
+
+**Dependencies**:
+- **Fields** (for EM field solvers, PDE coupling)
+- **Integrators** (for ODE/SDE time-stepping)
+- **Stochastic** (for Monte Carlo, noise analysis)
+- **Geometry** (for PCB layout, parasitic extraction)
+- **Audio** (for analog modeling, audio I/O)
+- **Physics** (for thermal coupling, multi-physics)
+- **Sparse Linear Algebra** (for large circuit matrices)
+- **Autodiff** (for ML-based optimization)
+
+**References**:
+- `ADR-003` — Circuit Modeling Domain design decision
+- `SPEC-CIRCUIT.md` — Complete circuit domain specification
+- `examples/circuit/` — Example circuits (RC filter, op-amp, guitar pedal, PCB trace)
+- ngspice, LTspice, FastHenry, FastCap (reference implementations)
+
+**Why This is a Perfect Fit for Kairo**:
+
+Circuits are fundamentally **typed operator graphs** (resistor → capacitor → op-amp → speaker), which matches Kairo's operator registry architecture exactly. Circuit simulation requires **multi-domain physics** (ODEs, linear systems, nonlinear solvers, EM fields, thermal), which Kairo's unified kernel provides. PCB layout is **geometry with electrical constraints**, perfectly suited for Kairo's geometry + circuit integration. Analog audio modeling is **circuit simulation + DSP**, which Kairo unifies seamlessly.
+
+**No existing tool can compete** with Kairo's unified circuit + PCB + audio + EM + thermal architecture. This is Kairo's **killer app** for the EE and analog audio communities.
+
+---
+
 ## 2. Next-Wave Domains (HIGHLY LIKELY)
 
 These domains naturally emerge once you have a computational kernel that is deterministic, multirate, type+unit safe, GPU/CPU pluggable, and graph-IR based. This is where Kairo becomes **superdomain-capable**, not just an audio/visual kernel.
