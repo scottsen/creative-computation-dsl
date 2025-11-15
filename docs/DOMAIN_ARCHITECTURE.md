@@ -2271,6 +2271,281 @@ This makes Kairo the **universal platform for complex systems research and creat
 
 ---
 
+### 2.12 Chemistry & Chemical Engineering Domain
+
+**Purpose**: Unified framework for molecular simulation, reaction kinetics, quantum chemistry, process simulation, and multiphysics coupling for chemical systems.
+
+**Why Essential**: Chemistry simulation is fragmented across 8+ incompatible ecosystems (LAMMPS, ORCA, Aspen Plus, COMSOL, etc.). Nothing provides unified workflows from molecular → reactor → process with ML integration, optimization, and visualization. This is a **$4 trillion industry** with severe tooling pain points.
+
+**Status**: 🔲 Proposed (v0.9.0+) — Complete specifications ready
+
+**Rationale**: See **[ADR-005: Chemistry Domain](ADR/005-chemistry-domain.md)** for detailed justification.
+
+**Problem Statement**: See **[USE_CASES/chemistry-unified-framework.md](USE_CASES/chemistry-unified-framework.md)** for the 7 critical problems Kairo solves.
+
+**Technical Specification**: See **[SPEC-CHEMISTRY.md](SPEC-CHEMISTRY.md)** for complete operator catalog.
+
+---
+
+#### Sub-Domains
+
+**1. Molecular Domain**
+- Load molecules (SMILES, PDB, XYZ, MOL2)
+- Force fields (AMBER, CHARMM, UFF, GAFF)
+- Molecular dynamics (Verlet, Langevin, Nose-Hoover)
+- Geometry optimization (BFGS, conjugate gradient)
+- Conformer generation
+- Trajectory analysis (RMSD, RMSF, RDF, diffusion coefficient)
+
+**2. Reaction Kinetics Domain**
+- Arrhenius kinetics
+- ODE reaction networks
+- Ideal reactors (Batch, CSTR, PFR)
+- Non-ideal reactors (dispersion, mass transfer limitations)
+- Catalytic surface kinetics (Langmuir-Hinshelwood, Eley-Rideal)
+
+**3. Quantum Chemistry Domain**
+- DFT wrappers (ORCA, Psi4, Gaussian)
+- Semi-empirical methods (PM7, AM1)
+- ML potential energy surfaces (SchNet, DimeNet, PaiNN)
+- Transition state search
+- Frequency calculations
+
+**4. Transport Phenomena Domain**
+- Heat transfer (conduction, convection, radiation)
+- Mass transfer (Fickian diffusion, Knudsen diffusion)
+- Transfer coefficient correlations (Nusselt, Sherwood)
+- Porous media (effective diffusivity, Darcy flow)
+
+**5. Multiphase Domain**
+- Vapor-liquid equilibrium (flash, bubble point, dew point)
+- Thermodynamic models (Peng-Robinson, SRK, NRTL)
+- Gas-liquid reactions
+- Bubble/droplet dynamics
+
+**6. Catalysis Domain**
+- Heterogeneous surface kinetics
+- Surface coverage evolution
+- Catalyst characterization (BET, pore size distribution)
+- Catalyst effectiveness factors
+
+**7. Electrochemistry Domain**
+- Butler-Volmer kinetics
+- Nernst equation
+- Battery simulation
+- Fuel cells, electrolysis
+
+**8. Thermodynamics Domain**
+- Equations of state (ideal gas, Peng-Robinson, Redlich-Kwong)
+- Activity coefficients (UNIFAC, NRTL, Wilson)
+- Heat capacities, enthalpies, entropies
+- Phase diagrams
+
+---
+
+#### Key Operators (Selected Examples)
+
+**Molecular Simulation**:
+```kairo
+# Load and simulate
+molecule = molecular.load_smiles("CC(=O)OC1=CC=CC=C1C(=O)O")  # Aspirin
+molecule = molecular.optimize_geometry(molecule, force_field="uff")
+trajectory = molecular.md_simulate(
+    molecule,
+    force_field="amber",
+    temp=300.0 [K],
+    time=10.0 [ns],
+    ensemble="nvt"
+)
+```
+
+**Reaction Kinetics**:
+```kairo
+# Define reaction network
+reactions = [
+    kinetics.reaction(
+        reactants={"A": 1.0},
+        products={"B": 1.0},
+        rate_law=kinetics.arrhenius(A=1e6, Ea=50000.0 [J/mol])
+    )
+]
+
+# Simulate batch reactor
+result = kinetics.batch_reactor(
+    initial_conc={"A": 1.0 [mol/L]},
+    reactions=reactions,
+    temp=350.0 [K],
+    time=3600.0 [s]
+)
+```
+
+**Quantum Chemistry (DFT)**:
+```kairo
+# Calculate energy with DFT
+energy = qchem.dft_energy(
+    molecule,
+    method="B3LYP",
+    basis="6-31G*",
+    code="orca"
+)
+
+# Or use ML surrogate (1000x faster)
+energy_ml = qchem.ml_pes(molecule, model="SchNet")
+```
+
+**Multiphysics Reactor Simulation**:
+```kairo
+use field, kinetics, transport
+
+@state conc : Field3D<f32 [mol/m³]> = uniform(1.0)
+@state temp : Field3D<f32 [K]> = uniform(300.0)
+@state velocity : Field3D<Vec3<f32 [m/s]>> = inlet_profile()
+
+flow(dt=0.01 [s]) {
+    # Navier-Stokes
+    velocity = navier_stokes_step(velocity, temp, dt)
+
+    # Heat transfer with reaction
+    reaction_heat = kinetics.reaction_heat(conc, temp)
+    temp = heat_equation_step(temp, velocity, source=reaction_heat, dt)
+
+    # Mass transfer + reaction
+    conc = diffuse(conc, rate=1e-9 [m²/s], dt)
+    conc = advect(conc, velocity, dt)
+    reaction_rate = kinetics.arrhenius_field(temp, conc)
+    conc = conc - reaction_rate * dt
+}
+```
+
+**Catalyst Optimization with ML**:
+```kairo
+use molecular, qchem, ml, optimization
+
+# Train surrogate model
+surrogate = ml.train_surrogate(
+    expensive_dft_calculation,
+    input_space=molecular_descriptors,
+    n_samples=500
+)
+
+# Optimize catalyst structure
+best_catalyst = optimize.ga(
+    objective=surrogate,
+    population=100,
+    generations=50
+)
+```
+
+---
+
+#### Integration with Existing Kairo Domains
+
+**Leverages**:
+- ✅ **Field operators** — For PDEs (diffusion, advection, reaction)
+- ✅ **Agent operators** — For particle-based methods (Monte Carlo, kMC)
+- ✅ **Optimization domain** — For catalyst design, condition optimization
+- ✅ **ML domain** — For surrogate models, generative design
+- ✅ **Visualization** — For molecules, orbitals, trajectories, fields
+- ✅ **Transform domain** — For spectroscopy (IR, NMR, mass spec)
+
+**Extends**:
+- ➕ **Molecular representation** — New types (Molecule, Atom, Bond)
+- ➕ **Reaction networks** — ODE systems with custom rate laws
+- ➕ **Quantum chemistry** — DFT/semi-empirical wrappers + ML PES
+- ➕ **Thermodynamics** — EOS, activity coefficients, phase equilibrium
+- ➕ **Electrochemistry** — Battery/fuel cell operators
+
+---
+
+#### Why Chemistry Is a Strategic Domain
+
+1. **Large underserved market** — $4T chemical industry, millions of researchers
+2. **Clear pain points** — Fragmentation universally acknowledged
+3. **No existing unified solution** — Aspen/COMSOL are proprietary, narrow, expensive
+4. **Natural fit for Kairo** — Multi-domain, multi-scale, multi-physics problems
+5. **Demonstrates universality** — If Kairo handles chemistry + audio + circuits + geometry, it's truly universal
+6. **Research impact** — Reproducible workflows critical for computational chemistry
+7. **ML integration gap** — Chemists desperately need ML + simulation workflows
+
+---
+
+#### What Kairo Uniquely Provides
+
+**Kairo is the ONLY platform that unifies**:
+
+✅ Molecular simulation + quantum chemistry + ML surrogate models
+✅ Reaction kinetics + transport phenomena + multiphysics coupling
+✅ Optimization (GA, Bayesian, CMA-ES) + simulation + ML
+✅ All domains in one deterministic, GPU-accelerated, version-controlled workflow
+
+**Existing tools comparison**:
+
+| Capability | Aspen/HYSYS | COMSOL | LAMMPS | Cantera | **Kairo** |
+|------------|-------------|--------|--------|---------|-----------|
+| Process simulation | ✅ | ⚠️ | ❌ | ❌ | ✅ |
+| Multiphysics CFD | ⚠️ | ✅ | ❌ | ❌ | ✅ |
+| Molecular dynamics | ❌ | ❌ | ✅ | ❌ | ✅ |
+| Reaction kinetics | ✅ | ⚠️ | ❌ | ✅ | ✅ |
+| ML integration | ❌ | ❌ | ❌ | ❌ | ✅ |
+| Optimization | ⚠️ | ⚠️ | ❌ | ❌ | ✅ |
+| Open source | ❌ | ❌ | ✅ | ✅ | ✅ |
+| GPU acceleration | ❌ | ⚠️ | ⚠️ | ❌ | ✅ |
+| Unified workflow | ❌ | ❌ | ❌ | ❌ | ✅ |
+
+**Kairo = PyTorch + OpenFOAM + GROMACS + RDKit + Matplotlib + Aspen + ML + Optimization**
+
+---
+
+#### Dependencies
+
+**External (Optional)**:
+- **RDKit** — Molecular informatics, SMILES parsing
+- **OpenBabel** — Format conversion
+- **Cantera** — Reaction kinetics (can wrap or reimplement)
+- **CoolProp** — Thermodynamic properties
+- **ORCA/Psi4/Q-Chem** — Quantum chemistry (external executables)
+- **SchNet/TorchMD** — ML potential energy surfaces
+
+**Kairo Core (Required)**:
+- Field operators, Agent operators, Optimization, ML, Visualization
+
+---
+
+#### Implementation Roadmap
+
+**Phase 1** (Months 1-2): Molecular Domain
+- Molecule loading, force fields, MD integrators
+
+**Phase 2** (Months 2-3): Reaction Kinetics Domain
+- Arrhenius, ODE networks, ideal reactors
+
+**Phase 3** (Months 3-4): Transport Phenomena Domain
+- Heat/mass transfer, correlations
+
+**Phase 4** (Months 4-5): Quantum Chemistry Hybrids
+- DFT wrappers, ML PES
+
+**Phase 5** (Months 5-6): Multiphase & Thermodynamics
+- VLE, EOS, phase equilibrium
+
+**Phase 6** (Month 7): Catalysis & Electrochemistry
+- Surface kinetics, batteries
+
+**Phase 7** (Month 7): Chemistry Visualization
+- Molecule rendering, orbital surfaces, trajectory animations
+
+---
+
+#### Status
+
+- **Specification**: ✅ COMPLETE
+- **ADR**: ✅ COMPLETE ([ADR-005](ADR/005-chemistry-domain.md))
+- **Use Case Analysis**: ✅ COMPLETE ([chemistry-unified-framework.md](USE_CASES/chemistry-unified-framework.md))
+- **Implementation**: 🔲 NOT STARTED
+- **Target Version**: v0.9.0+
+
+---
+
 ## 3. Advanced Domains (FUTURE EXPANSION)
 
 These are "Version 2+" ideas — realistic but not urgent. They represent specialized use cases that extend Kairo into new application areas.
