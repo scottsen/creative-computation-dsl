@@ -411,6 +411,280 @@ class FieldOperations:
         data = rng.uniform(low, high, size=shape).astype(np.float32)
         return Field2D(data)
 
+    # ============================================================================
+    # EXTENDED FIELD OPERATIONS (for graphics & procedural work)
+    # ============================================================================
+
+    @staticmethod
+    def gradient(field: Field2D) -> Tuple[Field2D, Field2D]:
+        """Compute gradient of scalar field.
+
+        Returns spatial derivatives (∂f/∂x, ∂f/∂y).
+
+        Args:
+            field: Scalar field
+
+        Returns:
+            Tuple of (grad_x, grad_y) fields
+
+        Example:
+            >>> gx, gy = field.gradient(scalar_field)
+        """
+        # Compute gradients using numpy
+        grad_y, grad_x = np.gradient(field.data, field.dy, field.dx)
+
+        return Field2D(grad_x, field.dx, field.dy), Field2D(grad_y, field.dx, field.dy)
+
+    @staticmethod
+    def divergence(velocity: Field2D) -> Field2D:
+        """Compute divergence of vector field.
+
+        Divergence measures "outflow" at each point: ∇·v = ∂vx/∂x + ∂vy/∂y
+
+        Args:
+            velocity: Vector field (2-channel: vx, vy)
+
+        Returns:
+            Scalar divergence field
+
+        Example:
+            >>> div = field.divergence(velocity_field)
+        """
+        if velocity.data.shape[2] != 2:
+            raise ValueError("Divergence requires 2-channel velocity field")
+
+        vx = velocity.data[:, :, 0]
+        vy = velocity.data[:, :, 1]
+
+        # Compute partial derivatives
+        dvx_dx = np.gradient(vx, velocity.dx, axis=1)
+        dvy_dy = np.gradient(vy, velocity.dy, axis=0)
+
+        # Divergence
+        div = dvx_dx + dvy_dy
+
+        return Field2D(div, velocity.dx, velocity.dy)
+
+    @staticmethod
+    def curl(velocity: Field2D) -> Field2D:
+        """Compute curl (vorticity) of 2D vector field.
+
+        Curl measures rotation at each point: ∇×v = ∂vy/∂x - ∂vx/∂y
+
+        Args:
+            velocity: Vector field (2-channel: vx, vy)
+
+        Returns:
+            Scalar curl field (z-component of 3D curl)
+
+        Example:
+            >>> vorticity = field.curl(velocity_field)
+        """
+        if velocity.data.shape[2] != 2:
+            raise ValueError("Curl requires 2-channel velocity field")
+
+        vx = velocity.data[:, :, 0]
+        vy = velocity.data[:, :, 1]
+
+        # Compute partial derivatives
+        dvy_dx = np.gradient(vy, velocity.dx, axis=1)
+        dvx_dy = np.gradient(vx, velocity.dy, axis=0)
+
+        # Curl (z-component in 2D)
+        curl_z = dvy_dx - dvx_dy
+
+        return Field2D(curl_z, velocity.dx, velocity.dy)
+
+    @staticmethod
+    def smooth(field: Field2D, iterations: int = 1, method: str = "gaussian") -> Field2D:
+        """Smooth field using filtering.
+
+        Args:
+            field: Field to smooth
+            iterations: Number of smoothing passes
+            method: Smoothing method ("gaussian" or "box")
+
+        Returns:
+            Smoothed field
+
+        Example:
+            >>> smoothed = field.smooth(noisy_field, iterations=3)
+        """
+        from scipy import ndimage
+
+        result = field.copy()
+
+        for _ in range(iterations):
+            if len(field.data.shape) == 2:
+                # Scalar field
+                if method == "gaussian":
+                    result.data = ndimage.gaussian_filter(result.data, sigma=1.0)
+                elif method == "box":
+                    result.data = ndimage.uniform_filter(result.data, size=3)
+                else:
+                    raise ValueError(f"Unknown smoothing method: {method}")
+            else:
+                # Vector field - smooth each channel
+                for c in range(field.data.shape[2]):
+                    if method == "gaussian":
+                        result.data[:, :, c] = ndimage.gaussian_filter(result.data[:, :, c], sigma=1.0)
+                    elif method == "box":
+                        result.data[:, :, c] = ndimage.uniform_filter(result.data[:, :, c], size=3)
+
+        return result
+
+    @staticmethod
+    def normalize(field: Field2D, target_min: float = 0.0, target_max: float = 1.0) -> Field2D:
+        """Normalize field values to target range.
+
+        Args:
+            field: Input field
+            target_min: Target minimum value
+            target_max: Target maximum value
+
+        Returns:
+            Normalized field
+
+        Example:
+            >>> normalized = field.normalize(field, 0, 1)
+        """
+        result = field.copy()
+
+        # Find current min/max
+        current_min = np.min(result.data)
+        current_max = np.max(result.data)
+
+        # Normalize
+        if current_max > current_min:
+            result.data = (result.data - current_min) / (current_max - current_min)
+            result.data = result.data * (target_max - target_min) + target_min
+        else:
+            result.data = np.full_like(result.data, target_min)
+
+        return result
+
+    @staticmethod
+    def threshold(field: Field2D, threshold_value: float,
+                 low_value: float = 0.0, high_value: float = 1.0) -> Field2D:
+        """Threshold field values.
+
+        Args:
+            field: Input field
+            threshold_value: Threshold value
+            low_value: Value for pixels below threshold
+            high_value: Value for pixels above threshold
+
+        Returns:
+            Thresholded field
+
+        Example:
+            >>> binary = field.threshold(field, 0.5, 0.0, 1.0)
+        """
+        result = field.copy()
+        result.data = np.where(field.data > threshold_value, high_value, low_value)
+        return result
+
+    @staticmethod
+    def sample(field: Field2D, positions: np.ndarray, method: str = "bilinear") -> np.ndarray:
+        """Sample field at arbitrary positions.
+
+        Args:
+            field: Field to sample
+            positions: Array of (y, x) positions (shape: (N, 2) or (H, W, 2))
+            method: Interpolation method ("nearest" or "bilinear")
+
+        Returns:
+            Sampled values (shape matches positions minus last dimension)
+
+        Example:
+            >>> # Sample at specific points
+            >>> positions = np.array([[10.5, 20.3], [50.1, 60.7]])
+            >>> values = field.sample(field, positions)
+        """
+        from scipy import ndimage
+
+        original_shape = positions.shape[:-1]
+        positions_flat = positions.reshape(-1, 2)
+
+        # Extract y, x coordinates
+        y_coords = positions_flat[:, 0]
+        x_coords = positions_flat[:, 1]
+
+        # Determine interpolation order
+        order = 0 if method == "nearest" else 1
+
+        # Sample field
+        if len(field.data.shape) == 2:
+            # Scalar field
+            sampled = ndimage.map_coordinates(field.data, [y_coords, x_coords],
+                                             order=order, mode='reflect')
+        else:
+            # Vector field - sample each channel
+            sampled = np.zeros((len(positions_flat), field.data.shape[2]), dtype=np.float32)
+            for c in range(field.data.shape[2]):
+                sampled[:, c] = ndimage.map_coordinates(field.data[:, :, c],
+                                                       [y_coords, x_coords],
+                                                       order=order, mode='reflect')
+
+        # Reshape to original dimensions
+        if len(field.data.shape) == 2:
+            return sampled.reshape(original_shape)
+        else:
+            return sampled.reshape(*original_shape, field.data.shape[2])
+
+    @staticmethod
+    def clamp(field: Field2D, min_value: float, max_value: float) -> Field2D:
+        """Clamp field values to range.
+
+        Args:
+            field: Input field
+            min_value: Minimum value
+            max_value: Maximum value
+
+        Returns:
+            Clamped field
+        """
+        result = field.copy()
+        result.data = np.clip(field.data, min_value, max_value)
+        return result
+
+    @staticmethod
+    def abs(field: Field2D) -> Field2D:
+        """Compute absolute value of field.
+
+        Args:
+            field: Input field
+
+        Returns:
+            Field with absolute values
+        """
+        result = field.copy()
+        result.data = np.abs(field.data)
+        return result
+
+    @staticmethod
+    def magnitude(velocity: Field2D) -> Field2D:
+        """Compute magnitude of vector field.
+
+        Args:
+            velocity: Vector field (2-channel: vx, vy)
+
+        Returns:
+            Scalar magnitude field
+
+        Example:
+            >>> speed = field.magnitude(velocity_field)
+        """
+        if velocity.data.shape[2] != 2:
+            raise ValueError("Magnitude requires 2-channel velocity field")
+
+        vx = velocity.data[:, :, 0]
+        vy = velocity.data[:, :, 1]
+
+        mag = np.sqrt(vx**2 + vy**2)
+
+        return Field2D(mag, velocity.dx, velocity.dy)
+
 
 # Create singleton instance for use as 'field' namespace
 field = FieldOperations()
