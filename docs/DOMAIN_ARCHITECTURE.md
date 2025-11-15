@@ -191,15 +191,20 @@ These domains form the bare minimum for a universal transform/simulation kernel.
 
 ---
 
-### 1.7 Visual / Fractal Dialect
+### 1.7 Visual / Scene Dialect
 
-**Purpose**: Fractal iteration, palette mapping, geometric warping, 2D/3D field rendering.
+**Purpose**: Scene graph + animation system for mathematical visualization, fractal iteration, palette mapping, geometric warping, 2D/3D field rendering. Provides 3Blue1Brown-style composable math visualization capabilities.
 
-**Why Essential**: Creative visuals, procedural art, and scientific visualization all need efficient rendering.
+**Why Essential**: Explanatory graphics, mathematical animations, creative visuals, procedural art, and scientific visualization all need efficient rendering with composable scene management.
 
-**Status**: ⚙️ In progress (visual stdlib with colorization, rendering primitives)
+**Status**: ⚙️ In progress (visual stdlib with colorization, rendering primitives; scene graph + timeline architecture designed)
 
-**Operators**:
+**Core Components**:
+- **SceneDomain** — Scene graph, MObjects, camera system
+- **TimelineDomain** — Keyframe animation, easing, composition
+- **Rendering** — Fractal iteration, palette mapping, compositing
+
+**Key Operators** (Rendering Primitives):
 - `fractal.mandelbrot` — Mandelbrot set iteration
 - `fractal.julia` — Julia set iteration
 - `fractal.ifs` — Iterated function system
@@ -209,7 +214,16 @@ These domains form the bare minimum for a universal transform/simulation kernel.
 - `render.layers` — Composite multiple layers with blend modes
 - `filter.blur` / `filter.sharpen` — Post-processing filters
 
-**Dependencies**: Fields (for scalar/vector data), Image/Vision (for filtering)
+**Key Operators** (Scene Graph):
+- `scene.create` / `scene.add` / `scene.remove` — Scene management
+- `geo.curve` / `geo.surface` / `geo.vector_field` — Geometry creation
+- `anim.move` / `anim.rotate` / `anim.fade` — Basic animations
+- `anim.morph` / `anim.write_equation` — Math-specific animations
+- `camera.pan` / `camera.zoom` / `camera.orbit` — Camera control
+
+**Dependencies**: Fields (for scalar/vector data), Image/Vision (for filtering), Palette, Noise, Video
+
+**Documentation**: See [domains/visual-scene-domain.md](domains/visual-scene-domain.md) for comprehensive architecture and [domains/visual-domain-quickref.md](domains/visual-domain-quickref.md) for quick reference
 
 ---
 
@@ -2951,7 +2965,7 @@ Here is the likely full spectrum of domains Kairo will eventually want:
 | Integrators | 🔲 Planned | P0 |
 | Particles | ⚙️ In Progress | P0 |
 | Audio DSP | ✅ Partial | P0 |
-| Visual / Fractal | ⚙️ In Progress | P0 |
+| Visual / Scene | ⚙️ In Progress | P0 |
 
 ### 2. Next Wave (Highly Likely) — v0.9-v1.0
 | Domain | Status | Priority |
