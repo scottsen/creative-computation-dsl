@@ -724,26 +724,247 @@ This unification makes Kairo's multi-domain vision coherent and practical.
 
 ---
 
-### 2.3 Optimization (Convex & Non-Convex)
+### 2.3 Optimization Domain
 
-**Purpose**: Numerical optimization for parameter fitting, control, and learning.
+**Purpose**: Design discovery and parameter optimization across all Kairo domains through comprehensive algorithm support.
 
-**Why Needed**: Many domains rely on optimization (physics calibration, trajectory planning, ML training).
+**Why Critical**: Transforms Kairo from **"simulate physics"** to **"discover new designs"**. Different optimization problems require different solvers based on continuity, smoothness, dimensionality, noise, and computational cost. Kairo's physical domains (combustion, acoustics, circuits, motors, geometry) span all these problem types.
 
 **Status**: 🔲 Planned (v0.10+)
 
-**Operators**:
-- `grad(f)` — Gradient of function
-- `descent(f, lr)` — Gradient descent step
-- `newton_step` — Newton's method step
-- `lbfgs` — Limited-memory BFGS
-- `adam` / `rmsprop` — Adaptive optimizers
-- `project_to_constraint` — Project to feasible set
-- `line_search` — Backtracking line search
+**Reference**: See **[LEARNINGS/OPTIMIZATION_ALGORITHMS_CATALOG.md](LEARNINGS/OPTIMIZATION_ALGORITHMS_CATALOG.md)** for complete algorithm specifications, operator signatures, and implementation roadmap.
 
-**Dependencies**: Autodiff (for gradients), Linear Algebra
+---
 
-**Use Cases**: Inverse problems, control optimization, neural network training
+#### Algorithm Categories
+
+**1. Evolutionary / Population-Based (Global Search)**
+- Best for: Messy, nonlinear, noisy, discontinuous problems
+- **Genetic Algorithm (GA)** — Broad search, mixed continuous/discrete parameters
+- **Differential Evolution (DE)** — Most reliable for continuous real-valued optimization
+- **CMA-ES** — Gold standard for high-dimensional continuous optimization
+- **Particle Swarm Optimization (PSO)** — Swarm-based cooperative search
+
+**Use Cases**: LC filter optimization, J-tube geometry, muffler shapes, speaker EQ, motor torque ripple, PID tuning, acoustic chamber tuning, heat-transfer parameter fitting
+
+---
+
+**2. Local Numerical Optimization (Smooth Problems)**
+- Best for: Problems with reliable gradients or smooth landscapes
+- **Gradient Descent** — For differentiable objectives (requires autodiff)
+- **Quasi-Newton (BFGS/L-BFGS)** — Second-order methods for faster convergence
+- **Nelder-Mead (Simplex)** — Derivative-free local optimization
+
+**Use Cases**: Filter coefficient tuning, control stability, thermodynamic equilibrium, curve fitting, impedance matching
+
+---
+
+**3. Surrogate / Model-Based Optimization**
+- Best for: Expensive simulations (CFD, FEM) where each evaluation is costly
+- **Bayesian Optimization** — Gaussian Process surrogates with intelligent sampling
+- **Response Surface Modeling** — Polynomial/spline approximations
+- **Kriging / RBF Surrogates** — For non-smooth high-dimensional problems
+
+**Use Cases**: Combustion CFD optimization, expensive multi-domain simulations, gross tuning with limited budget
+
+---
+
+**4. Combinatorial / Discrete Optimization**
+- Best for: Discrete parameter spaces (hole counts, component values, patterns)
+- **Simulated Annealing** — Rugged discrete landscapes
+- **Tabu Search** — Avoid revisiting poor regions
+- **Beam Search / A\*** — State-space exploration with constraints
+
+**Use Cases**: Jet hole patterns, PCB routing, discrete component selection (E12/E24 series), baffle counts, winding patterns
+
+---
+
+**5. Multi-Objective Optimization**
+- Best for: Competing objectives (Pareto-optimal tradeoff exploration)
+- **NSGA-II** — Standard multi-objective genetic algorithm
+- **SPEA2** — Strength Pareto for complex tradeoff surfaces
+- **Multi-Objective PSO (MOPSO)** — Swarm-based multi-objective
+
+**Use Cases**: Minimize smoke AND maximize flame beauty, maximize torque AND minimize ripple, maximize quietness AND maintain power
+
+---
+
+#### Operator Contract
+
+All optimizers share a unified interface:
+
+**Inputs**:
+- Parameter space (continuous bounds, discrete genome, or mixed)
+- Objective function(s): `(T) -> f64` or `Array<(T) -> f64>` for multi-objective
+- Algorithm-specific hyperparameters (population size, iterations, etc.)
+- Stopping criteria (max evaluations, tolerance, time budget)
+- Seed (for deterministic RNG)
+
+**Outputs**:
+- `OptResult<T>` containing:
+  - Best solution found
+  - Best fitness value(s)
+  - Optimization history / convergence tracking
+  - Algorithm-specific metadata (population, surrogate models, Pareto fronts)
+
+**Example Operators**:
+```kairo
+opt.ga<T>(genome, fitness, population_size, generations, ...) -> OptResult<T>
+opt.de(bounds, fitness, population_size, generations, ...) -> OptResult<Array<f64>>
+opt.cmaes(initial_mean, sigma, bounds, fitness, ...) -> OptResult<Array<f64>>
+opt.bayesian(bounds, expensive_objective, n_iterations, ...) -> OptResult<Array<f64>> { gp_model }
+opt.nsga2<T>(genome, objectives, population_size, ...) -> MultiObjectiveResult<T> { pareto_front }
+```
+
+---
+
+#### Simulation Subgraph Integration
+
+Optimizers accept **Kairo simulation subgraphs** as objective functions:
+
+```kairo
+# Define simulation
+scene MotorTorqueRipple(winding_pattern: Array<int>) {
+    let motor = motors.pmsm(winding_pattern)
+    let torque = motors.compute_torque(motor, current_profile)
+    out ripple = stdev(torque)
+}
+
+# Optimize winding pattern
+let result = opt.de(
+    bounds = [(0, 100); 12],
+    fitness = |pattern| -simulate(MotorTorqueRipple(pattern)).ripple,
+    population_size = 30,
+    generations = 50
+)
+```
+
+The subgraph is **compiled once**, then evaluated many times with different parameters — critical for performance.
+
+---
+
+#### Surrogate Model Storage
+
+Surrogate models (Gaussian Processes, RBF, polynomials) are **first-class objects**:
+
+```kairo
+# Train expensive surrogate
+let result = opt.bayesian(bounds, expensive_cfd_simulation, n_iterations=50)
+
+# Save GP model for reuse
+io.save(result.gp_model, "chamber_efficiency_surrogate.gp")
+
+# Later: load and query without re-running CFD
+let gp_model = io.load<GaussianProcess>("chamber_efficiency_surrogate.gp")
+let predicted_efficiency = gp_model.predict([150mm, 30mm, 250mm])
+
+# Visualize learned landscape
+viz.plot_surface_3d(gp_model, bounds, title="Predicted Efficiency")
+```
+
+---
+
+#### Cross-Domain Applications
+
+**Combustion Domain**:
+- J-tube geometry optimization (GA for jet patterns)
+- Flame shape evolution (CMA-ES for 10+ geometric parameters)
+- CFD-based chamber design (Bayesian Optimization for expensive simulations)
+
+**Acoustics Domain**:
+- Muffler multi-objective design (NSGA-II: quietness vs. backpressure)
+- Helmholtz resonator tuning (PSO, DE)
+- Speaker crossover optimization (GA, multi-objective PSO)
+
+**Motors Domain**:
+- PID controller tuning (Differential Evolution)
+- Torque ripple minimization (CMA-ES for magnet shapes)
+- Winding pattern optimization (GA with discrete parameters)
+
+**Geometry Domain (TiaCAD Integration)**:
+- Parametric CAD → simulation → optimization loops
+- High-dimensional parameter fitting (CMA-ES for 20+ control points)
+- Multi-objective design exploration (Pareto-optimal geometries)
+
+**Audio DSP Domain**:
+- Filter parameter optimization (gradient descent with autodiff)
+- EQ curve matching (L-BFGS)
+- Room correction (multi-objective: flatness vs. phase)
+
+---
+
+#### Implementation Roadmap
+
+**Phase 1 (v0.10)**: Core optimizers
+1. Genetic Algorithm (GA) — Baseline evolutionary
+2. Differential Evolution (DE) — Best general-purpose real-valued
+3. CMA-ES — Gold standard for hard continuous problems
+4. Nelder-Mead — Simple local optimizer
+5. Simulated Annealing — Discrete + rugged landscapes
+
+**Phase 2 (v1.0)**: Advanced methods
+6. Bayesian Optimization — For expensive simulations
+7. NSGA-II — Multi-objective Pareto optimization
+8. L-BFGS — Quasi-Newton for smooth problems
+9. Gradient Descent — Autodiff integration
+10. Particle Swarm Optimization (PSO)
+
+**Phase 3 (v1.1+)**: Complete catalog
+11. SPEA2, Response Surface, Kriging, Tabu Search, Beam Search, MOPSO
+
+---
+
+#### Dependencies
+
+- **Stochastic** — For mutation, crossover, initialization (evolutionary algorithms)
+- **Linear Algebra** — For surrogate models (GP, RBF), covariance matrices (CMA-ES)
+- **Autodiff** (Phase 2+) — For gradient-based methods
+- **Sparse Linear Algebra** — For high-dimensional GP inference
+- **Visualization** — Convergence plots, Pareto fronts, surrogate landscapes
+
+---
+
+#### Determinism
+
+**Tier**: DETERMINISTIC (with fixed seed)
+
+All optimizers guarantee:
+- Bit-exact reproduction across platforms (with same seed)
+- Enables regression testing and reproducible research
+- Critical for scientific validation
+
+```kairo
+# Same seed → identical results
+let result1 = opt.ga(genome, fitness, seed=42)
+let result2 = opt.ga(genome, fitness, seed=42)
+assert_eq!(result1.best, result2.best)
+```
+
+---
+
+#### What Kairo Gains
+
+With comprehensive optimization support, Kairo enables:
+
+1. **Automatic motor tuning** — Winding patterns, control loops
+2. **Muffler shape evolution** — Multi-objective noise vs. backpressure
+3. **Flame shape discovery** — J-tube geometry, jet patterns
+4. **Speaker + room tuning** — EQ, crossover, placement
+5. **Acoustic material discovery** — Perforate patterns, chamber dimensions
+6. **Optimal LC filter tables** — Component value selection
+7. **2-stroke expansion chamber design** — Length, diameter, taper
+8. **Parametric CAD → Sim → Optimization loops** — TiaCAD integration
+9. **GA-tuned control loops** — PID, MPC, LQR optimization
+10. **Optimization-guided inverse problems** — Fitting recorded signals
+
+---
+
+**See**: **[LEARNINGS/OPTIMIZATION_ALGORITHMS_CATALOG.md](LEARNINGS/OPTIMIZATION_ALGORITHMS_CATALOG.md)** for:
+- Complete operator signatures for all 16 algorithms
+- Detailed use cases for each Kairo domain
+- Implementation examples and testing strategy
+- MLIR lowering approach
+- Performance considerations and parallelization
 
 ---
 
