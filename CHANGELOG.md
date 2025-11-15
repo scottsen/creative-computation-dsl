@@ -62,29 +62,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Impact**: Enables asset loading, result export, checkpointing, data interchange with all external tools
 
 - **Sparse Linear Algebra Domain** (P1 - Foundational) ✅
-  - **Implementation**: `kairo/stdlib/sparse_linalg.py` (650 lines)
+  - **Implementation**: `kairo/stdlib/sparse_linalg.py` (588 lines)
   - **Operators**:
     - Sparse matrices: `csr_matrix`, `csc_matrix`, `coo_matrix`
     - Iterative solvers: `solve_cg`, `solve_bicgstab`, `solve_gmres`, `solve_sparse` (auto-select)
     - Preconditioners: `incomplete_cholesky`, `incomplete_lu`
     - Discrete operators: `laplacian_1d`, `laplacian_2d`, `gradient_2d`, `divergence_2d`
   - **Tests**: 10 comprehensive tests (solvers, operators, Poisson equation, determinism)
+    - Standalone verification: `verify_sparse_linalg.py` (290 lines, 10 test functions)
+    - Matrix creation, CG/BiCGSTAB/GMRES solvers, Laplacian operators, determinism
+  - **Examples**: 3 comprehensive example files + README
+    - `01_heat_equation.py` — 3 examples (1D/2D heat diffusion, convergence analysis)
+    - `02_poisson_equation.py` — 3 examples (electrostatics, pressure projection, periodic BC)
+    - `03_solver_comparison.py` — 4 examples (solver comparison, performance benchmarks up to 512×512 grids)
+    - `README.md` — Complete API documentation, solver selection guidelines, performance tips
   - **Key Properties**:
-    - CG solver: Converges in 25 iterations for 50x50 Laplacian (< 1e-14 error)
+    - CG solver: Converges in 25 iterations for 50×50 Laplacian (< 1e-14 error)
     - BiCGSTAB/GMRES: Robust for nonsymmetric matrices
     - 2D Laplacian: 5-point stencil with Dirichlet/Neumann/Periodic BC
+    - Scales to 250K+ unknowns efficiently
     - All tests passing with high accuracy
   - **Impact**: Unlocks large-scale PDEs (1M+ unknowns), circuit simulation (1000+ nodes), graph algorithms
 
 ### Technical Highlights
 
-- **Total Implementation**: 1,746 lines of production code (Integrators: 520, I/O: 576, Sparse: 650)
-- **Total Tests**: 1,550+ lines of verification tests (Integrators: 600, I/O: 950, Sparse: TBD)
-- **Test Coverage**: 100% pass rate across all domains (Integrators: 100%, I/O: 22/22)
-- **Examples**: 7 comprehensive example files + documentation
+- **Total Implementation**: 1,684 lines of production code (Integrators: 520, I/O: 576, Sparse: 588)
+- **Total Tests**: 1,840+ lines of verification tests (Integrators: 600, I/O: 950, Sparse: 290)
+- **Test Coverage**: 100% pass rate across all domains (Integrators: 100%, I/O: 22/22, Sparse: 10/10)
+- **Examples**: 13 comprehensive example files + documentation
   - Integrators: 3 files (SHO, adaptive, N-body)
-  - I/O & Storage: 3 files + README (13 total demonstrations)
-  - Sparse: TBD
+  - I/O & Storage: 4 files + README (12 total demonstrations)
+  - Sparse Linear Algebra: 3 files + README (10 total demonstrations)
 - **Dependencies Satisfied**:
   - Integrators → Agent/Circuit/Fluid domains (time-stepping)
   - I/O & Storage → All domains (asset loading, result export, checkpointing)
