@@ -26,14 +26,26 @@ tags:
 
 ## Evaluation Framework
 
-Each domain is evaluated across 6 dimensions (1-5 scale):
+Each domain is evaluated across 10 dimensions (1-5 scale):
+
+### Core Technical Dimensions
 
 1. **Cross-Domain Synergy** - How much does this domain benefit from integration with other Kairo domains?
 2. **Technical Differentiation** - How unique is Kairo's approach vs. existing tools?
-3. **Market Readiness** - Is there a clear market need that existing tools don't address?
-4. **Implementation Status** - How much is already built and working?
-5. **Time to Value** - How quickly can we deliver meaningful value to users?
-6. **Strategic Importance** - Does this domain unlock other valuable domains or use cases?
+3. **Implementation Status** - How much is already built and working?
+4. **Time to Value** - How quickly can we deliver meaningful value to users?
+
+### Market & Business Dimensions
+
+5. **Market Size & Revenue** - Total addressable market and revenue potential (1=$1M-10M, 3=$10M-100M, 5=$100M+)
+6. **Market Readiness** - Is there a clear market need that existing tools don't address?
+7. **Competitive Moats** - How defensible is our position? Switching costs, network effects, etc.
+
+### Strategic Dimensions
+
+8. **Strategic Importance** - Does this domain unlock other valuable domains or use cases?
+9. **Ecosystem Potential** - Can community extend it? Plugin potential? Partnership opportunities?
+10. **Adoption Enablement** - Does this domain drive user adoption, retention, or marketing impact?
 
 **Scoring:**
 - 🟢 5 = Exceptional strength
@@ -41,6 +53,8 @@ Each domain is evaluated across 6 dimensions (1-5 scale):
 - 🟡 3 = Moderate
 - 🟠 2 = Weak
 - 🔴 1 = Very weak / Not applicable
+
+**Total Score:** Now out of 50 points (10 dimensions × 5 points)
 
 ---
 
@@ -52,12 +66,16 @@ Each domain is evaluated across 6 dimensions (1-5 scale):
 |-----------|-------|-----------|
 | **Cross-Domain Synergy** | 🟢 5 | Couples to acoustics, agents, visual, chemistry, physics |
 | **Technical Differentiation** | 🟡 3 | PDE solvers exist (COMSOL, ANSYS) but not integrated like this |
-| **Market Readiness** | 🟢 4 | Strong need for exploratory CFD/thermal without $50K licenses |
 | **Implementation Status** | 🟢 5 | Production-ready (v0.2.0+), proven examples |
 | **Time to Value** | 🟢 5 | Already delivering value |
+| **Market Size & Revenue** | 🟢 4 | CFD/simulation market $5B+, but competing with established tools |
+| **Market Readiness** | 🟢 4 | Strong need for exploratory CFD/thermal without $50K licenses |
+| **Competitive Moats** | 🟡 3 | Integration is moat, but raw solver performance is competitive |
 | **Strategic Importance** | 🟢 5 | Foundation for physics, acoustics, chemistry, fluids |
+| **Ecosystem Potential** | 🟢 4 | Users can define custom operators, couple to other domains |
+| **Adoption Enablement** | 🟢 4 | Essential for demos, but not the hook that attracts users |
 
-**Total: 27/30**
+**Total: 42/50**
 
 **Strategic Assessment:** ✅ **CORE - MAINTAIN & EXPAND**
 - Foundation of multi-physics capability
@@ -77,12 +95,16 @@ Each domain is evaluated across 6 dimensions (1-5 scale):
 |-----------|-------|-----------|
 | **Cross-Domain Synergy** | 🟢 5 | Couples to fields (forces), audio (granular), visual (rendering) |
 | **Technical Differentiation** | 🟢 4 | Integrated agent + field coupling is rare |
-| **Market Readiness** | 🟢 4 | Game dev, generative art, research simulations |
 | **Implementation Status** | 🟢 5 | Production-ready (v0.2.0+) |
 | **Time to Value** | 🟢 5 | Already delivering |
+| **Market Size & Revenue** | 🟢 4 | Game dev ($200B+), simulation, research markets |
+| **Market Readiness** | 🟢 4 | Game dev, generative art, research simulations |
+| **Competitive Moats** | 🟢 4 | Integrated coupling + determinism is unique |
 | **Strategic Importance** | 🟢 4 | Enables emergence, flocking, molecular dynamics |
+| **Ecosystem Potential** | 🟢 4 | Behavior trees, custom agents, game dev plugins |
+| **Adoption Enablement** | 🟢 4 | Visual demos (flocking, etc.) attract attention |
 
-**Total: 27/30**
+**Total: 43/50**
 
 **Strategic Assessment:** ✅ **CORE - MAINTAIN & EXPAND**
 - Critical for emergence domain
@@ -102,12 +124,16 @@ Each domain is evaluated across 6 dimensions (1-5 scale):
 |-----------|-------|-----------|
 | **Cross-Domain Synergy** | 🟢 5 | THE killer cross-domain story (physics → acoustics → audio) |
 | **Technical Differentiation** | 🟢 5 | Physics-driven audio is Kairo's unique strength |
-| **Market Readiness** | 🟢 5 | Instrument builders, audio researchers, game audio |
 | **Implementation Status** | 🟢 4 | Core working (v0.5.0+), needs more operators |
 | **Time to Value** | 🟢 4 | Can deliver unique value now |
+| **Market Size & Revenue** | 🟢 5 | Audio production $50B+, lutherie $1B+, game audio $15B+ |
+| **Market Readiness** | 🟢 5 | Instrument builders, audio researchers, game audio |
+| **Competitive Moats** | 🟢 5 | No competitor does physics → acoustics → audio integrated |
 | **Strategic Importance** | 🟢 5 | Crown jewel - positions Kairo as THE physics-audio platform |
+| **Ecosystem Potential** | 🟢 5 | VST/AU plugins, DAW integration, huge partnership potential |
+| **Adoption Enablement** | 🟢 5 | Audio is instantly understandable, shareable, compelling |
 
-**Total: 28/30**
+**Total: 48/50**
 
 **Strategic Assessment:** ✅ **FLAGSHIP - MAXIMIZE INVESTMENT**
 - This is Kairo's killer app
@@ -129,17 +155,23 @@ Each domain is evaluated across 6 dimensions (1-5 scale):
 |-----------|-------|-----------|
 | **Cross-Domain Synergy** | 🟢 4 | Visualizes fields, agents, geometry; couples to procedural |
 | **Technical Differentiation** | 🟡 3 | Visualization exists everywhere, integration is the value |
-| **Market Readiness** | 🟡 3 | Useful but not differentiating alone |
 | **Implementation Status** | 🟢 4 | Basic rendering works (v0.6.0+) |
 | **Time to Value** | 🟢 4 | Enables demos and validation |
-| **Strategic Importance** | 🟢 4 | Critical for showing other domains' results |
+| **Market Size & Revenue** | 🟡 3 | Not a revenue driver, but enables revenue in other domains |
+| **Market Readiness** | 🟡 3 | Useful but not differentiating alone |
+| **Competitive Moats** | 🟠 2 | Integrated visualization, but not unique |
+| **Strategic Importance** | 🟢 5 | **CRITICAL** - Poor visuals = no adoption regardless of capability |
+| **Ecosystem Potential** | 🟢 4 | Custom renderers, export formats, social sharing |
+| **Adoption Enablement** | 🟢 5 | **CRITICAL** - Beautiful demos drive adoption, social shares, marketing |
 
-**Total: 22/30**
+**Total: 37/50**
 
-**Strategic Assessment:** ✅ **SUPPORTING - ADEQUATE INVESTMENT**
-- Not a differentiator but essential for showcasing other domains
-- Focus on "good enough" visualization, not competing with Unity/Unreal
-- Video export (v0.6.0) is valuable for documentation
+**Strategic Assessment:** ✅ **STRATEGIC ENABLER - SIGNIFICANT INVESTMENT**
+- **Upgraded from "Supporting" to "Strategic Enabler"**
+- Poor visualization has killed many technically superior tools
+- Beautiful outputs = social sharing = organic growth
+- Essential for debugging, validation, and user confidence
+- Focus on "beautiful enough" not "best in class" - must exceed threshold for shareability
 
 **Priority Actions:**
 1. Make field visualization beautiful (colormaps, contours)
@@ -156,12 +188,16 @@ Each domain is evaluated across 6 dimensions (1-5 scale):
 |-----------|-------|-----------|
 | **Cross-Domain Synergy** | 🟢 5 | Bridge between physics/fluid and audio - THE KEY COUPLING |
 | **Technical Differentiation** | 🟢 5 | Nobody else does this integration |
-| **Market Readiness** | 🟢 5 | Instrument design, architectural acoustics, product design |
 | **Implementation Status** | 🟠 2 | Conceptual, needs implementation |
 | **Time to Value** | 🟡 3 | 6-12 months to useful examples |
+| **Market Size & Revenue** | 🟢 5 | Automotive acoustics $5B+, architectural $3B+, lutherie $1B+ |
+| **Market Readiness** | 🟢 5 | Instrument design, architectural acoustics, product design |
+| **Competitive Moats** | 🟢 5 | **UNFAIR ADVANTAGE** - integrated physics → acoustics → audio |
 | **Strategic Importance** | 🟢 5 | Makes physics → audio story real |
+| **Ecosystem Potential** | 🟢 4 | Acoustic models library, industry-specific templates |
+| **Adoption Enablement** | 🟢 5 | Hearing is believing - audio output makes physics tangible |
 
-**Total: 25/30**
+**Total: 44/50**
 
 **Strategic Assessment:** 🎯 **HIGH PRIORITY - INVEST HEAVILY**
 - This is THE domain that makes Kairo unique
@@ -185,12 +221,16 @@ This domain transforms Kairo from "interesting DSL" to "essential tool for physi
 |-----------|-------|-----------|
 | **Cross-Domain Synergy** | 🟢 4 | Uses agents (molecules), fields (diffusion), physics (forces) |
 | **Technical Differentiation** | 🟡 3 | GROMACS, LAMMPS exist but integration could help |
-| **Market Readiness** | 🟡 3 | Research market exists, but conservative and specialized |
 | **Implementation Status** | 🟠 2 | Specification exists, minimal implementation |
 | **Time to Value** | 🟠 2 | 12-24 months to competitive results |
+| **Market Size & Revenue** | 🟢 4 | Pharmaceutical $1.5T, drug discovery tools $5B+, cosmetics $500B |
+| **Market Readiness** | 🟡 3 | Research market exists, but conservative and specialized |
+| **Competitive Moats** | 🟡 3 | Integrated reaction + diffusion + thermal is unique angle |
 | **Strategic Importance** | 🟡 3 | Valuable for scientific credibility but not differentiating |
+| **Ecosystem Potential** | 🟡 3 | Academic partnerships, educational market |
+| **Adoption Enablement** | 🟠 2 | Molecular visualization interesting but niche |
 
-**Total: 17/30**
+**Total: 29/50**
 
 **Strategic Assessment:** 🟡 **OPPORTUNISTIC - PARTNER OR DEFER**
 - Complex domain with established tools
@@ -211,12 +251,16 @@ This domain transforms Kairo from "interesting DSL" to "essential tool for physi
 |-----------|-------|-----------|
 | **Cross-Domain Synergy** | 🟢 4 | Couples to audio (guitar pedals, synths), physics (thermal) |
 | **Technical Differentiation** | 🟡 3 | SPICE exists but audio circuit + coupling is interesting |
-| **Market Readiness** | 🟢 4 | Pedal designers, synth builders, audio engineers |
 | **Implementation Status** | 🟠 2 | ADR exists, implementation minimal |
 | **Time to Value** | 🟡 3 | 6-12 months for useful examples |
+| **Market Size & Revenue** | 🟢 4 | Guitar pedal market $1B+, modular synth $500M+, audio hardware $20B+ |
+| **Market Readiness** | 🟢 4 | Pedal designers, synth builders, audio engineers |
+| **Competitive Moats** | 🟢 4 | Circuit → sound in one program is unique for audio designers |
 | **Strategic Importance** | 🟢 4 | Strong fit for audio production domain |
+| **Ecosystem Potential** | 🟢 4 | Component library, pedal templates, synth modules |
+| **Adoption Enablement** | 🟢 4 | Circuit design + immediate audio feedback is compelling demo |
 
-**Total: 20/30**
+**Total: 36/50**
 
 **Strategic Assessment:** 🎯 **MEDIUM PRIORITY - TARGETED INVESTMENT**
 - Excellent fit for audio domain story
@@ -242,12 +286,16 @@ This domain transforms Kairo from "interesting DSL" to "essential tool for physi
 |-----------|-------|-----------|
 | **Cross-Domain Synergy** | 🟢 5 | Combines agents, fields, optimization, visualization |
 | **Technical Differentiation** | 🟢 4 | Integrated emergence + optimization is rare |
-| **Market Readiness** | 🟡 3 | Research, education, some game dev interest |
 | **Implementation Status** | 🟢 4 | Working examples (flocking, etc.) |
 | **Time to Value** | 🟢 4 | Can deliver interesting demos now |
-| **Strategic Importance** | 🟡 3 | Great for demos, less clear commercial value |
+| **Market Size & Revenue** | 🟡 3 | Consulting (urban planning, logistics) $10B+, but indirect |
+| **Market Readiness** | 🟡 3 | Research, education, some game dev interest |
+| **Competitive Moats** | 🟡 3 | Determinism + cross-domain is valuable but niche |
+| **Strategic Importance** | 🟢 4 | Great for demos, education, and showing integration power |
+| **Ecosystem Potential** | 🟢 4 | Behavior libraries, educational modules, research partnerships |
+| **Adoption Enablement** | 🟢 5 | Flocking, swarms, traffic - visually compelling, shareable demos |
 
-**Total: 23/30**
+**Total: 39/50**
 
 **Strategic Assessment:** ✅ **SUPPORTING - SHOWCASE VALUE**
 - Excellent for demos and education
@@ -266,13 +314,17 @@ This domain transforms Kairo from "interesting DSL" to "essential tool for physi
 | Dimension | Score | Rationale |
 |-----------|-------|-----------|
 | **Cross-Domain Synergy** | 🟢 4 | Uses agents, fields, geometry, noise, optimization |
-| **Technical Differentiation** | 🟡 3 | Houdini exists but Kairo's determinism is valuable |
-| **Market Readiness** | 🟢 4 | Game dev, VFX, generative art strong markets |
+| **Technical Differentiation** | 🟢 4 | Determinism + physics coupling is unique vs. Houdini |
 | **Implementation Status** | 🟡 3 | Basic operators exist, needs expansion |
 | **Time to Value** | 🟡 3 | 6-12 months for compelling examples |
+| **Market Size & Revenue** | 🟢 5 | Game dev $200B+, VFX $15B+, generative art growing |
+| **Market Readiness** | 🟢 4 | Game dev, VFX, generative art strong markets |
+| **Competitive Moats** | 🟢 4 | Determinism is CRITICAL for game dev (reproducible bugs, version control) |
 | **Strategic Importance** | 🟢 4 | Opens creative coding / game dev markets |
+| **Ecosystem Potential** | 🟢 5 | Unity/Unreal plugins, asset marketplace, community libraries |
+| **Adoption Enablement** | 🟢 5 | Beautiful procedural outputs are highly shareable on social media |
 
-**Total: 21/30**
+**Total: 41/50**
 
 **Strategic Assessment:** 🎯 **MEDIUM PRIORITY - CREATIVE MARKET**
 - Strong fit for game development and creative coding
@@ -291,6 +343,218 @@ This domain transforms Kairo from "interesting DSL" to "essential tool for physi
 
 ---
 
+## High-Potential Missing Domains
+
+These domains were not in the original analysis but represent significant strategic opportunities.
+
+---
+
+### Biomedical & Healthcare
+
+| Dimension | Score | Rationale |
+|-----------|-------|-----------|
+| **Cross-Domain Synergy** | 🟢 5 | Acoustics (hearing aids, ultrasound) + agents (gait) + fields (diffusion) |
+| **Technical Differentiation** | 🟢 4 | Integrated physics + audio + simulation is unique for medical devices |
+| **Implementation Status** | 🟠 2 | Existing domains support it, but no medical-specific work |
+| **Time to Value** | 🟡 3 | 6-12 months for first examples, 12-24 for validated solutions |
+| **Market Size & Revenue** | 🟢 5 | Medical simulation $2B+, hearing aids $10B+, surgical planning $5B+ |
+| **Market Readiness** | 🟢 4 | Strong need for integrated simulation tools |
+| **Competitive Moats** | 🟢 4 | Regulatory validation creates high switching costs |
+| **Strategic Importance** | 🟢 4 | Opens high-value medical device market |
+| **Ecosystem Potential** | 🟢 4 | FDA validation partnerships, medical schools, device manufacturers |
+| **Adoption Enablement** | 🟢 4 | Medical applications have credibility and funding |
+
+**Total: 39/50**
+
+**Strategic Assessment:** 🎯 **HIGH PRIORITY - EVALUATE & PILOT**
+- **Hearing Aid Design:** Acoustics + audio + signal processing (direct fit with existing strengths)
+- **Prosthetics & Gait:** Agent-based biomechanics simulation
+- **Ultrasound Simulation:** Acoustics + medical imaging
+- **Drug Delivery:** Fluid dynamics + chemistry + diffusion
+- **Surgical Planning:** Physics simulation for training
+
+**Market Advantages:**
+- High willingness to pay for validated tools
+- Regulatory moats (FDA validation creates switching costs)
+- Grant funding opportunities (NIH, medical research)
+- Academic partnerships (medical schools)
+
+**Priority Applications:**
+1. **HIGH:** Hearing aid acoustic modeling (couples directly to audio domain)
+2. **MEDIUM:** Prosthetic gait simulation (agent + physics)
+3. **MEDIUM:** Ultrasound training simulators (acoustics + visualization)
+4. **RESEARCH:** Drug delivery modeling (chemistry + fluids)
+
+---
+
+### Robotics & Control Systems
+
+| Dimension | Score | Rationale |
+|-----------|-------|-----------|
+| **Cross-Domain Synergy** | 🟢 5 | Agents + fields + circuits + optimization + physics |
+| **Technical Differentiation** | 🟢 4 | Integrated sim (mechanics + sensors + control) is valuable |
+| **Implementation Status** | 🟡 3 | Core domains support it, needs robotics-specific operators |
+| **Time to Value** | 🟡 3 | 6-12 months for useful robotics examples |
+| **Market Size & Revenue** | 🟢 5 | Robotics market $100B+ and growing rapidly (30% CAGR) |
+| **Market Readiness** | 🟢 4 | Strong need for integrated simulation |
+| **Competitive Moats** | 🟡 3 | Gazebo, MuJoCo exist, but integration angle is valuable |
+| **Strategic Importance** | 🟢 4 | Opens automation, manufacturing, autonomous vehicle markets |
+| **Ecosystem Potential** | 🟢 5 | ROS integration, hardware-in-loop, digital twin partnerships |
+| **Adoption Enablement** | 🟢 4 | Robot demos are visual, compelling, fundable |
+
+**Total: 41/50**
+
+**Strategic Assessment:** 🎯 **HIGH PRIORITY - STRONG COMMERCIAL POTENTIAL**
+- **Applications:** Path planning, grasp simulation, sensor modeling, swarm robotics
+- **Kairo Advantage:** Integrated simulation of mechanics + sensors + control + environment
+- **Key Markets:** Industrial automation, autonomous vehicles, drones, research
+
+**Target Use Cases:**
+1. **Path Planning:** Agent-based navigation + field-based obstacle mapping
+2. **Grasp Simulation:** Physics + optimization for pick-and-place
+3. **Sensor Modeling:** Simulate LiDAR, cameras, acoustics in physics environment
+4. **Swarm Robotics:** Multi-agent coordination (already have agent dialect!)
+5. **Hardware-in-Loop:** Couple to real hardware for testing
+
+**Partnership Opportunities:**
+- **ROS Integration:** Plugin for Robot Operating System
+- **Digital Twin:** Simulate factory floor, warehouse logistics
+- **Education:** Universities need affordable robotics simulation
+
+---
+
+### Digital Twins & Product Development
+
+| Dimension | Score | Rationale |
+|-----------|-------|-----------|
+| **Cross-Domain Synergy** | 🟢 5 | Uses ALL domains - fields, agents, circuits, acoustics, visual |
+| **Technical Differentiation** | 🟢 4 | Integrated multi-physics digital twins is the whole value prop |
+| **Implementation Status** | 🟢 4 | Existing domains already enable basic digital twins |
+| **Time to Value** | 🟡 3 | Can start now, but validation takes 6-12 months |
+| **Market Size & Revenue** | 🟢 5 | Digital twin market projected $100B+ by 2030 |
+| **Market Readiness** | 🟢 5 | **EXPLODING** - every manufacturing company wants digital twins |
+| **Competitive Moats** | 🟢 4 | Integration is moat; full-stack simulation is hard |
+| **Strategic Importance** | 🟢 5 | Positions Kairo for enterprise/industrial market |
+| **Ecosystem Potential** | 🟢 5 | IoT integration, cloud platforms, CAD partnerships |
+| **Adoption Enablement** | 🟢 4 | Virtual prototyping saves millions, easy ROI story |
+
+**Total: 44/50**
+
+**Strategic Assessment:** ⭐ **VERY HIGH PRIORITY - MASSIVE MARKET OPPORTUNITY**
+- This is potentially Kairo's enterprise play
+- Digital twin market is exploding across all industries
+- Kairo's cross-domain integration is exactly what digital twins need
+
+**Applications:**
+1. **Virtual Prototyping:** Design → simulate → validate before physical build
+2. **Predictive Maintenance:** Model equipment degradation over time
+3. **Manufacturing Optimization:** Simulate production lines, thermal, acoustics
+4. **Automotive:** Full vehicle digital twins (thermal, acoustics, crashworthiness)
+5. **Smart Buildings:** HVAC + thermal + occupancy + energy
+
+**Commercial Advantages:**
+- **High willingness to pay:** Enterprises pay $100K+ for simulation tools
+- **Clear ROI:** One avoided physical prototype can save $100K-$1M
+- **Recurring revenue:** Cloud-based digital twin simulations
+- **Consulting opportunities:** Implementation services high-margin
+
+**Partnership Opportunities:**
+- **CAD Integration:** SolidWorks, Fusion 360 plugins
+- **IoT Platforms:** AWS IoT, Azure Digital Twins
+- **Cloud Simulation:** Run Kairo simulations at scale
+- **Industry Verticals:** Automotive, aerospace, manufacturing
+
+**Why This Matters:**
+Kairo's cross-domain integration is EXACTLY what digital twins need. Current digital twin tools require 5+ different software packages. Kairo can do thermal + structural + fluid + acoustics + circuits in ONE program.
+
+---
+
+### Education & Academia (As Primary Market)
+
+| Dimension | Score | Rationale |
+|-----------|-------|-----------|
+| **Cross-Domain Synergy** | 🟢 5 | ALL domains benefit from educational adoption |
+| **Technical Differentiation** | 🟢 5 | Affordable, accessible, deterministic, reproducible |
+| **Implementation Status** | 🟢 5 | Already works, just needs educational framing |
+| **Time to Value** | 🟢 5 | Can target universities immediately |
+| **Market Size & Revenue** | 🟢 4 | University site licenses $10B+, online education $300B+ |
+| **Market Readiness** | 🟢 5 | **CRITICAL NEED** - universities need affordable alternatives |
+| **Competitive Moats** | 🟢 5 | Educational adoption → future professional users (long-term moat) |
+| **Strategic Importance** | 🟢 5 | Students today = professional users in 5 years |
+| **Ecosystem Potential** | 🟢 5 | Curriculum partnerships, textbooks, online courses, grants |
+| **Adoption Enablement** | 🟢 5 | Solves reproducibility crisis in science |
+
+**Total: 49/50** ⭐
+
+**Strategic Assessment:** ⭐ **CRITICAL STRATEGIC PRIORITY**
+- **This may be Kairo's go-to-market strategy**
+- Educational adoption creates long-term professional user base
+- Solves real problems: cost, reproducibility, accessibility
+
+**Why Education is Undervalued:**
+
+**Problem 1: Cost Barrier**
+- MATLAB campus license: $50K-$200K/year
+- COMSOL campus license: $100K+/year
+- Universities are actively seeking affordable alternatives
+- Open source is "free" but hard to use and poorly integrated
+
+**Problem 2: Reproducibility Crisis**
+- Scientific papers can't be reproduced due to software version differences
+- Kairo's determinism solves this: same code = exact same results
+- Critical for research validation
+
+**Problem 3: Integration Tax**
+- Students learn MATLAB for math, COMSOL for physics, Python for data, Audacity for audio
+- Kairo can teach ALL of these in one consistent environment
+
+**Target Markets:**
+1. **University Physics/Engineering Courses**
+   - Affordable alternative to COMSOL, ANSYS
+   - Site licenses (recurring revenue)
+   - Textbook partnerships
+
+2. **Computer Science Courses**
+   - Scientific computing, computational physics
+   - Alternative to MATLAB for numerical methods
+
+3. **Audio Engineering Programs**
+   - Physics-based audio is unique offering
+   - Music technology departments
+
+4. **Online Education Platforms**
+   - Coursera, Udemy, Khan Academy partnerships
+   - Interactive simulations embedded in courses
+
+5. **K-12 STEM Education**
+   - Visual + interactive physics learning
+   - Grant funding (NSF, Dept. of Education)
+
+**Revenue Models:**
+- **Site Licenses:** $5K-$50K/year per university (recurring)
+- **Online Course Subscriptions:** Partner with platforms
+- **Educational Content Marketplace:** Sell curriculum, examples
+- **Grant Funding:** NSF SBIR, Dept. of Education grants
+- **Certification Programs:** Paid certification in Kairo
+
+**Strategic Benefits:**
+- **User Pipeline:** Students become professional users
+- **Community Growth:** Educational users contribute examples, docs
+- **Credibility:** Academic validation improves enterprise sales
+- **Network Effects:** More universities → more content → more valuable
+
+**Competitive Positioning:**
+> "Kairo is what MATLAB would be if it was built today: affordable, integrated, reproducible, and designed for the physics-audio-visual computing that modern science needs."
+
+**Priority Actions:**
+1. **Create educational pricing:** Free for students, affordable for universities
+2. **Build curriculum partnerships:** Physics, engineering, audio programs
+3. **Write textbook examples:** Replace MATLAB/COMSOL examples with Kairo
+4. **Apply for grants:** NSF SBIR for educational software
+5. **Online course:** "Computational Physics with Kairo" on Coursera
+
+---
+
 ## Speculative Domains (Evaluate Carefully)
 
 ### Finance & Risk Analysis
@@ -299,12 +563,16 @@ This domain transforms Kairo from "interesting DSL" to "essential tool for physi
 |-----------|-------|-----------|
 | **Cross-Domain Synergy** | 🔴 1 | Finance doesn't benefit from physics/audio coupling |
 | **Technical Differentiation** | 🟠 2 | GPU Monte Carlo exists; determinism is nice but not unique |
-| **Market Readiness** | 🟠 2 | Market exists but well-served by Python/R/Julia |
 | **Implementation Status** | 🔴 1 | Not implemented |
 | **Time to Value** | 🔴 1 | 12-24 months + validation + trust building |
+| **Market Size & Revenue** | 🟢 4 | Large market ($100B+) but... |
+| **Market Readiness** | 🟠 2 | Market exists but well-served by Python/R/Julia |
+| **Competitive Moats** | 🔴 1 | None - commoditized tools, no switching costs |
 | **Strategic Importance** | 🔴 1 | Doesn't leverage Kairo's core strengths |
+| **Ecosystem Potential** | 🔴 1 | Finance ecosystem is Python/R, not aligned |
+| **Adoption Enablement** | 🔴 1 | Financial models don't make compelling demos |
 
-**Total: 8/30**
+**Total: 15/50**
 
 **Strategic Assessment:** ❌ **LOW PRIORITY - AVOID**
 - Finance doesn't need cross-domain integration
@@ -322,12 +590,16 @@ This domain transforms Kairo from "interesting DSL" to "essential tool for physi
 |-----------|-------|-----------|
 | **Cross-Domain Synergy** | 🔴 1 | BI doesn't couple with physics/audio/simulation |
 | **Technical Differentiation** | 🔴 1 | Tableau, PowerBI dominate; no technical advantage |
-| **Market Readiness** | 🔴 1 | Market saturated with mature tools |
 | **Implementation Status** | 🔴 1 | Specification only |
 | **Time to Value** | 🔴 1 | Years to reach feature parity |
+| **Market Size & Revenue** | 🟢 4 | Large market ($25B+) but completely saturated |
+| **Market Readiness** | 🔴 1 | Market saturated with mature tools |
+| **Competitive Moats** | 🔴 1 | Negative moats - switching costs favor incumbents |
 | **Strategic Importance** | 🔴 1 | Completely off-brand for Kairo |
+| **Ecosystem Potential** | 🔴 1 | BI ecosystem locked into Tableau/PowerBI/Looker |
+| **Adoption Enablement** | 🔴 1 | Dashboards don't showcase Kairo's strengths |
 
-**Total: 6/30**
+**Total: 13/50**
 
 **Strategic Assessment:** ❌ **AVOID ENTIRELY**
 - Zero alignment with Kairo's strengths
@@ -341,52 +613,132 @@ This domain transforms Kairo from "interesting DSL" to "essential tool for physi
 
 ## Strategic Prioritization Matrix
 
-### Tier 1: Core Investment (Maintain & Expand)
-**Current foundation - keep strong**
+### Tier S: Strategic Game-Changers (Maximum Priority)
+**These domains/markets could transform Kairo's trajectory**
 
-1. **Field Dialect** (27/30) - Foundation for all physics
-2. **Agent Dialect** (27/30) - Particle systems, emergence
-3. **Audio Dialect** (28/30) - FLAGSHIP - Kairo's killer app
-4. **Visual Dialect** (22/30) - Essential for showcasing
+1. **Education & Academia** (49/50) ⭐⭐⭐ - GO-TO-MARKET STRATEGY
+   - Creates user pipeline (students → professionals)
+   - Solves reproducibility crisis + cost barrier
+   - Recurring revenue via site licenses
+   - **Action:** Prioritize educational partnerships, pricing, grants
 
-**Total Investment: 60% of resources**
+2. **Digital Twins & Product Development** (44/50) ⭐⭐⭐ - ENTERPRISE PLAY
+   - $100B+ market, exploding demand
+   - Kairo's integration = exactly what's needed
+   - High willingness to pay ($100K+ tools)
+   - **Action:** Develop case studies, CAD partnerships, cloud platform
+
+3. **Acoustics** (44/50) ⭐⭐⭐ - THE TECHNICAL DIFFERENTIATOR
+   - Makes physics → audio story real
+   - Unfair competitive advantage
+   - Multiple high-value markets (automotive, lutherie, architecture)
+   - **Action:** Prioritize 1D waveguides, instrument builder partnership
+
+**Total Investment: 50% of resources**
+
+**Rationale:** These three domains represent transformational opportunities that could each independently drive Kairo's success.
 
 ---
 
-### Tier 2: High-Value Expansion (Heavy Investment)
-**Domains that unlock Kairo's unique value**
+### Tier 1: Core Foundation (Maintain & Expand Excellence)
+**Current foundation - keep strong, enhance adoption enablement**
 
-1. **Acoustics** (25/30) ⭐ - THE KEY DOMAIN - physics → audio bridge
-2. **Circuit Simulation** (20/30) - Audio circuits, pedal design
-3. **Procedural Generation** (21/30) - Creative coding, game dev
+1. **Audio Dialect** (48/50) ⭐⭐ - FLAGSHIP DOMAIN
+   - Killer app, unique strength
+   - Massive market (audio production $50B+)
+   - VST/AU ecosystem potential
 
-**Total Investment: 30% of resources**
+2. **Agent Dialect** (43/50) - CORE FOUNDATION
+   - Enables robotics, game dev, emergence
+   - Large markets ($200B+ game dev)
 
-**Rationale:** These domains create Kairo's unique positioning - especially acoustics, which makes the physics → audio story real.
+3. **Field Dialect** (42/50) - CORE FOUNDATION
+   - Foundation for physics, acoustics, digital twins
+   - Multi-billion dollar simulation markets
+
+4. **Procedural Generation** (41/50) ⭐ - UPGRADED PRIORITY
+   - Game dev $200B+ market
+   - Determinism is critical differentiator
+   - High social sharing potential
+
+5. **Robotics & Control** (41/50) ⭐ - NEW HIGH PRIORITY
+   - $100B+ market, 30% CAGR
+   - Leverages existing domains well
+   - ROS integration opportunity
+
+**Total Investment: 35% of resources**
+
+---
+
+### Tier 2: Strategic Enablers (Significant Investment)
+**Essential for adoption and market expansion**
+
+1. **Visual Dialect** (37/50) - UPGRADED TO STRATEGIC ENABLER
+   - **CRITICAL** for adoption, demos, social sharing
+   - Poor visuals = no adoption regardless of capability
+   - Essential for debugging and validation
+
+2. **Biomedical & Healthcare** (39/50) - HIGH POTENTIAL NEW DOMAIN
+   - Medical simulation $2B+, hearing aids $10B+
+   - Hearing aid design directly aligns with acoustics + audio
+   - High willingness to pay, regulatory moats
+
+3. **Emergence** (39/50) - SUPPORTING SHOWCASES
+   - Excellent demos, education value
+   - Shows integration power
+   - Consulting opportunities
+
+4. **Circuit Simulation** (36/50) - AUDIO MARKET FIT
+   - Guitar pedal $1B+, audio hardware $20B+
+   - Circuit → sound is unique value prop
+   - Complements audio domain perfectly
+
+**Total Investment: 12% of resources**
 
 ---
 
 ### Tier 3: Opportunistic (Selective Investment)
-**Valuable but not critical**
+**Valuable but lower priority**
 
-1. **Emergence** (23/30) - Great demos, education value
-2. **Chemistry** (17/30) - Educational use, not production research
+1. **Chemistry** (29/50) - EDUCATIONAL FOCUS
+   - Pharmaceutical market huge, but tool competition intense
+   - Focus: reaction-diffusion, educational demos
+   - Strategy: Educational use, not production research
 
-**Total Investment: 8% of resources**
-
-**Strategy:** Build enough to demo capability, partner for depth.
+**Total Investment: 2% of resources**
 
 ---
 
-### Tier 4: Avoid (No Investment)
-**Off-brand or low-value**
+### Tier 4: Avoid (Zero Investment)
+**Off-brand or low-value despite large markets**
 
-1. **Finance** (8/30) ❌ - No cross-domain advantage
-2. **BI** (6/30) ❌ - Completely off-brand
+1. **Finance** (15/50) ❌ - No cross-domain advantage
+2. **BI** (13/50) ❌ - Completely off-brand
 
 **Investment: 0%**
 
-**Action:** Remove from positioning and documentation.
+**Action:** Remove from positioning and documentation entirely.
+
+---
+
+## Revised Investment Allocation Summary
+
+| Tier | Domains | % Resources | Rationale |
+|------|---------|-------------|-----------|
+| **Tier S** | Education, Digital Twins, Acoustics | **50%** | Game-changing opportunities |
+| **Tier 1** | Audio, Agent, Field, Procedural, Robotics | **35%** | Core foundation + high-value expansion |
+| **Tier 2** | Visual, Biomedical, Emergence, Circuits | **12%** | Strategic enablers |
+| **Tier 3** | Chemistry | **2%** | Opportunistic, educational |
+| **Tier 4** | Finance, BI | **0%** | Avoid entirely |
+| **Reserve** | Experimentation, new opportunities | **1%** | Strategic flexibility |
+
+**Key Strategic Insights:**
+
+1. **Education First:** May be the go-to-market strategy that enables everything else
+2. **Enterprise Parallel:** Digital twins position for high-value enterprise market
+3. **Technical Moat:** Acoustics creates unfair competitive advantage
+4. **Visual is Critical:** Upgraded because adoption depends on it
+5. **Game Dev Undervalued:** Procedural + determinism + massive market = opportunity
 
 ---
 
@@ -428,31 +780,291 @@ This domain transforms Kairo from "interesting DSL" to "essential tool for physi
 
 ---
 
+## Business Models & Ecosystem Strategy
+
+### Revenue Model Options
+
+**Option A: Open Core (Recommended)**
+- **Free Tier:** Core domains (field, agent, audio, visual) - fully open source
+- **Paid Tier:** Advanced domains (acoustics, circuits, biomedical) - commercial license
+- **Enterprise Tier:** Digital twins, cloud deployment, support - $10K-$100K/year
+- **Education Tier:** Free for students, $5K-$50K/year site licenses for universities
+
+**Advantages:**
+- Builds community and adoption via open source
+- Creates revenue from advanced features
+- Educational pipeline creates future paying users
+- Clear upgrade path from free → paid → enterprise
+
+**Option B: Freemium SaaS**
+- **Free:** Limited simulations, basic domains
+- **Pro:** $20-$50/month for individual professionals
+- **Team:** $100-$500/month for teams
+- **Enterprise:** Custom pricing for organizations
+
+**Advantages:**
+- Recurring revenue model
+- Lower barrier to entry
+- Predictable revenue
+- Cloud-based = easier updates
+
+**Option C: Vertical-Specific Licensing**
+- **Game Dev Edition:** $500/year (procedural, agents, audio, visual)
+- **Audio Production Edition:** $1000/year (audio, acoustics, circuits)
+- **Engineering Edition:** $5000/year (fields, acoustics, digital twins)
+- **Academic Edition:** Free/low-cost
+
+**Advantages:**
+- Tailored pricing to willingness-to-pay
+- Clearer value proposition per vertical
+- Can optimize features per market
+
+**Recommended Hybrid Approach:**
+```
+Core Platform: Open source (community, education)
+├── Game Dev Edition: $500/year (indie) / $5K/year (studio)
+├── Audio Production Edition: $1000/year (individual) / $10K/year (company)
+├── Engineering Edition: $5K/year (individual) / $50K/year (enterprise)
+└── Education Edition: Free (students) / $5K-$50K/year (universities)
+
+Plus: Consulting, training, support services (high margin)
+```
+
+---
+
+### Ecosystem & Platform Strategy
+
+**Goal:** Transform Kairo from "a tool" to "a platform" with network effects
+
+**Ecosystem Components:**
+
+**1. Plugin Architecture**
+- **Domain Plugins:** Community-contributed domains
+- **Operator Libraries:** User-created operators for each domain
+- **Integration Plugins:** CAD, DAW, game engine integrations
+- **Market Potential:** Marketplace for paid plugins (Kairo takes 30% cut)
+
+**2. Content Marketplace**
+- **Example Projects:** Downloadable simulation templates
+- **Educational Curriculum:** Pre-built courses, textbooks
+- **Industry Templates:** Automotive acoustics, lutherie, game audio setups
+- **Revenue Share:** 70% creator, 30% Kairo
+
+**3. Key Integrations (Partnership Opportunities)**
+
+**Audio Production:**
+- VST/AU plugin for DAWs (Ableton, Logic, Reaper)
+- JACK/CoreAudio real-time audio I/O
+- Partnership: Collaborate with DAW developers
+
+**Game Development:**
+- Unity plugin for Kairo simulations
+- Unreal Engine integration
+- Godot export support
+- Partnership: Asset store listings
+
+**Engineering/CAD:**
+- SolidWorks plugin (export geometry → Kairo)
+- Fusion 360 integration
+- OnShape cloud CAD coupling
+- Partnership: Autodesk developer program
+
+**Cloud/IoT:**
+- AWS IoT integration for digital twins
+- Azure Digital Twins connector
+- Google Cloud IoT support
+- Partnership: Cloud provider marketplaces
+
+**Education:**
+- Jupyter Notebook kernel for Kairo
+- Google Colab integration
+- Coursera course platform
+- Partnership: University curriculum programs
+
+**4. Community Growth Strategy**
+
+**Phase 1: Seed Community (Year 1)**
+- Open source core domains
+- GitHub presence, Discord server
+- Monthly challenges/competitions
+- Feature 10-20 showcase projects
+
+**Phase 2: Ecosystem Development (Year 2)**
+- Launch plugin architecture
+- Developer documentation
+- API stability guarantees
+- Annual KairoCon conference
+
+**Phase 3: Network Effects (Year 3+)**
+- Content marketplace launch
+- University partnerships (50+ schools)
+- Industry-specific communities
+- Self-sustaining ecosystem growth
+
+**5. Platform Moats (Defensibility)**
+
+**Technical Moats:**
+- **Integration Complexity:** Hard to replicate multi-domain coupling
+- **Determinism:** Unique reproducibility guarantees
+- **Performance:** GPU-accelerated, optimized runtime
+
+**Ecosystem Moats:**
+- **Content Library:** More examples = more valuable
+- **Plugin Ecosystem:** More plugins = more users = more plugins
+- **Educational Adoption:** Students → lifelong users → contributors
+
+**Data Moats:**
+- **Validation Data:** Collect validated simulation results
+- **Benchmark Library:** Crowd-sourced performance comparisons
+- **Best Practices:** Community-generated patterns
+
+**Brand Moats:**
+- **Academic Credibility:** Published papers using Kairo
+- **Industry Validation:** Case studies from real companies
+- **Community Identity:** "Kairo developer" becomes valuable skill
+
+---
+
+### Partnership Prioritization
+
+**Tier 1: Critical Partnerships (Pursue Immediately)**
+
+1. **University Partnerships** (3-5 target universities)
+   - MIT, Stanford, Carnegie Mellon for credibility
+   - Physics, engineering, audio programs
+   - Goal: Curriculum integration, site licenses
+
+2. **Instrument Builder** (1 partnership for case study)
+   - Guitar or violin maker for acoustics validation
+   - Goal: Real-world acoustics proof point
+
+3. **Game Engine** (Unity OR Unreal)
+   - Plugin for procedural generation + physics
+   - Goal: Access to game dev market ($200B+)
+
+**Tier 2: Strategic Partnerships (Pursue in 6-12 months)**
+
+4. **DAW Integration** (Reaper or Ableton)
+   - VST/AU plugin for physics-based synthesis
+   - Goal: Audio production market penetration
+
+5. **CAD Vendor** (OnShape or Fusion 360)
+   - Geometry import for simulation
+   - Goal: Engineering/product development market
+
+6. **Cloud Platform** (AWS or Azure)
+   - Marketplace listing, IoT integration
+   - Goal: Enterprise digital twin market
+
+**Tier 3: Opportunistic Partnerships**
+
+7. **Online Education** (Coursera, Udemy)
+   - "Computational Physics with Kairo" course
+   - Goal: User acquisition, education revenue
+
+8. **Research Consortium** (NSF, national labs)
+   - Grant funding, validation, credibility
+   - Goal: Academic legitimacy, funding
+
+9. **Industry Vertical** (Automotive or medical device)
+   - Specific use case development
+   - Goal: High-value enterprise proof point
+
+---
+
 ## Key Strategic Questions
 
-### Question 1: Acoustics Implementation Priority
+### Question 1: Should Education Be the Primary Go-to-Market Strategy? ⭐ NEW
 
-**Decision Required:** Should acoustics be the #1 development priority?
+**Decision Required:** Should education/academia be prioritized as the primary market entry strategy?
+
+**Arguments For:**
+- **Immediate Market Fit:** Universities desperately need affordable MATLAB/COMSOL alternatives
+- **Reproducibility Crisis:** Kairo's determinism solves a real scientific problem
+- **User Pipeline:** Students → professional users → contributors (long-term moat)
+- **Recurring Revenue:** Site licenses provide predictable revenue ($5K-$50K/year per university)
+- **Can Start Now:** No new development needed, just educational framing and partnerships
+- **Multiple Revenue Streams:** Site licenses + grants + online courses + content
+- **Network Effects:** More universities → more content → more valuable
+- **Credibility:** Academic validation helps enterprise sales later
+
+**Arguments Against:**
+- Lower revenue per user than enterprise
+- Longer sales cycles with universities
+- Academic users may not convert to paid professional use
+- Grant dependency can be unpredictable
+
+**Recommendation:** ✅ YES - Make education the PRIMARY go-to-market strategy
+- **Phase 1 (Months 1-6):** Partner with 3-5 universities for pilot programs
+- **Phase 2 (Months 6-12):** Apply for NSF SBIR, Dept. of Education grants
+- **Phase 3 (Year 2):** Launch online course on Coursera/Udemy
+- **Parallel:** Continue professional market development (audio, game dev)
+
+**Success Looks Like:**
+- 10+ universities using Kairo in curriculum by end of Year 1
+- $100K+ ARR from educational site licenses by end of Year 1
+- 1000+ students trained on Kairo (future professional users)
+- 1-2 published papers using Kairo for validation
+
+---
+
+### Question 2: Is Digital Twins the Enterprise Play? ⭐ NEW
+
+**Decision Required:** Should digital twins be prioritized as the enterprise market entry?
+
+**Arguments For:**
+- **Market Timing:** Digital twin market exploding NOW ($100B+ by 2030)
+- **Perfect Fit:** Kairo's cross-domain integration is EXACTLY what digital twins need
+- **High Willingness to Pay:** Enterprises pay $100K+ for simulation tools
+- **Clear ROI:** One avoided prototype can save $100K-$1M
+- **Existing Capability:** Kairo can already do basic digital twins with current domains
+- **Multiple Verticals:** Automotive, manufacturing, aerospace, smart buildings
+
+**Arguments Against:**
+- Enterprise sales cycles are long (6-12 months)
+- Requires case studies and validation
+- Need enterprise features (security, support, SLAs)
+- CAD integration needed for full value
+
+**Recommendation:** ✅ YES - Pursue in parallel with education
+- **Start with Pilot:** Find 1-2 companies for case study (automotive or manufacturing)
+- **CAD Integration:** Prioritize OnShape or Fusion 360 plugin
+- **Cloud Platform:** Develop cloud deployment option for scalability
+- **Professional Services:** Offer consulting for implementation (high margin)
+
+**Success Looks Like:**
+- 2+ enterprise pilot projects by end of Year 1
+- 1 public case study showing $500K+ savings from virtual prototyping
+- CAD integration working with at least one major platform
+- $500K+ enterprise revenue by end of Year 2
+
+---
+
+### Question 3: Acoustics Implementation Priority
+
+**Decision Required:** Should acoustics be the #1 technical development priority?
 
 **Arguments For:**
 - Transforms Kairo from "interesting" to "essential" for target markets
 - Creates unfair advantage - nobody else does physics → acoustics → audio
 - Clear professional market (lutherie, automotive, architecture)
 - Enables killer demos (guitar body design → sound output)
+- Supports multiple domains: audio production, automotive, biomedical (hearing aids)
 
 **Arguments Against:**
 - Technically complex (coupled physics + wave propagation)
 - 6-12 months to useful examples
 - Requires domain expertise
 
-**Recommendation:** ✅ YES - Make acoustics the flagship domain expansion
+**Recommendation:** ✅ YES - Make acoustics the flagship technical development priority
 - Start with 1D (strings, tubes, exhausts)
 - Partner with instrument builder for validation
 - Document approach for academic credibility
+- Target hearing aid application for biomedical market
 
 ---
 
-### Question 2: Should We Drop Finance/BI?
+### Question 4: Should We Drop Finance/BI?
 
 **Decision Required:** Remove finance and BI from positioning entirely?
 
@@ -473,7 +1085,7 @@ This domain transforms Kairo from "interesting DSL" to "essential tool for physi
 
 ---
 
-### Question 3: Chemistry - Build or Partner?
+### Question 5: Chemistry - Build or Partner?
 
 **Decision Required:** Invest in chemistry domain or find partners?
 
@@ -494,11 +1106,52 @@ This domain transforms Kairo from "interesting DSL" to "essential tool for physi
 - Focus on coupling (MD + diffusion + thermal)
 - Leverage established validation
 
-**Recommendation:** ✅ Option B - Educational Focus
+**D) Pivot to Pharmaceutical Applications** ⭐ NEW
+- Drug delivery systems (diffusion + fluid + chemistry)
+- Cosmetics (skin absorption models)
+- Focus on integration, not core MD
+
+**Recommendation:** ✅ Option B + D - Educational Focus + Pharmaceutical Niche
 - Reaction-diffusion is working and impressive
 - Add basic MD for teaching (molecular visualizations)
+- Explore drug delivery as niche application (uses existing domains)
 - Don't try to replace GROMACS - acknowledge it
 - Position as "exploratory chemistry" not production research
+
+---
+
+### Question 6: Should We Build a Platform or a Tool? ⭐ NEW
+
+**Decision Required:** Should Kairo be positioned as an extensible platform or a focused tool?
+
+**Option A: Platform Play**
+- Plugin architecture from day 1
+- Marketplace for extensions
+- Open to community contributions
+- Broader appeal but more complexity
+
+**Option B: Focused Tool**
+- Curated, polished, opinionated
+- Fewer features but all excellent
+- Faster to market
+- Easier to maintain quality
+
+**Option C: Hybrid** (Recommended)
+- Start as focused tool (physics + audio core)
+- Add platform features gradually (Year 2)
+- Plugin architecture for specific integrations (DAW, CAD, game engines)
+- Community contributions for operators/examples, not core domains
+
+**Recommendation:** ✅ Option C - Tool First, Platform Evolution
+- **Year 1:** Focused tool - nail the core experience
+- **Year 2:** Add plugin system for integrations
+- **Year 3:** Full platform with marketplace
+
+**Rationale:**
+- Platforms require critical mass to succeed
+- Tool-first builds reputation and user base
+- Can always add platform features later
+- Harder to add quality/focus after going broad
 
 ---
 
@@ -560,23 +1213,91 @@ This domain transforms Kairo from "interesting DSL" to "essential tool for physi
 
 ## Success Metrics
 
-### Technical Metrics
-- [ ] Acoustics 1D working with validated examples (6 months)
-- [ ] Guitar string → sound demo matching physical measurements (9 months)
-- [ ] Circuit simulator with 10+ audio-relevant components (6 months)
-- [ ] Real-time audio I/O working (3 months)
+### Technical Development Metrics (12 months)
+- [ ] **Acoustics 1D:** Working with validated examples (6 months)
+- [ ] **Guitar string → sound:** Demo matching physical measurements (9 months)
+- [ ] **Circuit simulator:** 10+ audio-relevant components (6 months)
+- [ ] **Real-time audio I/O:** JACK/CoreAudio working (3 months)
+- [ ] **Visual quality:** Beautiful field visualization, colormaps, contours (3 months)
+- [ ] **CAD integration:** Fusion 360 or OnShape plugin working (9 months)
+- [ ] **Procedural operators:** 20+ new operators for game dev use cases (12 months)
 
-### Market Metrics
-- [ ] 3+ instrument builders using Kairo for design (12 months)
-- [ ] 1 academic publication using Kairo acoustics (12 months)
-- [ ] 500+ GitHub stars (12 months)
-- [ ] 10+ production projects showcased (12 months)
+### Education & Academia Metrics (12 months)
+- [ ] **University partnerships:** 3-5 universities piloting Kairo in curriculum (6 months)
+- [ ] **University adoption:** 10+ universities using Kairo in courses (12 months)
+- [ ] **Student users:** 1000+ students trained on Kairo (12 months)
+- [ ] **Educational revenue:** $100K+ ARR from site licenses (12 months)
+- [ ] **Academic papers:** 2+ published papers using Kairo (12 months)
+- [ ] **Grant funding:** 1+ NSF SBIR or similar grant awarded (12 months)
+- [ ] **Textbook integration:** Kairo examples in 1+ textbook (18 months)
+- [ ] **Online course:** "Computational Physics with Kairo" on Coursera/Udemy (12 months)
 
-### Strategic Metrics
-- [ ] Clear positioning statement adopted across all docs (1 month)
-- [ ] Finance/BI removed from positioning (1 month)
-- [ ] Acoustics roadmap published (1 month)
-- [ ] Partnership with instrument builder established (3 months)
+### Commercial & Enterprise Metrics (12-24 months)
+- [ ] **Instrument builders:** 3+ luthers using Kairo for design (12 months)
+- [ ] **Enterprise pilots:** 2+ enterprise digital twin pilot projects (12 months)
+- [ ] **Case study:** 1 published case study showing $500K+ savings (18 months)
+- [ ] **Enterprise revenue:** $500K+ from enterprise contracts (24 months)
+- [ ] **Game studios:** 5+ indie game studios using Kairo (12 months)
+- [ ] **Audio professionals:** 10+ audio engineers using for production (12 months)
+- [ ] **Paying customers:** 100+ paying individual/professional users (18 months)
+- [ ] **MRR/ARR:** $10K+ MRR or $120K+ ARR (18 months)
+
+### Community & Adoption Metrics (12 months)
+- [ ] **GitHub stars:** 500+ (6 months), 2000+ (12 months)
+- [ ] **Community size:** 1000+ Discord/forum members (12 months)
+- [ ] **Showcase projects:** 50+ community projects showcased (12 months)
+- [ ] **Community contributions:** 20+ community-contributed examples/operators (12 months)
+- [ ] **Social presence:** 5K+ followers across platforms (12 months)
+- [ ] **Monthly active users:** 500+ (12 months)
+
+### Partnership & Integration Metrics (12-18 months)
+- [ ] **Instrument builder partnership:** 1 collaboration for validation (6 months)
+- [ ] **Game engine integration:** Unity OR Unreal plugin working (12 months)
+- [ ] **DAW integration:** VST/AU plugin prototype (12 months)
+- [ ] **CAD partnership:** Formal partnership with OnShape or Fusion 360 (18 months)
+- [ ] **Cloud platform:** AWS or Azure marketplace listing (18 months)
+- [ ] **Educational platform:** Partnership with Coursera, Udemy, or similar (12 months)
+
+### Platform & Ecosystem Metrics (18-36 months)
+- [ ] **Plugin architecture:** API stable, documented, usable (18 months)
+- [ ] **Third-party plugins:** 5+ community-created plugins (24 months)
+- [ ] **Content marketplace:** Live with 20+ paid items (24 months)
+- [ ] **Validation library:** 50+ validated benchmark cases (18 months)
+- [ ] **Integrations:** 10+ third-party tools using Kairo API (24 months)
+
+### Strategic Positioning Metrics (Immediate)
+- [ ] **Clear positioning:** Statement adopted across all docs (1 month)
+- [ ] **Finance/BI removed:** From all positioning and docs (1 month)
+- [ ] **Domain roadmap:** Published and communicated (1 month)
+- [ ] **Education strategy:** Pricing, partnerships plan documented (1 month)
+- [ ] **Business model:** Finalized and documented (2 months)
+
+### Success Thresholds by Year
+
+**Year 1 Success:**
+- 10+ universities using Kairo
+- $100K+ ARR from education
+- 500+ GitHub stars
+- 1+ academic paper published
+- Acoustics 1D working
+- 1 instrument builder partnership
+
+**Year 2 Success:**
+- 50+ universities using Kairo
+- $500K+ ARR (education + enterprise)
+- 2000+ GitHub stars
+- 5+ academic papers
+- 2+ enterprise pilot projects
+- Unity or Unreal plugin working
+- $10K+ MRR
+
+**Year 3 Success:**
+- 100+ universities
+- $2M+ ARR
+- 5000+ GitHub stars
+- Self-sustaining community (50+ contributors)
+- Marketplace live with revenue
+- Multiple enterprise contracts
 
 ---
 
@@ -1075,20 +1796,140 @@ These domains are important for:
 
 ## Conclusion
 
-**Winning Strategy:**
-1. ✅ Double down on acoustics as flagship domain
-2. ✅ Focus positioning on physics-driven creative computation
-3. ✅ Remove finance/BI (off-brand, no advantage)
-4. ✅ Build for instrument builders, game audio, creative coders
-5. ✅ Partner rather than compete in established domains (chemistry, engineering)
+**Kairo's competitive advantage is cross-domain integration, solving problems that require multiple tools today.**
 
-**What Success Looks Like:**
-> "If you're designing a guitar and want to hear how it sounds before building it, you use Kairo. Nothing else can do this."
+This conclusion synthesizes insights from both the commercial/market analysis and the humanitarian value framework above, providing a comprehensive strategic roadmap that honors both bottom lines.
 
-That's a winning position.
+### Updated Strategic Priorities (Based on Full Analysis)
+
+**Tier S - Game Changers (50% resources):**
+1. ✅ **Education as Go-to-Market** - Solves cost/reproducibility crisis, creates user pipeline
+2. ✅ **Digital Twins for Enterprise** - $100B+ market, perfect fit for integration advantage
+3. ✅ **Acoustics Development** - Technical moat, enables physics → audio story
+
+**Tier 1 - Core Excellence (35% resources):**
+4. ✅ **Audio Dialect** - Flagship domain, unique strength
+5. ✅ **Visual Dialect** - UPGRADED - Critical for adoption (poor visuals kill products)
+6. ✅ **Procedural Generation** - UPGRADED - $200B game dev market, determinism is key
+7. ✅ **Robotics** - NEW - $100B+ market, leverages existing domains
+8. ✅ **Field & Agent Dialects** - Foundation, maintain excellence
+
+**Tier 2 - Strategic Enablers (12% resources):**
+9. ✅ **Biomedical** - NEW - Hearing aids + acoustics + audio alignment
+10. ✅ **Circuits** - Audio market fit (pedals, synths)
+11. ✅ **Emergence** - Demos, education, showcase value
+
+**Avoid:**
+- ❌ Finance (no cross-domain advantage)
+- ❌ BI (off-brand, saturated market)
+
+---
+
+### What Success Looks Like - Multiple Winning Positions
+
+**Education Win:**
+> "Universities choose Kairo because it's what MATLAB should have been: affordable, reproducible, integrated. Students learn one tool for physics, audio, and visualization instead of five."
+
+**Enterprise Win:**
+> "When automotive companies need digital twins that couple thermal + structural + fluid + acoustics, they use Kairo. One platform replaces five $100K licenses."
+
+**Audio Win:**
+> "If you're designing a guitar and want to hear how it sounds before building it, you use Kairo. Nothing else can do physics → acoustics → audio in one program."
+
+**Game Dev Win:**
+> "Game developers use Kairo for deterministic procedural generation + physics + audio. Same seed = exact same result, every time. Critical for debugging and version control."
+
+**Platform Win:**
+> "Kairo isn't just a tool - it's a platform. Universities teach it, professionals use it, companies build on it. The ecosystem makes it irreplaceable."
+
+---
+
+### Critical Insights from Full Analysis
+
+**1. Education May Be THE Strategy**
+- Not just "a market" - it's the go-to-market strategy
+- Creates long-term moat (students → professionals → contributors)
+- Can start immediately (no new development needed)
+- Solves real problems (cost, reproducibility)
+- Recurring revenue + grants + online courses
+
+**2. Visual Quality is Critical, Not Optional**
+- Poor visualization kills technically superior products
+- Beautiful demos = social sharing = organic growth
+- Essential for debugging and user confidence
+- Must exceed "shareability threshold"
+
+**3. Market Size Doesn't Equal Opportunity**
+- Finance is $100B+ but wrong fit
+- Game dev is $200B+ and perfect fit
+- **Market size × strategic fit = opportunity**
+
+**4. Ecosystem > Features**
+- Network effects beat feature lists
+- Educational adoption creates ecosystem moat
+- Plugin architecture for integrations, not core domains
+- Tool first, platform evolution (not platform first)
+
+**5. Three Parallel Plays**
+- Education (user pipeline, recurring revenue)
+- Enterprise (high-value contracts, digital twins)
+- Professional (audio, game dev, creative)
+- All three mutually reinforcing
+
+---
+
+### Immediate Next Actions (This Month)
+
+**Strategic Positioning:**
+1. Update README.md positioning (remove finance/BI, add education focus)
+2. Create EDUCATION_STRATEGY.md document
+3. Create BUSINESS_MODEL.md with pricing tiers
+4. Publish domain roadmap (Tier S → Tier 4)
+
+**Partnership Development:**
+5. Identify 3-5 target universities for pilot programs
+6. Reach out to 1-2 instrument builders for collaboration
+7. Contact Unity or Unreal about plugin partnership
+
+**Technical Priorities:**
+8. Improve visual quality (colormaps, rendering) - adoption critical
+9. Start acoustics 1D design work
+10. Document educational use cases
+
+**Community Building:**
+11. Set up Discord/forum for community
+12. Create showcase page for best projects
+13. Monthly community calls/challenges
+
+---
+
+### Document Evolution
+
+**Major Updates in This Revision:**
+- ✅ Expanded framework from 6 to 10 evaluation dimensions
+- ✅ Added 4 critical missing domains (biomedical, robotics, digital twins, education-as-market)
+- ✅ Upgraded Visual Dialect from "supporting" to "strategic enabler"
+- ✅ Upgraded Procedural Generation based on market size + determinism value
+- ✅ Added comprehensive business model section
+- ✅ Added ecosystem and platform strategy
+- ✅ Added partnership prioritization framework
+- ✅ Expanded success metrics significantly
+- ✅ Re-scored all domains with new framework (now out of 50 points)
+- ✅ Created Tier S for game-changing opportunities
+
+**Key Realization:**
+The original analysis was **strong on technical domains** but **missing strategic market opportunities**. Education, digital twins, and biomedical represent potentially transformational go-to-market strategies that leverage existing capabilities.
 
 ---
 
 **Document Owner:** Strategic Planning
+**Last Updated:** 2025-11-15 (Major revision with full perspectives)
 **Next Review:** 2025-12-15
 **Related:** [ARCHITECTURE.md](ARCHITECTURE.md), [docs/reference/professional-domains.md](docs/reference/professional-domains.md)
+
+**Contributors to This Analysis:**
+- Original strategic framework
+- Missing domain analysis and alternative perspectives
+- Business model and ecosystem strategy
+- Educational market assessment
+- Commercial viability overlay
