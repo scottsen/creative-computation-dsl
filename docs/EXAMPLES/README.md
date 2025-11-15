@@ -37,6 +37,45 @@ A complete multi-physics modeling example showing how Kairo's operator graph par
 
 ---
 
+### 🚀 [Kerbal Space Program: Multi-Domain Orbital Simulation Example](KERBAL-SPACE-PROGRAM-SIMULATION.md)
+
+**Status:** Design Document
+**Domains:** OrbitalMechanics, Aerodynamics, RocketEquation, PartsAssembly, PhysicsIntegration, FailureMechanics
+**Complexity:** Advanced
+
+Demonstrates how Kairo can model KSP-style physics (orbital mechanics, aerodynamics, rocket staging, part assembly) and become a framework for aerospace simulations.
+
+**What This Demonstrates:**
+- Real-time multi-domain physics (orbits, aero, propulsion, structures)
+- Part-based assembly system using operator graphs
+- GPU-accelerated physics integration
+- Level-of-detail physics switching (patched conics ↔ N-body)
+- Cross-domain integration (Geometry/TiaCAD → Physics → Audio → Visualization)
+- Educational platform for orbital mechanics and aerospace engineering
+
+**Key Insight:** KSP's entire gameplay loop maps perfectly onto Kairo's domain architecture — proving Kairo can handle **real-time game physics** and **aerospace simulation**.
+
+**Use Cases:**
+- Spaceflight simulation games (KSP-like)
+- Aerospace education (teaching orbital mechanics)
+- Mission planning tools (trajectory optimization, launch windows)
+- Satellite constellation design (Starlink, etc.)
+- Research simulations (spacecraft dynamics)
+
+**Unique Features:**
+- Integration with J-tube combustion domain for realistic engine modeling
+- AudioDomain integration for engine sounds and aerodynamic noise
+- Procedural planet generation using NoiseDomain
+- Part geometry from TiaCAD
+
+**Related Documentation:**
+- [SPEC-PHYSICS-DOMAINS.md](../SPEC-PHYSICS-DOMAINS.md) — Physics operator specifications
+- [ADR-002: Cross-Domain Architectural Patterns](../ADR/002-cross-domain-architectural-patterns.md) — Reference systems and anchors
+- [SPEC-GEOMETRY.md](../SPEC-GEOMETRY.md) — TiaCAD integration for part geometry
+- [EXAMPLES/J-TUBE-FIREPIT-MULTIPHYSICS.md](./J-TUBE-FIREPIT-MULTIPHYSICS.md) — Combustion domain for engines
+
+---
+
 ## Example Categories
 
 ### 🎨 Audio/Visual Examples
@@ -47,6 +86,7 @@ A complete multi-physics modeling example showing how Kairo's operator graph par
 
 ### 🔬 Physics Simulations
 - **J-Tube Fire Pit** (current) — Multi-physics thermal-fluid system
+- **Kerbal Space Program Physics** (current) — Orbital mechanics, aerodynamics, rocket staging
 
 *Coming soon...*
 - N-body gravity simulation with Barnes-Hut optimization
@@ -55,6 +95,7 @@ A complete multi-physics modeling example showing how Kairo's operator graph par
 
 ### 🏗️ Engineering Design
 - **J-Tube Fire Pit** (current) — Parametric design with optimization
+- **Kerbal Space Program** (current) — Rocket design and mission planning
 
 *Coming soon...*
 - Muffler design (exhaust flow and acoustics)
