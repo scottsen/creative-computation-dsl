@@ -105,12 +105,18 @@ These are cross-domain kernel subsystems.
 
 ### 2.3 Operator Registry
 
-* Metadata for every op
-* Lowering templates
-* Numeric stability info (order, symplectic, etc.)
-* Profile defaults
+* Metadata for every op across **7 semantic layers**:
+  1. **Core** — cast, domain, rate, shape
+  2. **Transforms** — FFT/STFT/DCT/wavelet/mel
+  3. **Stochastic** — RNG, SDE processes, Monte Carlo
+  4. **Physics/Fields** — integrators, PDEs, particle/grid coupling
+  5. **Audio** — oscillators, filters, effects, spectral ops
+  6. **Fractals/Visuals** — iteration, palette, coordinate mapping
+  7. **Finance** — models (Heston, SABR), payoffs, pricing
+* Lowering templates, numeric properties (order, symplectic, conservative)
+* Profile defaults and determinism tiers
 
-**See:** [SPEC-OPERATOR-REGISTRY.md](docs/SPEC-OPERATOR-REGISTRY.md)
+**See:** [SPEC-OPERATOR-REGISTRY.md](docs/SPEC-OPERATOR-REGISTRY.md) for complete 7-layer catalog
 
 ### 2.4 Profiles & Determinism Controller
 

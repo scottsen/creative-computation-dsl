@@ -83,6 +83,10 @@
 ### 2.5 Operator Registry (Single Source of Truth)
 
 * Declarative metadata for all ops used by both frontends (and docs/CLI generated from it).
+* Organized into **7 semantic layers**: Core → Transforms → Stochastic → Physics/Fields → Audio → Visuals/Fractals → Finance
+* Each operator carries type signatures, units, determinism tier, numeric properties, and lowering templates
+
+> **See:** [docs/SPEC-OPERATOR-REGISTRY.md](docs/SPEC-OPERATOR-REGISTRY.md) for complete 7-layer architecture and operator catalog
 
 **Schema (excerpt):**
 
@@ -90,6 +94,7 @@
 {
   "name": "lpf",
   "category": "filter",
+  "layer": 5,
   "inputs": [{"name":"sig","type":"Sig"}],
   "params": {
     "cutoff": {"type":"Ctl[Hz]", "default":"2kHz", "range":[20, 24000]},

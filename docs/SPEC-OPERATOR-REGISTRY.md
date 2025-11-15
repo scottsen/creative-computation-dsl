@@ -1,8 +1,8 @@
 # SPEC: Kairo Operator Registry
 
-**Version:** 1.0 Draft
+**Version:** 2.0 Draft
 **Status:** RFC
-**Last Updated:** 2025-11-13
+**Last Updated:** 2025-11-15
 
 ---
 
@@ -16,8 +16,9 @@ The **Operator Registry** is the single source of truth for all operations in Ka
 4. **Transform metadata** — Domain changes (time→frequency, etc.)
 5. **Lowering hints** — MLIR tiling, vectorization, memory patterns
 6. **Profile overrides** — Per-profile behavior customization
+7. **Layered architecture** — 7 semantic layers from kernel to domain-specific ops
 
-**Design Principle:** If it's in the registry, it's documented, validated, and ready for codegen. Adding new operators becomes trivial.
+**Design Principle:** If it's in the registry, it's documented, validated, and ready for codegen. The registry is organized into 7 semantic layers, from foundational kernel operations to domain-specific applications (audio, physics, finance, fractals, etc.).
 
 ---
 
@@ -157,9 +158,329 @@ The **Operator Registry** is the single source of truth for all operations in Ka
 
 ---
 
-## Categories
+## Layered Operator Architecture
 
-Operators are organized into **categories**:
+Kairo's operator registry is organized into **7 semantic layers**, from foundational kernel operations to domain-specific applications. Each layer builds on the layers below it, creating a coherent operator universe.
+
+### Layer 1: Kernel Core Operators
+
+**Foundational, domain-agnostic operations** that form the base of all higher-level operations.
+
+| Operator | Category | Description |
+|----------|----------|-------------|
+| `cast` | core | Type conversion between numeric types |
+| `unit.cast` | core | Unit domain conversion (Hz↔rad/s, dB↔linear, etc.) |
+| `shape` | core | Query shape/dimensions of data |
+| `rate.change` | core | Change sample rate or temporal resolution |
+| `domain.change` | core | Trivial domain changes (not transforms like FFT) |
+
+**Example Metadata:**
+```json
+{
+  "name": "cast",
+  "category": "core",
+  "layer": 1,
+  "inputs": [{"name": "x", "type": "Any"}],
+  "params": {"to": {"type": "Type"}},
+  "determinism": "strict",
+  "lowering": {"dialect": "kairo.core", "template": "cast_generic"}
+}
+```
+
+---
+
+### Layer 2: Transform Operators
+
+**First-class domain transforms** — Fourier-family operations and coordinate mappings.
+
+| Operator | Transform Type | Domain Change |
+|----------|----------------|---------------|
+| `fft` | Fourier | time → frequency |
+| `ifft` | Fourier | frequency → time |
+| `stft` | Fourier | time → time-frequency |
+| `istft` | Fourier | time-frequency → time |
+| `dct` | Cosine | time → frequency |
+| `idct` | Cosine | frequency → time |
+| `wavelet` | Wavelet | time → time-scale |
+| `iwavelet` | Wavelet | time-scale → time |
+| `space.to_kspace` | Spatial | space → k-space (reciprocal) |
+| `kspace.to_space` | Spatial | k-space → space |
+| `laplacian.spectral` | Spectral | PDE in frequency domain |
+| `transform.reparam` | Coordinate | Warp/scale/translate coordinates |
+| `mel` | Perception | frequency → mel scale |
+| `mel.inverse` | Perception | mel scale → frequency |
+
+**Example Metadata:**
+```json
+{
+  "name": "fft",
+  "category": "transform",
+  "layer": 2,
+  "inputs": [{"name": "sig", "type": "Stream<f32,time>"}],
+  "params": {
+    "window": {"type": "Enum", "default": "hann"},
+    "normalize": {"type": "Bool", "default": true}
+  },
+  "domain_change": {"from": "time", "to": "frequency"},
+  "determinism": "strict",
+  "lowering": {"dialect": "kairo.transform", "template": "fft_1d"},
+  "numeric_properties": {"invertible": true, "inverse_op": "ifft"}
+}
+```
+
+See **[SPEC-TRANSFORM.md](SPEC-TRANSFORM.md)** for complete transform dialect specification.
+
+---
+
+### Layer 3: Stochastic Operators
+
+**Randomness and Monte Carlo machinery** — used across physics, finance, graphics, and audio.
+
+| Operator | Type | Description |
+|----------|------|-------------|
+| `rng.uniform` | RNG | Uniform random numbers |
+| `rng.normal` | RNG | Gaussian random numbers |
+| `rng.poisson` | RNG | Poisson process |
+| `rng.bernoulli` | RNG | Bernoulli trials |
+| `stochastic.brownian` | SDE | Brownian motion process |
+| `stochastic.geometric_bm` | SDE | Geometric Brownian motion |
+| `stochastic.ou` | SDE | Ornstein-Uhlenbeck process |
+| `stochastic.jump_diffusion` | SDE | Jump diffusion process |
+| `mc.sample` | Monte Carlo | Sample from distribution |
+| `mc.expectation` | Monte Carlo | Compute expectation |
+| `mc.path` | Monte Carlo | Generate sample paths |
+| `mc.antithetic` | Monte Carlo | Antithetic variance reduction |
+
+**Example Metadata:**
+```json
+{
+  "name": "stochastic.brownian",
+  "category": "stochastic",
+  "layer": 3,
+  "inputs": [],
+  "params": {
+    "sigma": {"type": "Ctl<f32>", "default": 1.0},
+    "dt": {"type": "Rate", "default": "1ms"},
+    "seed": {"type": "u64", "required": true}
+  },
+  "outputs": [{"type": "Stream<f32,time>"}],
+  "determinism": "repro",
+  "lowering": {"dialect": "kairo.stream", "template": "brownian_step"}
+}
+```
+
+---
+
+### Layer 4: Physics & Field Operators
+
+**PDE solvers, integrators, and spatial operations.**
+
+#### 4a. Integrators (ODE/SDE)
+
+| Operator | Order | Symplectic | Description |
+|----------|-------|------------|-------------|
+| `integrate.euler` | 1 | No | Explicit Euler |
+| `integrate.verlet` | 2 | Yes | Velocity Verlet (symplectic) |
+| `integrate.rk4` | 4 | No | 4th-order Runge-Kutta |
+| `integrate.split` | — | — | Operator splitting |
+
+**Metadata includes:**
+- `order`: Accuracy order
+- `symplectic`: Energy conservation property
+- `stability_region`: Timestep stability bounds
+
+**Example:**
+```json
+{
+  "name": "integrate.verlet",
+  "category": "integrator",
+  "layer": 4,
+  "params": {
+    "dt": {"type": "Rate"},
+    "force": {"type": "Fn"}
+  },
+  "numeric_properties": {
+    "order": 2,
+    "symplectic": true,
+    "conservative": true
+  },
+  "lowering": {"dialect": "kairo.stream", "template": "verlet_step"}
+}
+```
+
+#### 4b. PDE Field Operators
+
+| Operator | Description |
+|----------|-------------|
+| `field.gradient` | Compute spatial gradient |
+| `field.divergence` | Compute divergence |
+| `field.laplacian` | Compute Laplacian |
+| `field.convolve` | Spatial convolution |
+| `field.boundary.apply` | Apply boundary conditions |
+
+#### 4c. Particle/Grid Coupling
+
+| Operator | Description |
+|----------|-------------|
+| `particle.update` | Update particle positions |
+| `particle.to_field` | Scatter particles to grid |
+| `field.sample_at` | Sample field at particle positions |
+
+---
+
+### Layer 5: Audio / DSP Operators
+
+**Classic audio synthesis and processing operations.**
+
+#### 5a. Oscillators
+
+| Operator | Waveform |
+|----------|----------|
+| `sine` | Sine wave |
+| `saw` | Sawtooth wave |
+| `square` | Square wave |
+| `triangle` | Triangle wave |
+| `noise` | White noise (seeded) |
+
+#### 5b. Filters
+
+| Operator | Type |
+|----------|------|
+| `lpf` | Low-pass filter |
+| `hpf` | High-pass filter |
+| `bpf` | Band-pass filter |
+| `svf` | State-variable filter |
+| `peq` | Parametric EQ |
+
+#### 5c. Time-Domain Effects
+
+| Operator | Effect |
+|----------|--------|
+| `delay` | Delay line |
+| `reverb` | Reverb (FDN/convolution) |
+| `compressor` | Dynamics compressor |
+| `limiter` | Peak limiter |
+
+#### 5d. Spectral Operations
+
+| Operator | Description |
+|----------|-------------|
+| `spectral.sharpen` | Sharpen spectral peaks |
+| `spectral.morph` | Morph between spectra |
+
+**Example:**
+```json
+{
+  "name": "lpf",
+  "category": "filter",
+  "layer": 5,
+  "inputs": [{"name": "in", "type": "Stream<f32,time,audio>"}],
+  "params": {
+    "cutoff": {"type": "f32<Hz>", "default": "1000Hz"},
+    "resonance": {"type": "f32", "default": 0.707}
+  },
+  "outputs": [{"type": "Stream<f32,time,audio>"}],
+  "determinism": "strict",
+  "lowering": {"dialect": "kairo.audio", "template": "biquad_lpf"}
+}
+```
+
+---
+
+### Layer 6: Fractal / Visual / Geometry Operators
+
+**Fractal generation, field visualization, and geometric transforms.**
+
+#### 6a. Coordinate Mapping
+
+| Operator | Description |
+|----------|-------------|
+| `fractal.map_plane` | Map complex plane coordinates |
+| `field.reparam` | Warp field coordinates |
+
+#### 6b. Iteration Functions
+
+| Operator | Fractal Type |
+|----------|--------------|
+| `fractal.mandelbrot` | Mandelbrot set |
+| `fractal.julia` | Julia set |
+| `fractal.escape_time` | Escape-time algorithm |
+
+#### 6c. Palette / Color Transforms
+
+| Operator | Description |
+|----------|-------------|
+| `color.smooth` | Smooth color gradients |
+| `color.palette` | Apply color palette lookup |
+
+---
+
+### Layer 7: Finance / Quantitative Operators
+
+**Built on stochastic and field layers for quantitative finance.**
+
+#### 7a. Models
+
+| Operator | Model |
+|----------|-------|
+| `model.black_scholes` | Black-Scholes SDE |
+| `model.heston` | Heston stochastic volatility |
+| `model.sabr` | SABR model |
+
+#### 7b. Payoffs
+
+| Operator | Instrument |
+|----------|------------|
+| `payoff.call` | Call option |
+| `payoff.put` | Put option |
+| `payoff.barrier` | Barrier option |
+| `payoff.binary` | Binary/digital option |
+
+#### 7c. Pricing
+
+| Operator | Method |
+|----------|--------|
+| `price.mc` | Monte Carlo pricing |
+| `price.pde_step` | PDE solver step |
+| `price.fourier` | Fourier pricing |
+
+**Example:**
+```json
+{
+  "name": "model.heston",
+  "category": "finance",
+  "layer": 7,
+  "params": {
+    "kappa": {"type": "f32", "description": "Mean reversion speed"},
+    "theta": {"type": "f32", "description": "Long-run variance"},
+    "sigma": {"type": "f32", "description": "Volatility of volatility"},
+    "rho": {"type": "f32", "description": "Correlation"}
+  },
+  "outputs": [{"type": "Stream<Vec2<f32>,time>", "description": "[price, variance]"}],
+  "determinism": "repro",
+  "lowering": {"dialect": "kairo.stochastic", "template": "heston_euler"}
+}
+```
+
+---
+
+## Layer Summary Table
+
+| Layer | Operator Types | Examples |
+|-------|----------------|----------|
+| **1. Core** | cast, domain, rate, shape | `cast`, `rate.change` |
+| **2. Transforms** | FFT-family, reparam, spectral | `fft`, `laplacian.spectral` |
+| **3. Stochastic** | RNG, processes, Monte Carlo | `rng.normal`, `mc.path` |
+| **4. Physics/Fields** | integrators, PDEs, grids | `integrate.verlet`, `field.laplacian` |
+| **5. Audio** | filters, oscillators, FX | `lpf`, `reverb` |
+| **6. Fractals/Visuals** | iteration, palette, mapping | `fractal.mandelbrot` |
+| **7. Finance** | models, payoffs, pricing | `model.heston`, `price.mc` |
+
+---
+
+## Legacy Category Table
+
+For backward compatibility, operators also have traditional **categories**:
 
 | Category | Description | Examples |
 |----------|-------------|----------|
