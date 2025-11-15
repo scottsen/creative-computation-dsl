@@ -78,6 +78,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Agent Property Access Methods** ⭐
+  - **`Agents.get(property_name)`** - Get property array for alive agents only
+    - Returns NumPy array of property values filtered by alive_mask
+    - Efficient retrieval without copying dead agent data
+    - Raises KeyError if property doesn't exist
+  - **`Agents.get_all(property_name)`** - Get property array for ALL agents (including dead)
+    - Returns complete NumPy array including dead agents
+    - Useful for batch operations and debugging
+    - Allows inspection of full agent state
+  - **Key Benefits**:
+    - Separation of concerns: `get()` for active agents, `get_all()` for complete state
+    - Memory efficient: `get()` only returns alive agent data
+    - Type safe: Both methods raise KeyError for missing properties
+    - Consistent API: Matches Kairo's property access patterns
+  - **Use Cases**:
+    - Agent simulation loops (use `get()` for active agents)
+    - Debugging and visualization (use `get_all()` to see full state)
+    - Performance optimization (avoid processing dead agents)
+  - **Implementation**: `kairo/stdlib/agents.py:56-83`
+  - **Impact**: Provides clean, efficient interface for agent property access in simulations
+
 - **Circuit/Electrical Engineering Domain** ⭐ (PR #43)
   - **New Specifications**:
     - `docs/ADR/003-circuit-modeling-domain.md`: Complete design rationale for circuit modeling domain
