@@ -631,6 +631,20 @@ For each example verify:
 - Sound-driven visuals
 - Multi-modal synthesis
 
+### When FluidDynamics & Acoustics Domains are Ready:
+- **2-Stroke Engine & Muffler Acoustics** (⭐ FLAGSHIP MULTI-DOMAIN SHOWCASE)
+  - Complete exhaust system simulation
+  - Fluid dynamics → Acoustics → Audio pipeline
+  - Geometry-driven acoustic behavior
+  - Realistic engine sound synthesis
+  - Backpressure timing optimization
+  - See: `docs/USE_CASES/2-stroke-muffler-modeling.md`
+- Pipe organ modeling
+- Brass/woodwind instrument design
+- Architectural room acoustics
+- Speaker enclosure design
+- HVAC duct acoustics
+
 ---
 
 ## Next Steps
