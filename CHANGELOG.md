@@ -7,6 +7,104 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v0.10.0] - 2025-11-16
+
+### Added - Five New Computational Domains ⭐⭐⭐
+
+This release significantly expands Kairo's domain coverage with five major new domains, bringing the total to 23 domains.
+
+- **Graph/Network Domain** ✅
+  - **Implementation**: `kairo/stdlib/graph.py` (1,200+ lines)
+  - **Data Structures**: `Graph`, `GraphMetrics`
+  - **Core Operations**:
+    - Graph creation: `create_empty`, `from_adjacency_matrix`, `to_adjacency_matrix`
+    - Graph modification: `add_edge`, `remove_edge`
+    - Graph algorithms: `dijkstra`, `shortest_path`, `bfs`, `dfs`
+    - Network analysis: `degree_centrality`, `betweenness_centrality`, `pagerank`
+    - Community detection: `connected_components`, `clustering_coefficient`
+    - Advanced algorithms: `minimum_spanning_tree`, `topological_sort`, `max_flow`
+    - Graph generators: `random_graph`, `grid_graph`
+  - **Examples**: 3 comprehensive examples
+    - `01_shortest_path.py` — Road network analysis, Dijkstra's algorithm
+    - `02_network_analysis.py` — Social network analysis, centrality measures
+    - `03_flow_network.py` — Maximum flow problem, network capacity analysis
+  - **Impact**: Enables network analysis, social graphs, routing algorithms, flow optimization
+
+- **Signal Processing Domain** ✅
+  - **Implementation**: `kairo/stdlib/signal.py` (1,000+ lines)
+  - **Data Structures**: `Signal1D`, `Spectrum`, `Spectrogram`
+  - **Core Operations**:
+    - Signal generation: `sine_wave`, `chirp`, `white_noise`
+    - Transforms: `fft`, `ifft`, `rfft`, `stft`, `istft`
+    - Filtering: `lowpass`, `highpass`, `bandpass`
+    - Windowing: `window` (Hann, Hamming, Blackman, Kaiser, etc.)
+    - Analysis: `envelope`, `correlate`, `peak_detection`
+    - Spectral analysis: `spectrogram_power`, `welch_psd`
+    - Processing: `resample`, `normalize`
+  - **Examples**: 2 comprehensive examples
+    - `01_fft_analysis.py` — FFT spectrum analysis, frequency detection
+    - `02_spectrogram.py` — STFT spectrogram, time-frequency analysis
+  - **Impact**: Enables frequency analysis, spectral processing, time-frequency representations
+
+- **State Machine Domain** ✅
+  - **Implementation**: `kairo/stdlib/statemachine.py` (900+ lines)
+  - **Data Structures**: `State`, `Transition`, `StateMachine`, `BehaviorNode`
+  - **Core Operations**:
+    - State machine: `create`, `add_state`, `add_transition`, `start`
+    - Execution: `update`, `send_event`, `get_state_name`, `is_in_state`
+    - Transitions: Event-driven, automatic, timeout-based with guards and actions
+    - Behavior trees: `create_sequence`, `create_selector`, `create_action`, `create_condition`
+    - Visualization: `to_graphviz` (DOT format export)
+  - **Examples**: 1 comprehensive example
+    - `01_game_ai.py` — Game character AI with patrol, alert, chase, and attack states
+  - **Impact**: Enables game AI, UI flows, protocol implementations, workflow systems
+
+- **Terrain Generation Domain** ✅
+  - **Implementation**: `kairo/stdlib/terrain.py` (800+ lines)
+  - **Data Structures**: `Heightmap`, `BiomeMap`
+  - **Core Operations**:
+    - Generation: `from_noise_perlin` (multi-octave procedural generation)
+    - Erosion: `hydraulic_erosion`, `thermal_erosion`
+    - Analysis: `calculate_slope`, `calculate_aspect`
+    - Classification: `classify_biomes` (ocean, beach, grassland, forest, mountain, snow, desert)
+    - Modification: `terrace`, `smooth`, `normalize`, `island_mask`
+  - **Examples**: 1 comprehensive example
+    - `01_island_generation.py` — Complete terrain pipeline with erosion and biomes
+  - **Impact**: Enables procedural terrain generation, game worlds, geographic simulations
+
+- **Computer Vision Domain** ✅
+  - **Implementation**: `kairo/stdlib/vision.py` (900+ lines)
+  - **Data Structures**: `ImageGray`, `EdgeMap`, `Keypoint`, `Contour`
+  - **Core Operations**:
+    - Edge detection: `sobel`, `laplacian`, `canny`
+    - Feature detection: `harris_corners`, `hough_lines`
+    - Filtering: `gaussian_blur`
+    - Morphology: `morphological` (erode, dilate, open, close, gradient, tophat, blackhat)
+    - Segmentation: `threshold`, `adaptive_threshold`, `find_contours`
+    - Analysis: `template_match`, `optical_flow_lucas_kanade`
+  - **Examples**: 1 comprehensive example
+    - `01_edge_detection.py` — Multi-algorithm edge detection and feature extraction
+  - **Impact**: Enables image analysis, object detection, feature extraction, optical flow
+
+### Technical Highlights
+
+- **Total New Code**: 4,800+ lines of production code across 5 new domains
+- **Total Domains**: 23 domains (up from 18)
+- **New Examples**: 8 comprehensive example files with visualizations
+- **Code Quality**: Follows established Kairo patterns (immutability, NumPy backend, comprehensive docs)
+- **Integration**: All domains compatible with existing cross-domain infrastructure
+
+### Domain Ecosystem Growth
+
+The addition of these 5 domains creates powerful new cross-domain workflows:
+- **Terrain → Vision**: Analyze terrain features using computer vision algorithms
+- **Signal → Audio**: Spectral analysis of audio signals
+- **Graph → Agents**: Network-based agent behaviors and pathfinding
+- **StateMachine → Agents**: Complex agent AI behaviors
+- **Vision → Fields**: Edge detection for field boundary conditions
+
+---
+
 ## [v0.8.0] - 2025-11-15
 
 ### Added - Base-Level Domain Implementations ⭐⭐⭐
