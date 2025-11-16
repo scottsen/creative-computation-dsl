@@ -25,6 +25,8 @@ from .interface import (
     VisionToFieldInterface,
     GraphToVisualInterface,
     CellularToFieldInterface,
+    FluidToAcousticsInterface,
+    AcousticsToAudioInterface,
 )
 from .registry import CrossDomainRegistry, register_transform
 from .validators import (
@@ -62,6 +64,9 @@ __all__ = [
     'VisionToFieldInterface',
     'GraphToVisualInterface',
     'CellularToFieldInterface',
+    # Phase 3 transforms (3-domain pipeline)
+    'FluidToAcousticsInterface',
+    'AcousticsToAudioInterface',
     # Composition engine
     'TransformComposer',
     'TransformPipeline',

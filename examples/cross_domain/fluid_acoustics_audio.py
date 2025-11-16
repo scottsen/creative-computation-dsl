@@ -408,6 +408,152 @@ def demo_turbulent_flow_sound():
     return audio_output, vis_frames
 
 
+def demo_with_formal_interfaces():
+    """Demo using formal cross-domain transform interfaces.
+
+    This demonstrates how to use the FluidToAcousticsInterface and
+    AcousticsToAudioInterface for composable 3-domain pipelines.
+    """
+    from kairo.cross_domain import FluidToAcousticsInterface, AcousticsToAudioInterface
+
+    print("=" * 60)
+    print("FORMAL INTERFACE DEMO: Using Cross-Domain Transforms")
+    print("=" * 60)
+    print()
+    print("Using formal transform interfaces:")
+    print("  - FluidToAcousticsInterface")
+    print("  - AcousticsToAudioInterface")
+    print()
+
+    # Simulation parameters
+    grid_size = 64
+    duration = 3.0
+    fluid_dt = 0.02
+    sample_rate = 44100
+
+    # Microphone positions
+    mic_positions = [
+        (grid_size // 4, grid_size // 2),      # Left mic
+        (3 * grid_size // 4, grid_size // 2),  # Right mic
+    ]
+
+    # Step 1: Simulate fluid dynamics (same as before)
+    print("[1/3] Simulating fluid dynamics...")
+    num_steps = int(duration / fluid_dt)
+    pressure_fields = []
+
+    vx = field.alloc((grid_size, grid_size), fill_value=0.0)
+    vy = field.alloc((grid_size, grid_size), fill_value=0.0)
+    pressure = field.alloc((grid_size, grid_size), fill_value=0.0)
+
+    # Obstacle for vortex shedding
+    obstacle_x, obstacle_y = grid_size // 4, grid_size // 2
+    obstacle_radius = grid_size // 16
+    y, x = np.mgrid[0:grid_size, 0:grid_size]
+    obstacle_mask = (x - obstacle_x)**2 + (y - obstacle_y)**2 <= obstacle_radius**2
+
+    inlet_velocity = 2.0
+
+    for step in range(num_steps):
+        # Inlet flow
+        vx.data[:, :5] = inlet_velocity
+
+        # Obstacle boundary
+        vx.data[obstacle_mask] = 0.0
+        vy.data[obstacle_mask] = 0.0
+
+        # Compute divergence
+        dvx_dx = np.gradient(vx.data, axis=1)
+        dvy_dy = np.gradient(vy.data, axis=0)
+        divergence = dvx_dx + dvy_dy
+
+        # Pressure from divergence
+        pressure.data = -divergence * 10.0
+
+        # Diffuse
+        pressure = field.diffuse(pressure, diffusion_coeff=0.1, dt=fluid_dt)
+
+        # Advect
+        vx.data = vx.data - vx.data * dvx_dx * fluid_dt
+        vy.data = vy.data - vy.data * dvy_dy * fluid_dt
+
+        # Damping
+        vx.data *= 0.995
+        vy.data *= 0.995
+
+        pressure_fields.append(pressure.copy())
+
+        if step % (num_steps // 5) == 0:
+            print(f"  Fluid step {step}/{num_steps}")
+
+    print(f"  ✓ Fluid simulation complete: {len(pressure_fields)} steps")
+
+    # Step 2: Transform Fluid → Acoustics using formal interface
+    print("\n[2/3] Transforming Fluid → Acoustics (formal interface)...")
+
+    fluid_to_acoustics = FluidToAcousticsInterface(
+        pressure_fields=pressure_fields,
+        fluid_dt=fluid_dt,
+        speed_of_sound=5.0,
+        coupling_strength=0.1
+    )
+
+    # Validate before transform
+    assert fluid_to_acoustics.validate(), "Validation failed!"
+
+    # Apply transform
+    acoustic_fields = fluid_to_acoustics.transform(pressure_fields)
+
+    print(f"  ✓ Acoustic fields generated: {len(acoustic_fields)} steps")
+    print(f"  ✓ Source domain: {fluid_to_acoustics.source_domain}")
+    print(f"  ✓ Target domain: {fluid_to_acoustics.target_domain}")
+
+    # Step 3: Transform Acoustics → Audio using formal interface
+    print("\n[3/3] Transforming Acoustics → Audio (formal interface)...")
+
+    acoustics_to_audio = AcousticsToAudioInterface(
+        acoustic_fields=acoustic_fields,
+        mic_positions=mic_positions,
+        fluid_dt=fluid_dt,
+        sample_rate=sample_rate,
+        add_turbulence_noise=True,
+        noise_level=0.05
+    )
+
+    # Validate before transform
+    assert acoustics_to_audio.validate(), "Validation failed!"
+
+    # Apply transform
+    audio_buffer = acoustics_to_audio.transform(acoustic_fields)
+
+    print(f"  ✓ Audio synthesized:")
+    print(f"    Duration: {audio_buffer.duration:.2f}s")
+    print(f"    Sample rate: {audio_buffer.sample_rate}Hz")
+    print(f"    Channels: {'Stereo' if audio_buffer.is_stereo else 'Mono'}")
+    print(f"  ✓ Source domain: {acoustics_to_audio.source_domain}")
+    print(f"  ✓ Target domain: {acoustics_to_audio.target_domain}")
+
+    # Save output
+    print("\n[EXPORT] Saving audio...")
+    output_path = "output_formal_interface.wav"
+    audio.save(audio_buffer, output_path)
+    print(f"  ✓ Saved: {output_path}")
+
+    print("\n" + "=" * 60)
+    print("FORMAL INTERFACE DEMO COMPLETE! ✅")
+    print("=" * 60)
+    print()
+    print("Key benefits of formal interfaces:")
+    print("  • Type-safe domain transformations")
+    print("  • Validation before execution")
+    print("  • Clear source/target domain metadata")
+    print("  • Composable with TransformComposer")
+    print("  • Registry-based discovery")
+    print()
+
+    return audio_buffer
+
+
 def main():
     """Run the killer 3-domain demonstration."""
     print()
@@ -430,7 +576,14 @@ def main():
     print("   Navier-Stokes      Wave Equation      Synthesis")
     print()
 
-    # Run the demo
+    # Option to run either demo
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "--formal":
+        print("Running with FORMAL INTERFACES (new!)...\n")
+        demo_with_formal_interfaces()
+        return
+
+    # Run the original demo
     demo_turbulent_flow_sound()
 
     print("\n" + "═" * 60)

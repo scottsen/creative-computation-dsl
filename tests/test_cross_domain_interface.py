@@ -5,6 +5,8 @@ Tests the DomainInterface base class and concrete implementations for:
 - Field → Agent (sample field at agent positions)
 - Agent → Field (deposit agent properties to field)
 - Physics → Audio (sonification of physical events)
+- Fluid → Acoustics (pressure coupling to acoustic wave propagation)
+- Acoustics → Audio (acoustic field sampling to audio synthesis)
 """
 
 import numpy as np
@@ -12,6 +14,8 @@ from kairo.cross_domain.interface import (
     FieldToAgentInterface,
     AgentToFieldInterface,
     PhysicsToAudioInterface,
+    FluidToAcousticsInterface,
+    AcousticsToAudioInterface,
     DomainInterface,
 )
 from kairo.cross_domain.registry import CrossDomainRegistry
@@ -270,6 +274,172 @@ def test_validators():
     print("✓ Validators test passed")
 
 
+def test_fluid_to_acoustics_coupling():
+    """Test Fluid → Acoustics transform (pressure coupling)."""
+    from kairo.stdlib import field
+
+    # Create fluid pressure fields (time series)
+    grid_size = 32
+    num_steps = 10
+
+    pressure_fields = []
+    for t in range(num_steps):
+        # Create pressure field with some spatial variation
+        pressure = field.alloc((grid_size, grid_size), fill_value=0.0)
+        # Add a pressure pulse that evolves over time
+        y, x = np.mgrid[0:grid_size, 0:grid_size]
+        center_x, center_y = grid_size // 2, grid_size // 2
+        r = np.sqrt((x - center_x)**2 + (y - center_y)**2)
+        pressure.data = np.exp(-(r - t)**2 / 10.0)
+        pressure_fields.append(pressure)
+
+    # Create interface
+    interface = FluidToAcousticsInterface(
+        pressure_fields=pressure_fields,
+        fluid_dt=0.01,
+        speed_of_sound=5.0,
+        coupling_strength=0.1
+    )
+
+    # Validate
+    assert interface.validate()
+
+    # Transform
+    acoustic_fields = interface.transform(pressure_fields)
+
+    # Check output
+    assert len(acoustic_fields) == num_steps
+    assert acoustic_fields[0].shape == (grid_size, grid_size)
+
+    # Check that acoustic fields contain data
+    for acoustic_field in acoustic_fields:
+        assert isinstance(acoustic_field.data, np.ndarray)
+        assert acoustic_field.data.shape == (grid_size, grid_size)
+
+    print("✓ Fluid → Acoustics coupling test passed")
+
+
+def test_acoustics_to_audio_sampling():
+    """Test Acoustics → Audio transform (microphone sampling)."""
+    from kairo.stdlib import field
+
+    # Create acoustic pressure fields (time series)
+    grid_size = 32
+    num_steps = 50  # 50 acoustic timesteps
+    fluid_dt = 0.02  # 50 Hz acoustic simulation
+
+    acoustic_fields = []
+    for t in range(num_steps):
+        # Create acoustic field with wave propagation
+        acoustic = field.alloc((grid_size, grid_size), fill_value=0.0)
+        y, x = np.mgrid[0:grid_size, 0:grid_size]
+        # Traveling wave
+        acoustic.data = np.sin(x * 0.2 + t * 0.5) * np.exp(-0.05 * t)
+        acoustic_fields.append(acoustic)
+
+    # Microphone positions
+    mic_positions = [
+        (grid_size // 4, grid_size // 2),      # Left mic
+        (3 * grid_size // 4, grid_size // 2),  # Right mic
+    ]
+
+    # Create interface
+    interface = AcousticsToAudioInterface(
+        acoustic_fields=acoustic_fields,
+        mic_positions=mic_positions,
+        fluid_dt=fluid_dt,
+        sample_rate=44100,
+        add_turbulence_noise=False  # Disable noise for deterministic test
+    )
+
+    # Validate
+    assert interface.validate()
+
+    # Transform
+    audio_buffer = interface.transform(acoustic_fields)
+
+    # Check output
+    assert hasattr(audio_buffer, 'data')
+    assert hasattr(audio_buffer, 'sample_rate')
+    assert audio_buffer.sample_rate == 44100
+
+    # Should be stereo (2 channels)
+    assert audio_buffer.is_stereo
+    assert audio_buffer.data.shape[1] == 2
+
+    # Check duration matches expected
+    expected_duration = num_steps * fluid_dt
+    assert abs(audio_buffer.duration - expected_duration) < 0.1
+
+    # Check audio data is normalized (peak <= 1.0)
+    peak = np.max(np.abs(audio_buffer.data))
+    assert peak <= 1.0
+
+    print("✓ Acoustics → Audio sampling test passed")
+
+
+def test_fluid_acoustics_audio_pipeline():
+    """Test complete 3-domain pipeline: Fluid → Acoustics → Audio."""
+    from kairo.stdlib import field
+
+    # 1. Create fluid pressure fields
+    grid_size = 16  # Small for fast test
+    num_steps = 20
+
+    pressure_fields = []
+    for t in range(num_steps):
+        pressure = field.alloc((grid_size, grid_size), fill_value=0.0)
+        # Simple vortex-like pattern
+        y, x = np.mgrid[0:grid_size, 0:grid_size]
+        pressure.data = np.sin(x * 0.5) * np.cos(y * 0.5) * np.exp(-0.1 * t)
+        pressure_fields.append(pressure)
+
+    # 2. Transform Fluid → Acoustics
+    fluid_to_acoustics = FluidToAcousticsInterface(
+        pressure_fields=pressure_fields,
+        fluid_dt=0.02,
+        coupling_strength=0.15
+    )
+    acoustic_fields = fluid_to_acoustics.transform(pressure_fields)
+
+    # 3. Transform Acoustics → Audio
+    mic_positions = [(grid_size // 2, grid_size // 2)]  # Single mic
+    acoustics_to_audio = AcousticsToAudioInterface(
+        acoustic_fields=acoustic_fields,
+        mic_positions=mic_positions,
+        fluid_dt=0.02,
+        sample_rate=22050,  # Lower sample rate for fast test
+        add_turbulence_noise=False
+    )
+    audio_buffer = acoustics_to_audio.transform(acoustic_fields)
+
+    # Verify complete pipeline
+    assert len(acoustic_fields) == num_steps
+    assert audio_buffer.sample_rate == 22050
+    assert audio_buffer.data.shape[0] > 0
+
+    # Should be mono (1 channel)
+    assert not audio_buffer.is_stereo
+
+    print("✓ Fluid → Acoustics → Audio pipeline test passed")
+
+
+def test_cross_domain_registry_extended():
+    """Test cross-domain registry includes new transforms."""
+    # Check new transforms are registered
+    assert CrossDomainRegistry.has_transform("fluid", "acoustics")
+    assert CrossDomainRegistry.has_transform("acoustics", "audio")
+
+    # Get transform classes
+    fluid_to_acoustics = CrossDomainRegistry.get("fluid", "acoustics")
+    assert fluid_to_acoustics == FluidToAcousticsInterface
+
+    acoustics_to_audio = CrossDomainRegistry.get("acoustics", "audio")
+    assert acoustics_to_audio == AcousticsToAudioInterface
+
+    print("✓ Extended cross-domain registry test passed")
+
+
 if __name__ == "__main__":
     test_field_to_agent_basic()
     test_field_to_agent_vector_field()
@@ -279,5 +449,11 @@ if __name__ == "__main__":
     test_physics_to_audio_mapping()
     test_cross_domain_registry()
     test_validators()
+
+    # New tests for Phase 3 transforms
+    test_fluid_to_acoustics_coupling()
+    test_acoustics_to_audio_sampling()
+    test_fluid_acoustics_audio_pipeline()
+    test_cross_domain_registry_extended()
 
     print("\n✅ All cross-domain interface tests passed!")
