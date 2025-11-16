@@ -229,7 +229,38 @@ flow(dt=0.1) {
 }
 ```
 
-### 2. Agent Dialect - Sparse Particle Systems
+### 2. RigidBody Physics - 2D Rigid Body Simulation
+
+**✅ PRODUCTION-READY - implemented in v0.8.2!**
+
+```kairo
+use rigidbody  # ✅ WORKING - fully implemented!
+
+// Create physics world
+let world = physics.world(gravity=(0, -9.81))
+
+// Create bodies
+let ball = physics.circle(pos=(0, 5), radius=0.5, mass=1.0)
+let ground = physics.circle(pos=(0, -10), radius=10.0, mass=0.0)  // Static
+
+// Simulate
+flow(dt=0.016) {  // 60 FPS
+    world = physics.step(world)
+}
+```
+
+**Features:**
+- Full rigid body dynamics (position, rotation, velocity, angular velocity)
+- Circle and box collision shapes
+- Impulse-based collision response with restitution and friction
+- Static and dynamic bodies
+- Deterministic physics simulation
+- 32 comprehensive tests
+- Example simulations: bouncing balls, collisions, stacking
+
+**Status:** Production-ready as of v0.8.2 (2025-11-16)
+
+### 3. Agent Dialect - Sparse Particle Systems
 
 **✅ PRODUCTION-READY - implemented in v0.4.0!**
 
@@ -264,7 +295,7 @@ flow(dt=0.01) {
 
 **Status:** Production-ready as of v0.4.0 (2025-11-14)
 
-### 3. Audio Dialect (Kairo.Audio) - Sound Synthesis and Processing
+### 4. Audio Dialect (Kairo.Audio) - Sound Synthesis and Processing
 
 **✅ PRODUCTION-READY - implemented in v0.5.0 and v0.6.0!**
 
@@ -300,7 +331,7 @@ audio.save(final, "out.wav") # Export to WAV/FLAC
 
 **Status:** Production-ready as of v0.5.0 (2025-11-14), I/O added in v0.6.0
 
-### 4. Visual Dialect - Rendering and Composition
+### 5. Visual Dialect - Rendering and Composition
 
 **✅ ENHANCED in v0.6.0 - Agent rendering and video export!**
 

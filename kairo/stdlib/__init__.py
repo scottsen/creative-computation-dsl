@@ -9,6 +9,7 @@ from .acoustics import (
     acoustics, AcousticsOperations, PipeGeometry, WaveguideNetwork,
     ReflectionCoeff, FrequencyResponse, create_pipe, create_expansion_chamber
 )
+from . import rigidbody
 
 # Base-level domains
 from . import integrators
@@ -33,6 +34,7 @@ __all__ = [
     # Physics domains
     "acoustics", "AcousticsOperations", "PipeGeometry", "WaveguideNetwork",
     "ReflectionCoeff", "FrequencyResponse", "create_pipe", "create_expansion_chamber",
+    "rigidbody",
 
     # Base-level domains
     "integrators",
