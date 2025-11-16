@@ -191,6 +191,52 @@ Already part of Kairo.Audio:
 
 **See:** [AUDIO_SPECIFICATION.md](AUDIO_SPECIFICATION.md)
 
+### 3.1a Ambient Music & Generative Audio ⭐ **NEW - November 2025**
+
+**Status:** Proposed (ADR-009, Specification complete)
+
+Four specialized domains for ambient and generative music:
+
+**Kairo.Spectral** (15 operators)
+* Spectral blurring, morphing, freezing
+* Harmonic nebulae (distributed harmonic clouds)
+* Vocoding and spectral filtering
+* Additive resynthesis with time-varying parameters
+* Pitch-shifting drones
+
+**Kairo.Ambience** (25 operators)
+* Drone generators (harmonic pads, subharmonic bass, shimmer)
+* Granular synthesis (clouds, frozen, reverse)
+* Long-form modulators (drift noise, orbit LFOs, hour-scale evolution)
+* Texture generators (evolving, shimmer, noise fields)
+
+**Kairo.Synthesis** (30 operators)
+* Enhanced modular synthesis (VCO, wavetable, FM)
+* Advanced filters (multimode, formant, comb)
+* Modulation sources (LFO, envelope follower, sample-and-hold)
+* Declarative patch routing (compute graph as signal flow)
+
+**Kairo.Composition** (20 operators)
+* Markov chain sequencers (melodic and parameter evolution)
+* CA-driven composition (Life, Lenia, Rule30 → notes)
+* Stochastic generators (Poisson triggers, Brownian melodies)
+* Pattern generators (Euclidean rhythms, fractal timing)
+* Swarm-based composition (agent positions → pitches)
+
+**Why this is transformative:**
+* **Cross-domain integration** — Physics/CA/fractals drive audio parameters
+* **GPU acceleration** — Granular synthesis, spectral convolution, additive synthesis
+* **Deterministic generative music** — Same seed = same evolution
+* **Multi-hour time scales** — Ultra-slow LFOs, drift modulators
+* **No competing tool** — Unifies DSP + CA + physics + GPU
+
+**Total:** 90 new operators across 4 domains
+
+**See:**
+* [ADR-009](docs/adr/009-ambient-music-generative-domains.md) — Architecture decision
+* [docs/specifications/ambient-music.md](docs/specifications/ambient-music.md) — Complete specification (90 operators)
+* [docs/domains/AMBIENT_MUSIC.md](docs/domains/AMBIENT_MUSIC.md) — Domain documentation (pending)
+
 ### 3.2 Physics
 
 **Status:** Future expansion
@@ -541,6 +587,11 @@ Potential future frontends:
 ### Domain Libraries (optional)
 
 * audio / DSP ⭐ (active)
+* ambient music & generative audio ⭐ (proposed) — **NEW**
+  - spectral (frequency-domain processing)
+  - ambience (drones, granular, long-form evolution)
+  - synthesis (modular DSP routing)
+  - composition (Markov, CA, swarm sequencing)
 * physics / PDE / integrators 📋 (planned)
 * fractals 📋 (planned)
 * visuals / image processing 🚧 (partial)
