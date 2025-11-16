@@ -391,15 +391,19 @@ class VisualOperations:
                position_property: str = 'pos',
                color_property: Optional[str] = None,
                size_property: Optional[str] = None,
+               alpha_property: Optional[str] = None,
+               rotation_property: Optional[str] = None,
                color: tuple = (1.0, 1.0, 1.0),
                size: float = 2.0,
+               alpha: float = 1.0,
                palette: str = "viridis",
                background: tuple = (0.0, 0.0, 0.0),
                bounds: Optional[Tuple[Tuple[float, float], Tuple[float, float]]] = None,
+               blend_mode: str = "alpha",
                trail: bool = False,
                trail_length: int = 10,
                trail_alpha: float = 0.5) -> Visual:
-        """Render agents as points or circles.
+        """Render agents as points or circles with particle effects support.
 
         Args:
             agents: Agents instance to visualize
@@ -408,25 +412,39 @@ class VisualOperations:
             position_property: Name of position property (default: 'pos')
             color_property: Name of property to colorize by (optional)
             size_property: Name of property to size by (optional)
+            alpha_property: Name of property for transparency (optional, 0-1)
+            rotation_property: Name of property for rotation visualization (optional)
             color: Default color as (R, G, B) in [0, 1] (used if color_property=None)
             size: Default point size in pixels (used if size_property=None)
+            alpha: Default alpha transparency in [0, 1] (used if alpha_property=None)
             palette: Color palette name for color_property mapping
             background: Background color as (R, G, B) in [0, 1]
             bounds: ((xmin, xmax), (ymin, ymax)) for position mapping, auto if None
-            trail: If True, render agent trails (requires 'trail' property)
+            blend_mode: Blending mode ("alpha" or "additive")
+            trail: If True, render agent trails (requires 'trail_history' property)
             trail_length: Number of trail points to render
-            trail_alpha: Alpha transparency for trail
+            trail_alpha: Alpha transparency multiplier for trail
 
         Returns:
             Visual representation of agents
 
         Example:
-            # Render agents with velocity-based coloring
+            # Render particles with fade out
             vis = visual.agents(
-                agents,
-                color_property='vel_mag',
+                particles,
+                alpha_property='alpha',
+                color_property='temperature',
                 size=3.0,
-                palette='viridis'
+                palette='fire',
+                blend_mode='additive'
+            )
+
+            # Render with trails
+            vis = visual.agents(
+                particles,
+                trail=True,
+                trail_length=20,
+                trail_alpha=0.3
             )
         """
         from .agents import Agents
@@ -522,19 +540,101 @@ class VisualOperations:
         else:
             sizes = np.ones(len(positions)) * size
 
+        # Determine alpha values
+        if alpha_property is not None:
+            alpha_values = agents.get(alpha_property)
+
+            # Handle vector properties (use magnitude)
+            if len(alpha_values.shape) > 1:
+                alpha_values = np.linalg.norm(alpha_values, axis=1)
+
+            alphas = np.clip(alpha_values, 0.0, 1.0)
+        else:
+            alphas = np.ones(len(positions)) * alpha
+
+        # Get rotation if specified
+        rotations = None
+        if rotation_property is not None and rotation_property in agents.properties:
+            rotation_values = agents.get(rotation_property)
+            # Handle 2D vectors (use as direction)
+            if len(rotation_values.shape) > 1 and rotation_values.shape[1] == 2:
+                rotations = np.arctan2(rotation_values[:, 1], rotation_values[:, 0])
+            else:
+                rotations = rotation_values
+
+        # Render trails if requested
+        if trail and 'trail_history' in agents.properties:
+            trail_history = agents.get('trail_history')
+            # trail_history should be (N, trail_length, 2)
+            if len(trail_history.shape) == 3:
+                for i in range(len(trail_history)):
+                    history = trail_history[i]  # (trail_length, 2)
+                    agent_color = colors[i]
+
+                    for t in range(len(history)):
+                        if np.any(np.isnan(history[t])):
+                            continue
+
+                        # Map to pixel coords
+                        x_norm = (history[t, 0] - xmin) / (xmax - xmin)
+                        y_norm = (history[t, 1] - ymin) / (ymax - ymin)
+                        tx = int(x_norm * (width - 1))
+                        ty = int((1.0 - y_norm) * (height - 1))
+
+                        if 0 <= tx < width and 0 <= ty < height:
+                            # Fade alpha based on position in trail
+                            trail_t_alpha = (t / len(history)) * trail_alpha * alphas[i]
+
+                            # Alpha blend
+                            if blend_mode == "alpha":
+                                img[ty, tx] = img[ty, tx] * (1 - trail_t_alpha) + agent_color * trail_t_alpha
+                            else:  # additive
+                                img[ty, tx] = np.clip(img[ty, tx] + agent_color * trail_t_alpha, 0.0, 1.0)
+
         # Render agents as circles
         for i in range(len(positions)):
             agent_size = int(sizes[i])
             agent_color = colors[i]
+            agent_alpha = alphas[i]
 
-            # Draw filled circle
+            # Draw filled circle with alpha
             y, x = py[i], px[i]
+
+            # Draw rotation indicator if specified
+            if rotations is not None:
+                angle = rotations[i]
+                # Draw a line from center to edge showing rotation
+                line_len = agent_size
+                dx_line = int(line_len * np.cos(angle))
+                dy_line = int(line_len * np.sin(angle))
+
+                # Draw line
+                steps = max(abs(dx_line), abs(dy_line)) + 1
+                for s in range(steps):
+                    t = s / max(steps - 1, 1)
+                    lx = x + int(t * dx_line)
+                    ly = y - int(t * dy_line)  # Flip Y
+                    if 0 <= ly < height and 0 <= lx < width:
+                        # Brighter color for rotation indicator
+                        indicator_color = np.minimum(agent_color * 1.5, 1.0)
+                        if blend_mode == "alpha":
+                            img[ly, lx] = img[ly, lx] * (1 - agent_alpha) + indicator_color * agent_alpha
+                        else:  # additive
+                            img[ly, lx] = np.clip(img[ly, lx] + indicator_color * agent_alpha, 0.0, 1.0)
+
+            # Draw circle
             for dy in range(-agent_size, agent_size + 1):
                 for dx in range(-agent_size, agent_size + 1):
                     if dx*dx + dy*dy <= agent_size * agent_size:
                         ny, nx = y + dy, x + dx
                         if 0 <= ny < height and 0 <= nx < width:
-                            img[ny, nx] = agent_color
+                            # Alpha blending
+                            if blend_mode == "alpha":
+                                img[ny, nx] = img[ny, nx] * (1 - agent_alpha) + agent_color * agent_alpha
+                            elif blend_mode == "additive":
+                                img[ny, nx] = np.clip(img[ny, nx] + agent_color * agent_alpha, 0.0, 1.0)
+                            else:
+                                img[ny, nx] = agent_color
 
         return Visual(img)
 

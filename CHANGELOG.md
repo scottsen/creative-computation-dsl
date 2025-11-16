@@ -187,6 +187,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added - Advanced Domains ⭐⭐⭐
 
+- **Particle Effects / VFX Extensions for Agents Domain** ✅
+  - **Implementation**: Extended `kairo/stdlib/agents.py` (+340 lines) and `kairo/stdlib/visual.py` (+120 lines)
+  - **New Operators**:
+    - **Particle Emission**: `agents.emit()` - Flexible particle emission system
+      - Multiple emission shapes: `point`, `circle`, `sphere`, `cone`
+      - Configurable velocity patterns (uniform, callable, shape-based)
+      - Lifetime management with random ranges
+      - Custom property initialization
+    - **Lifetime & Aging**: `agents.age_particles()`, `agents.get_particle_alpha()`
+      - Automatic age tracking and dead particle filtering
+      - Alpha fade-in/fade-out based on particle age
+      - Configurable fade timing (fraction of lifetime)
+    - **Force Application**: `agents.apply_force()`, `agents.integrate()`
+      - Uniform or per-particle force application (F = ma)
+      - Callable force functions for dynamic behaviors
+      - Euler integration for position updates
+    - **Trail Rendering**: `agents.update_trail()` - Historical position tracking
+      - Configurable trail length (circular buffer)
+      - Automatic NaN initialization for empty trails
+      - Visual trail rendering with alpha decay
+    - **Particle Merging**: `agents.merge()` - Combine multiple particle systems
+      - Union of properties across collections
+      - Preserves alive masks
+      - Handles missing properties gracefully
+  - **Pre-built Behaviors** (`particle_behaviors`):
+    - `vortex()` - Swirling vortex force field
+    - `attractor()` - Gravitational attraction to point
+    - `repulsor()` - Repulsive force with radius cutoff
+    - `drag()` - Velocity-proportional air resistance
+    - `turbulence()` - Random force noise (seeded)
+  - **Visual Rendering Enhancements** (`visual.agents()`):
+    - **Alpha Blending**: `alpha_property` for per-particle transparency
+    - **Blend Modes**: `alpha` (standard) and `additive` (for fire/glow effects)
+    - **Rotation Visualization**: `rotation_property` for velocity-direction indicators
+    - **Trail Rendering**: Full implementation with alpha decay along trail
+  - **Tests**: 11 comprehensive test suites (280+ lines)
+    - Particle emission (basic, shapes, lifetimes, properties, callables)
+    - Lifetime management (aging, death, partial death, alpha fading)
+    - Force application (uniform, callable, integration)
+    - Particle behaviors (vortex, attractor, repulsor, drag, turbulence)
+    - Trail management (initialization, position recording)
+    - Particle merging (collections, properties, empty lists)
+    - Visual rendering (alpha, rotation, blending)
+    - Determinism (seeded emission, turbulence)
+  - **Examples**: 3 comprehensive particle effect demos
+    - `fireworks_particles.py` - Fireworks with burst emission, trails, gravity, fade-out (300 frames)
+    - `fire_particles.py` - Fire/smoke with continuous emission, buoyancy, turbulence, temperature-based coloring (300 frames)
+    - `vortex_magic.py` - Dual counter-rotating vortices with trail effects and rotation visualization (400 frames)
+  - **Key Properties**:
+    - Deterministic emission with seed control
+    - Efficient trail management with circular buffers
+    - Alpha blending and additive blend modes for realistic effects
+    - Composable force system (combine gravity, drag, vortex, etc.)
+    - Automatic dead particle cleanup
+  - **Impact**: Transforms agents domain from simple circles to full particle VFX system - enables fireworks, fire/smoke, magic spells, explosions, weather effects, and more
+
 - **Cellular Automata Domain** (PR #73) ✅
   - **Implementation**: Complete cellular automata simulation domain
   - **Operators**: Conway's Game of Life, Langton's Ant, elementary CA, and custom rules
