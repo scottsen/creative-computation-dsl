@@ -192,8 +192,16 @@ def register_builtin_transforms():
         FieldToAgentInterface,
         AgentToFieldInterface,
         PhysicsToAudioInterface,
+        AudioToVisualInterface,
+        FieldToAudioInterface,
+        TerrainToFieldInterface,
+        FieldToTerrainInterface,
+        VisionToFieldInterface,
+        GraphToVisualInterface,
+        CellularToFieldInterface,
     )
 
+    # Original Phase 1 transforms
     CrossDomainRegistry.register(
         "field", "agent",
         FieldToAgentInterface,
@@ -229,6 +237,102 @@ def register_builtin_transforms():
                 "Collision forces → percussion",
                 "Body velocities → pitch/volume",
                 "Contact points → spatial audio"
+            ]
+        }
+    )
+
+    # Phase 2 transforms - Audio ↔ Visual
+    CrossDomainRegistry.register(
+        "audio", "visual",
+        AudioToVisualInterface,
+        metadata={
+            "description": "Audio-reactive visual generation",
+            "use_cases": [
+                "FFT spectrum → color palette",
+                "Amplitude → particle emission",
+                "Beat detection → visual effects"
+            ]
+        }
+    )
+
+    # Phase 2 transforms - Field ↔ Audio
+    CrossDomainRegistry.register(
+        "field", "audio",
+        FieldToAudioInterface,
+        metadata={
+            "description": "Field-driven audio synthesis",
+            "use_cases": [
+                "Temperature → synthesis parameters",
+                "Vorticity → frequency modulation",
+                "Field evolution → audio sequences"
+            ]
+        }
+    )
+
+    # Phase 2 transforms - Terrain ↔ Field
+    CrossDomainRegistry.register(
+        "terrain", "field",
+        TerrainToFieldInterface,
+        metadata={
+            "description": "Convert terrain heightmap to scalar field",
+            "use_cases": [
+                "Heightmap → diffusion initial conditions",
+                "Elevation → potential field",
+                "Terrain features → field patterns"
+            ]
+        }
+    )
+
+    CrossDomainRegistry.register(
+        "field", "terrain",
+        FieldToTerrainInterface,
+        metadata={
+            "description": "Convert scalar field to terrain heightmap",
+            "use_cases": [
+                "Procedural field → terrain generation",
+                "Simulation result → landscape"
+            ]
+        }
+    )
+
+    # Phase 2 transforms - Vision → Field
+    CrossDomainRegistry.register(
+        "vision", "field",
+        VisionToFieldInterface,
+        metadata={
+            "description": "Convert computer vision features to fields",
+            "use_cases": [
+                "Edge map → scalar field",
+                "Optical flow → vector field",
+                "Feature map → field initialization"
+            ]
+        }
+    )
+
+    # Phase 2 transforms - Graph → Visual
+    CrossDomainRegistry.register(
+        "graph", "visual",
+        GraphToVisualInterface,
+        metadata={
+            "description": "Network graph visualization",
+            "use_cases": [
+                "Network structure → visual layout",
+                "Graph metrics → node colors/sizes",
+                "Connectivity → edge rendering"
+            ]
+        }
+    )
+
+    # Phase 2 transforms - Cellular → Field
+    CrossDomainRegistry.register(
+        "cellular", "field",
+        CellularToFieldInterface,
+        metadata={
+            "description": "Convert cellular automata state to field",
+            "use_cases": [
+                "CA state → PDE initial conditions",
+                "Game of Life → density field",
+                "Pattern state → field patterns"
             ]
         }
     )

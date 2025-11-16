@@ -565,12 +565,306 @@ for step in range(100):
 
 ---
 
+## Phase 2 Transforms (New in v0.11.0)
+
+### Audio → Visual
+
+**Purpose**: Audio-reactive visual generation
+
+**API**:
+```python
+from kairo.cross_domain import AudioToVisualInterface
+
+transform = AudioToVisualInterface(
+    audio_signal,
+    sample_rate=44100,
+    fft_size=2048,
+    mode="spectrum"  # "spectrum", "waveform", "energy", "beat"
+)
+
+visual_params = transform(audio_signal)
+```
+
+**Modes**:
+- `spectrum`: FFT analysis → frequency content, spectral brightness
+- `waveform`: Raw waveform for oscilloscope visuals
+- `energy`: RMS energy → intensity/emission triggers
+- `beat`: Onset detection → beat times
+
+**Use Cases**:
+- Music visualization, VJ systems
+- Audio-reactive particle emission
+- Spectrum-driven color palettes
+
+---
+
+### Field → Audio
+
+**Purpose**: Field-driven audio synthesis
+
+**API**:
+```python
+from kairo.cross_domain import FieldToAudioInterface
+
+transform = FieldToAudioInterface(
+    field,
+    mapping={
+        "mean": "frequency",
+        "std": "amplitude",
+        "gradient_mean": "modulation"
+    },
+    sample_rate=44100,
+    duration=1.0
+)
+
+audio_params = transform(field)
+```
+
+**Mappings**: mean, std, min, max, range, gradient_mean, gradient_max → frequency, amplitude, modulation, filter_cutoff
+
+**Use Cases**:
+- Procedural soundscapes from simulation
+- Temperature field → synthesis
+- Vorticity → frequency modulation
+
+---
+
+### Terrain ↔ Field
+
+**Purpose**: Bidirectional heightmap/field conversion
+
+**API**:
+```python
+from kairo.cross_domain import TerrainToFieldInterface, FieldToTerrainInterface
+
+# Terrain → Field
+t2f = TerrainToFieldInterface(heightmap, normalize=True)
+field = t2f(heightmap)
+
+# Field → Terrain
+f2t = FieldToTerrainInterface(field, height_scale=100.0)
+terrain_data = f2t(field)
+```
+
+**Use Cases**:
+- Procedural terrain generation from noise
+- Simulation results → landscape
+- Elevation → potential field for PDEs
+
+---
+
+### Vision → Field
+
+**Purpose**: Computer vision features to field conversion
+
+**API**:
+```python
+from kairo.cross_domain import VisionToFieldInterface
+
+transform = VisionToFieldInterface(
+    image,
+    mode="edges"  # "edges", "gradient", "intensity"
+)
+
+field = transform(image)
+```
+
+**Modes**:
+- `edges`: Sobel edge detection → scalar field
+- `gradient`: Image gradient → vector field
+- `intensity`: Direct grayscale → field
+
+**Use Cases**:
+- Edge detection → field patterns
+- Optical flow → vector field
+- Feature maps → PDE initial conditions
+
+---
+
+### Graph → Visual
+
+**Purpose**: Network graph visualization
+
+**API**:
+```python
+from kairo.cross_domain import GraphToVisualInterface
+
+transform = GraphToVisualInterface(
+    graph_data={'nodes': [...], 'edges': [...]},
+    width=512,
+    height=512,
+    layout="spring"  # "spring", "circular", "random"
+)
+
+visual_data = transform(graph_data)
+# Returns: node_positions, edge_list, dimensions
+```
+
+**Use Cases**:
+- Social network visualization
+- Dependency graphs
+- Flow networks
+
+---
+
+### Cellular → Field
+
+**Purpose**: Cellular automata state to field
+
+**API**:
+```python
+from kairo.cross_domain import CellularToFieldInterface
+
+transform = CellularToFieldInterface(ca_state, normalize=True)
+field = transform(ca_state)
+```
+
+**Use Cases**:
+- Game of Life → PDE initial conditions
+- CA patterns → field diffusion
+- Discrete state → continuous field
+
+---
+
+## Transform Composition Engine
+
+**New in Phase 2**: Automatic multi-hop pipeline construction
+
+### Automatic Path Finding
+
+```python
+from kairo.cross_domain import find_transform_path
+
+# Find path from source to target domain
+path = find_transform_path("terrain", "audio", max_hops=3)
+print(path)  # ['terrain', 'field', 'audio']
+```
+
+### Pipeline Creation
+
+```python
+from kairo.cross_domain import TransformComposer
+
+composer = TransformComposer(enable_caching=True)
+
+# Automatic routing
+pipeline = composer.compose_path("terrain", "audio")
+
+# Explicit routing
+pipeline = composer.compose_path("terrain", "audio", via=["field"])
+
+# Execute pipeline
+result = pipeline(terrain_data)
+
+# Inspect pipeline
+print(pipeline.visualize())  # "terrain → field → audio"
+print(pipeline.length)  # 2
+```
+
+### Composition Utilities
+
+```python
+from kairo.cross_domain import auto_compose, compose
+
+# Shorthand for automatic composition
+pipeline = auto_compose("field", "audio")
+
+# Manual composition of transform instances
+from kairo.cross_domain import FieldToAgentInterface, AgentToFieldInterface
+
+t1 = FieldToAgentInterface(field, positions)
+t2 = AgentToFieldInterface(positions, values, field_shape)
+
+composed = compose(t1, t2, validate=True)
+result = composed(field_data)
+```
+
+### Performance Monitoring
+
+```python
+composer = TransformComposer(enable_caching=True)
+
+# ... execute transforms ...
+
+stats = composer.get_stats()
+print(f"Transforms executed: {stats['transforms_executed']}")
+print(f"Cache hits: {stats['cache_hits']}")
+print(f"Cache misses: {stats['cache_misses']}")
+
+composer.clear_cache()  # Reset cache
+```
+
+---
+
+## Complete Phase 2 Example
+
+```python
+"""
+Multi-domain workflow: Terrain → Field → Audio → Visual
+
+Demonstrates automatic pipeline composition and execution.
+"""
+
+import numpy as np
+from kairo.cross_domain import TransformComposer, AudioToVisualInterface
+
+# Generate procedural terrain
+terrain = np.random.rand(256, 256) * 100.0
+
+# Create composer
+composer = TransformComposer()
+
+# Build multi-hop pipeline: Terrain → Field → Audio
+pipeline = composer.compose_path("terrain", "audio", via=["field"])
+
+print(pipeline.visualize())  # "terrain → field → audio"
+
+# Execute pipeline
+audio_params = pipeline(terrain)
+
+print(f"Generated audio with frequency {audio_params['frequency']:.2f} Hz")
+
+# Continue to visual
+# (Audio → Visual requires audio signal, not just parameters)
+# This demonstrates the full cross-domain workflow
+```
+
+---
+
+## Registry Inspection
+
+```python
+from kairo.cross_domain import CrossDomainRegistry
+
+# List all transforms
+all_transforms = CrossDomainRegistry.list_all()
+print(f"Total transforms: {len(all_transforms)}")
+
+# Visualize transform graph
+print(CrossDomainRegistry.visualize())
+
+# Check if transform exists
+has_transform = CrossDomainRegistry.has_transform("field", "audio")
+
+# Get transform metadata
+metadata = CrossDomainRegistry.get_metadata("field", "audio")
+print(metadata['description'])
+print(metadata['use_cases'])
+
+# List transforms for a domain
+field_transforms = CrossDomainRegistry.list_transforms("field", direction="source")
+audio_inputs = CrossDomainRegistry.list_transforms("audio", direction="target")
+```
+
+---
+
 ## Future Extensions
 
-Planned cross-domain transforms (v0.10+):
+Planned cross-domain transforms (v0.12+):
 
 - **Geometry → Physics**: Mesh → collision geometry
-- **Audio → Graphics**: FFT spectrum → particle colors
+- **Optimization → Any**: Parameter tuning interface
+- **Signal → Audio**: Direct signal conversion
 - **Pattern → Audio**: Euclidean rhythms → audio events
 - **ML → Geometry**: GAN → procedural 3D shapes
 - **Circuit → Audio**: Circuit simulation → audio synthesis
@@ -581,9 +875,12 @@ Planned cross-domain transforms (v0.10+):
 
 - **ADR-002**: Cross-Domain Architectural Patterns
 - **SPECIFICATION.md**: Language specification (compose/link syntax)
-- **examples/cross_domain_field_agent_coupling.py**: Complete working example
+- **examples/cross_domain/**: Complete working examples
+  - `01_transform_composition.py`: Pipeline composition and path finding
+  - `02_audio_reactive_visuals.py`: Audio analysis for visual generation
 
 ---
 
-**Last Updated:** 2025-11-16
+**Last Updated:** 2025-11-16 (Phase 2 Complete)
 **Maintainer:** Kairo Development Team
+**Version:** v0.11.0 (Cross-Domain Infrastructure Phase 2)

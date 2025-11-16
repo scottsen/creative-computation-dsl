@@ -9,17 +9,64 @@ Key components:
 - Transform functions: Convert data between domain formats
 - Type validation: Ensure compatibility across domain boundaries
 - Composition operators: compose() and link() support
+- Transform composition: Automatic path finding and pipeline execution
 """
 
-from .interface import DomainInterface, DomainTransform
+from .interface import (
+    DomainInterface,
+    DomainTransform,
+    FieldToAgentInterface,
+    AgentToFieldInterface,
+    PhysicsToAudioInterface,
+    AudioToVisualInterface,
+    FieldToAudioInterface,
+    TerrainToFieldInterface,
+    FieldToTerrainInterface,
+    VisionToFieldInterface,
+    GraphToVisualInterface,
+    CellularToFieldInterface,
+)
 from .registry import CrossDomainRegistry, register_transform
-from .validators import validate_cross_domain_flow, CrossDomainTypeError
+from .validators import (
+    validate_cross_domain_flow,
+    CrossDomainTypeError,
+    CrossDomainValidationError,
+)
+from .composer import (
+    TransformComposer,
+    TransformPipeline,
+    BatchTransformComposer,
+    compose,
+    find_transform_path,
+    auto_compose,
+)
 
 __all__ = [
+    # Base infrastructure
     'DomainInterface',
     'DomainTransform',
     'CrossDomainRegistry',
     'register_transform',
     'validate_cross_domain_flow',
     'CrossDomainTypeError',
+    'CrossDomainValidationError',
+    # Phase 1 transforms
+    'FieldToAgentInterface',
+    'AgentToFieldInterface',
+    'PhysicsToAudioInterface',
+    # Phase 2 transforms
+    'AudioToVisualInterface',
+    'FieldToAudioInterface',
+    'TerrainToFieldInterface',
+    'FieldToTerrainInterface',
+    'VisionToFieldInterface',
+    'GraphToVisualInterface',
+    'CellularToFieldInterface',
+    # Composition engine
+    'TransformComposer',
+    'TransformPipeline',
+    'BatchTransformComposer',
+    'compose',
+    'find_transform_path',
+    'auto_compose',
 ]
