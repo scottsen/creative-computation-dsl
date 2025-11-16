@@ -445,12 +445,36 @@ def generate_fractal_zoom(
     return frames, None, metadata
 
 
+# Import example generators
+def import_example_generators():
+    """Import example generators from their respective modules."""
+    generators = {
+        'reaction_diffusion': generate_reaction_diffusion,
+        'physics': generate_physics_particles,
+        'fractal': generate_fractal_zoom,
+    }
+
+    # Try to import cross-domain field-agent coupling
+    try:
+        sys.path.insert(0, str(Path(__file__).parent.parent))
+        from cross_domain_field_agent_coupling import generate_field_agent_coupling
+        generators['field_agent_coupling'] = generate_field_agent_coupling
+    except ImportError as e:
+        print(f"Warning: Could not import field_agent_coupling generator: {e}")
+
+    # Try to import fireworks with audio
+    try:
+        sys.path.insert(0, str(Path(__file__).parent.parent / 'agents'))
+        from fireworks_particles import generate_fireworks_with_audio
+        generators['fireworks_audio'] = generate_fireworks_with_audio
+    except ImportError as e:
+        print(f"Warning: Could not import fireworks_audio generator: {e}")
+
+    return generators
+
+
 # Registry of available examples
-EXAMPLE_GENERATORS = {
-    'reaction_diffusion': generate_reaction_diffusion,
-    'physics': generate_physics_particles,
-    'fractal': generate_fractal_zoom,
-}
+EXAMPLE_GENERATORS = import_example_generators()
 
 
 def generate_example(
@@ -543,7 +567,7 @@ Available presets:
     parser.add_argument(
         '--example', '-e',
         type=str,
-        help='Example to generate (reaction_diffusion, physics, fractal)'
+        help='Example to generate (reaction_diffusion, physics, fractal, field_agent_coupling, fireworks_audio)'
     )
 
     parser.add_argument(

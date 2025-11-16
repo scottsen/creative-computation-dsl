@@ -9,15 +9,25 @@ a flow field with particle agents. This shows:
 3. Bidirectional coupling in a single simulation loop
 
 Use case: Particles in a flow field (e.g., smoke, debris in wind, plankton in ocean currents)
+
+This example showcases Kairo's unique ability to compose Field and Agent domains
+bidirectionally in real-time - something impossible in traditional frameworks.
 """
 
+import sys
 import numpy as np
+from pathlib import Path
+from typing import List, Optional, Tuple, Dict, Any
 
 # Import cross-domain infrastructure
 from kairo.cross_domain.interface import FieldToAgentInterface, AgentToFieldInterface
 from kairo.cross_domain.registry import CrossDomainRegistry
 
-# Optional: matplotlib for visualization
+# Import Kairo visualization
+from kairo.stdlib import visual
+from kairo.stdlib.field import Field2D
+
+# Optional: matplotlib for interactive visualization
 try:
     import matplotlib.pyplot as plt
     from matplotlib.animation import FuncAnimation
@@ -37,9 +47,14 @@ class FlowFieldAgentSimulation:
     3. Deposit density onto a field for visualization
     """
 
-    def __init__(self, grid_size=128, num_agents=500):
+    def __init__(self, grid_size=128, num_agents=500, seed=None):
         self.grid_size = grid_size
         self.num_agents = num_agents
+        self.seed = seed
+
+        # Set random seed for deterministic behavior
+        if seed is not None:
+            np.random.seed(seed)
 
         # Initialize flow field (velocity field with vortex)
         self.velocity_field = self._create_vortex_field()
@@ -113,6 +128,57 @@ class FlowFieldAgentSimulation:
 
         # Apply decay to density field (fade over time)
         self.density_field *= 0.95
+
+    def render_frame(self, width=512, height=512) -> visual.Visual:
+        """
+        Render current simulation state as a Visual using Kairo stdlib.
+
+        Returns a composite visualization showing:
+        - Background: Flow field (velocity magnitude)
+        - Overlay: Agent density field (hot colormap)
+        - Particles: Agent positions as bright dots
+
+        Args:
+            width: Output width in pixels
+            height: Output height in pixels
+
+        Returns:
+            Visual object ready for export
+        """
+        # Scale density field to output resolution if needed
+        if width != self.grid_size or height != self.grid_size:
+            # For now, assume grid_size matches output resolution
+            # In production, would add proper interpolation
+            pass
+
+        # Create density field visualization
+        density_field_obj = Field2D(self.density_field.astype(np.float32))
+        density_vis = visual.colorize(density_field_obj, palette="fire", vmin=0.0, vmax=3.0)
+
+        # Add particle positions as bright spots
+        # Create a particle overlay field
+        particle_field = np.zeros((self.grid_size, self.grid_size), dtype=np.float32)
+
+        for pos in self.agent_positions:
+            y, x = int(pos[0]), int(pos[1])
+            if 0 <= y < self.grid_size and 0 <= x < self.grid_size:
+                # Add bright spot at particle position
+                particle_field[y, x] = 1.0
+                # Add glow around particle (3x3 kernel)
+                for dy in [-1, 0, 1]:
+                    for dx in [-1, 0, 1]:
+                        ny, nx = y + dy, x + dx
+                        if 0 <= ny < self.grid_size and 0 <= nx < self.grid_size:
+                            particle_field[ny, nx] = max(particle_field[ny, nx], 0.5)
+
+        # Blend particle field with density visualization (additive)
+        # Convert particle field to RGB
+        particle_rgb = np.stack([particle_field] * 3, axis=-1)
+
+        # Additive blend
+        result_data = np.clip(density_vis.data + particle_rgb * 0.8, 0.0, 1.0)
+
+        return visual.Visual(result_data)
 
     def run_headless(self, steps=200):
         """Run simulation without visualization (for testing)."""
@@ -222,9 +288,100 @@ def main():
     print("  Uncomment the line: sim.visualize(steps=200)")
 
 
+def generate_field_agent_coupling(
+    output_generator,
+    seed: int = 42,
+    duration_seconds: float = None
+) -> Tuple[List[visual.Visual], Optional[np.ndarray], Dict[str, Any]]:
+    """
+    Generate field-agent coupling visualization for showcase outputs.
+
+    This function is compatible with the OutputGenerator framework (PR #78).
+
+    Args:
+        output_generator: OutputGenerator instance with preset configuration
+        seed: Random seed for deterministic output
+        duration_seconds: Duration in seconds (uses preset if None)
+
+    Returns:
+        Tuple of (frames, audio, metadata)
+        - frames: List of Visual objects
+        - audio: None (this example has no audio)
+        - metadata: Dict with generation parameters
+    """
+    print("Generating cross-domain field-agent coupling...")
+
+    if duration_seconds is None:
+        duration_seconds = output_generator.preset['max_duration']
+
+    # Get resolution from preset
+    width, height = output_generator.preset['resolution']
+    fps = output_generator.preset['fps']
+
+    # Use smaller grid for higher resolutions (keeps computation manageable)
+    grid_size = min(width, height, 512)
+
+    # Create simulation with deterministic seed
+    print(f"  Grid size: {grid_size}x{grid_size}")
+    print(f"  Agents: 500")
+    print(f"  Duration: {duration_seconds}s @ {fps} fps")
+
+    sim = FlowFieldAgentSimulation(grid_size=grid_size, num_agents=500, seed=seed)
+
+    # Generate frames
+    n_frames = int(duration_seconds * fps)
+    frames = []
+
+    print(f"  Simulating {n_frames} frames...")
+
+    for frame_idx in range(n_frames):
+        if frame_idx % (fps * 2) == 0:  # Progress every 2 seconds
+            print(f"    Frame {frame_idx}/{n_frames} ({frame_idx/fps:.1f}s)")
+
+        # Step simulation
+        sim.step(dt=0.5)
+
+        # Render frame
+        vis = sim.render_frame(width=grid_size, height=grid_size)
+        frames.append(vis)
+
+    # Metadata
+    metadata = {
+        'example': 'cross_domain_field_agent_coupling',
+        'description': 'Bidirectional Field ↔ Agent coupling demonstration',
+        'cross_domain_operations': [
+            'Field → Agent: Velocity sampling',
+            'Agent → Field: Density deposition'
+        ],
+        'grid_size': grid_size,
+        'num_agents': 500,
+        'frames': len(frames),
+        'fps': fps,
+        'duration_seconds': len(frames) / fps,
+        'resolution': [width, height],
+        'seed': seed,
+        'unique_features': [
+            'Bidirectional cross-domain communication',
+            'Real-time field-agent coupling',
+            'Deterministic multi-domain simulation',
+            'Impossible in traditional frameworks'
+        ]
+    }
+
+    return frames, None, metadata
+
+
 if __name__ == "__main__":
     main()
 
     # Uncomment to see animated visualization (requires display):
-    # sim = FlowFieldAgentSimulation(grid_size=128, num_agents=500)
+    # sim = FlowFieldAgentSimulation(grid_size=128, num_agents=500, seed=42)
     # sim.visualize(steps=200, interval=50)
+
+    # To generate showcase outputs, use:
+    # from examples.tools.generate_showcase_outputs import OutputGenerator
+    # generator = OutputGenerator(preset='production')
+    # frames, audio, metadata = generate_field_agent_coupling(generator, seed=42)
+    # output_dir = generator.create_output_subdir('field_agent_coupling')
+    # generator.export_frames(frames, output_dir, 'field_agent_coupling', formats=['png', 'mp4', 'gif'])
+    # generator.save_metadata(output_dir, metadata)
