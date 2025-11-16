@@ -1,0 +1,238 @@
+"""
+Cross-Domain Transform Registry
+
+Maintains a global registry of all available cross-domain transformations.
+Supports discovery, validation, and automatic selection of transforms.
+"""
+
+from typing import Dict, List, Optional, Tuple, Type
+from .interface import DomainInterface
+
+
+class CrossDomainRegistry:
+    """
+    Global registry for cross-domain transforms.
+
+    Maintains mappings:
+        (source_domain, target_domain) → DomainInterface subclass
+
+    Usage:
+        # Register a transform
+        CrossDomainRegistry.register("field", "agent", FieldToAgentInterface)
+
+        # Lookup a transform
+        transform_class = CrossDomainRegistry.get("field", "agent")
+
+        # List all transforms for a domain
+        transforms = CrossDomainRegistry.list_transforms("field")
+    """
+
+    _registry: Dict[Tuple[str, str], Type[DomainInterface]] = {}
+    _metadata: Dict[Tuple[str, str], Dict] = {}
+
+    @classmethod
+    def register(
+        cls,
+        source: str,
+        target: str,
+        interface_class: Type[DomainInterface],
+        metadata: Optional[Dict] = None
+    ):
+        """
+        Register a cross-domain transform.
+
+        Args:
+            source: Source domain name
+            target: Target domain name
+            interface_class: DomainInterface subclass
+            metadata: Optional metadata (description, examples, etc.)
+        """
+        key = (source, target)
+
+        if key in cls._registry:
+            # Allow re-registration (for updates), but warn
+            print(f"Warning: Overwriting transform {source} → {target}")
+
+        cls._registry[key] = interface_class
+        cls._metadata[key] = metadata or {}
+
+    @classmethod
+    def get(
+        cls,
+        source: str,
+        target: str,
+        raise_if_missing: bool = True
+    ) -> Optional[Type[DomainInterface]]:
+        """
+        Get a registered transform.
+
+        Args:
+            source: Source domain name
+            target: Target domain name
+            raise_if_missing: If True, raise KeyError if not found
+
+        Returns:
+            DomainInterface subclass, or None if not found
+
+        Raises:
+            KeyError: If transform not registered and raise_if_missing=True
+        """
+        key = (source, target)
+
+        if key not in cls._registry:
+            if raise_if_missing:
+                raise KeyError(
+                    f"No transform registered for {source} → {target}. "
+                    f"Available transforms: {cls.list_all()}"
+                )
+            return None
+
+        return cls._registry[key]
+
+    @classmethod
+    def list_transforms(cls, domain: str, direction: str = "both") -> List[Tuple[str, str]]:
+        """
+        List all transforms involving a domain.
+
+        Args:
+            domain: Domain name
+            direction: "source", "target", or "both"
+
+        Returns:
+            List of (source, target) tuples
+        """
+        transforms = []
+
+        for (source, target) in cls._registry.keys():
+            if direction == "source" and source == domain:
+                transforms.append((source, target))
+            elif direction == "target" and target == domain:
+                transforms.append((source, target))
+            elif direction == "both" and (source == domain or target == domain):
+                transforms.append((source, target))
+
+        return transforms
+
+    @classmethod
+    def list_all(cls) -> List[Tuple[str, str]]:
+        """List all registered transforms."""
+        return list(cls._registry.keys())
+
+    @classmethod
+    def has_transform(cls, source: str, target: str) -> bool:
+        """Check if a transform is registered."""
+        return (source, target) in cls._registry
+
+    @classmethod
+    def get_metadata(cls, source: str, target: str) -> Dict:
+        """Get metadata for a transform."""
+        key = (source, target)
+        return cls._metadata.get(key, {})
+
+    @classmethod
+    def clear(cls):
+        """Clear all registered transforms (useful for testing)."""
+        cls._registry.clear()
+        cls._metadata.clear()
+
+    @classmethod
+    def visualize(cls) -> str:
+        """
+        Create a text visualization of the transform graph.
+
+        Returns:
+            String representation of domain connections
+        """
+        if not cls._registry:
+            return "No transforms registered."
+
+        # Group by source domain
+        from collections import defaultdict
+        graph = defaultdict(list)
+
+        for (source, target) in cls._registry.keys():
+            graph[source].append(target)
+
+        lines = ["Cross-Domain Transform Graph:", ""]
+
+        for source in sorted(graph.keys()):
+            targets = ", ".join(sorted(graph[source]))
+            lines.append(f"  {source} → {targets}")
+
+        return "\n".join(lines)
+
+
+def register_transform(
+    source: str,
+    target: str,
+    metadata: Optional[Dict] = None
+):
+    """
+    Decorator to register a DomainInterface subclass.
+
+    Example:
+        @register_transform("field", "agent", metadata={"version": "1.0"})
+        class FieldToAgentInterface(DomainInterface):
+            ...
+    """
+    def decorator(interface_class: Type[DomainInterface]):
+        CrossDomainRegistry.register(source, target, interface_class, metadata)
+        return interface_class
+
+    return decorator
+
+
+# ============================================================================
+# Auto-register built-in transforms
+# ============================================================================
+
+def register_builtin_transforms():
+    """Register all built-in cross-domain transforms."""
+    from .interface import (
+        FieldToAgentInterface,
+        AgentToFieldInterface,
+        PhysicsToAudioInterface,
+    )
+
+    CrossDomainRegistry.register(
+        "field", "agent",
+        FieldToAgentInterface,
+        metadata={
+            "description": "Sample field values at agent positions",
+            "use_cases": [
+                "Flow field → particle forces",
+                "Temperature field → agent behavior",
+                "Density field → agent sensing"
+            ]
+        }
+    )
+
+    CrossDomainRegistry.register(
+        "agent", "field",
+        AgentToFieldInterface,
+        metadata={
+            "description": "Deposit agent properties onto field grid",
+            "use_cases": [
+                "Particle positions → density field",
+                "Agent velocities → velocity field",
+                "Agent heat → temperature sources"
+            ]
+        }
+    )
+
+    CrossDomainRegistry.register(
+        "physics", "audio",
+        PhysicsToAudioInterface,
+        metadata={
+            "description": "Sonification of physical events",
+            "use_cases": [
+                "Collision forces → percussion",
+                "Body velocities → pitch/volume",
+                "Contact points → spatial audio"
+            ]
+        }
+    )
+
+
+# Auto-register on import
+register_builtin_transforms()

@@ -109,6 +109,10 @@ class Parser:
         if token.type == TokenType.COMPOSE:
             return self.parse_compose()
 
+        # Link statement
+        if token.type == TokenType.LINK:
+            return self.parse_link()
+
         # Assignment or expression statement
         if token.type == TokenType.IDENTIFIER:
             # Look ahead to determine if it's an assignment or expression statement
@@ -438,6 +442,52 @@ class Parser:
 
         self.expect(TokenType.RPAREN)
         return Compose(modules)
+
+    def parse_link(self) -> 'Link':
+        """
+        Parse a link statement for dependency metadata.
+
+        Syntax:
+            link module_name
+            link module_name { key: value, ... }
+        """
+        self.expect(TokenType.LINK)
+
+        # Parse target identifier (not a full expression to avoid struct literal interpretation)
+        target_token = self.expect(TokenType.IDENTIFIER)
+        target = Identifier(target_token.value)
+
+        # Parse optional metadata dict
+        metadata = None
+        if self.current_token().type == TokenType.LBRACE:
+            self.advance()
+            self.skip_newlines()
+
+            metadata = {}
+            while self.current_token().type != TokenType.RBRACE:
+                self.skip_newlines()  # Skip newlines before each key
+
+                # Check again for RBRACE after skipping newlines
+                if self.current_token().type == TokenType.RBRACE:
+                    break
+
+                # Parse key
+                key = self.expect(TokenType.IDENTIFIER).value
+                self.expect(TokenType.COLON)
+
+                # Parse value (can be any expression)
+                value = self.parse_expression()
+
+                metadata[key] = value
+
+                if self.current_token().type == TokenType.COMMA:
+                    self.advance()
+                    self.skip_newlines()
+
+            self.expect(TokenType.RBRACE)
+
+        from kairo.ast.nodes import Link
+        return Link(target=target, metadata=metadata)
 
     def parse_assignment(self, decorators: List[Decorator] = None) -> Assignment:
         """Parse an assignment statement."""
