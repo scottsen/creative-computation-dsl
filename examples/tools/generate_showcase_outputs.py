@@ -191,17 +191,20 @@ class OutputGenerator:
             print(f"  ⚠ Warning: Audio peak = {peak:.2f}, normalizing to prevent clipping")
             audio_data = audio_data / peak * 0.95
 
+        # Create AudioBuffer
+        audio_buffer = audio.AudioBuffer(data=audio_data, sample_rate=sample_rate)
+
         # WAV export
         if 'wav' in formats:
             wav_path = output_dir / f"{name}.wav"
-            audio.save(audio_data, str(wav_path), sample_rate=sample_rate)
+            audio.audio.save(audio_buffer, str(wav_path))
             duration = len(audio_data) / sample_rate
             print(f"  ✓ Saved audio (WAV): {wav_path.name} ({duration:.1f}s @ {sample_rate}Hz)")
 
         # FLAC export (lossless compression)
         if 'flac' in formats:
             flac_path = output_dir / f"{name}.flac"
-            audio.save(audio_data, str(flac_path), sample_rate=sample_rate)
+            audio.audio.save(audio_buffer, str(flac_path))
             print(f"  ✓ Saved audio (FLAC): {flac_path.name}")
 
 
@@ -469,6 +472,26 @@ def import_example_generators():
         generators['fireworks_audio'] = generate_fireworks_with_audio
     except ImportError as e:
         print(f"Warning: Could not import fireworks_audio generator: {e}")
+
+    # Try to import audio visualizer
+    try:
+        sys.path.insert(0, str(Path(__file__).parent.parent / 'showcase'))
+        from showcase.audio_visualizer_05 import generate_audio_visualizer
+        generators['audio_visualizer'] = generate_audio_visualizer
+    except ImportError:
+        # Try alternative import path
+        try:
+            import importlib.util
+            spec = importlib.util.spec_from_file_location(
+                "audio_visualizer",
+                Path(__file__).parent.parent / 'showcase' / '05_audio_visualizer.py'
+            )
+            if spec and spec.loader:
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                generators['audio_visualizer'] = module.generate_audio_visualizer
+        except Exception as e:
+            print(f"Warning: Could not import audio_visualizer generator: {e}")
 
     return generators
 

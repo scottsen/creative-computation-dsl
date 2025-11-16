@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import List, Optional, Tuple, Dict, Any
 
 from kairo.stdlib.agents import agents, particle_behaviors
-from kairo.stdlib.visual import visual
+from kairo.stdlib.visual import visual, Visual
 from kairo.stdlib import audio
 
 
@@ -271,7 +271,7 @@ def generate_fireworks_with_audio(
     output_generator,
     seed: int = 42,
     duration_seconds: float = None
-) -> Tuple[List[visual.Visual], Optional[np.ndarray], Dict[str, Any]]:
+) -> Tuple[List[Visual], Optional[np.ndarray], Dict[str, Any]]:
     """
     Generate fireworks visualization with synchronized audio.
 

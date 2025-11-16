@@ -5,7 +5,7 @@ for sparse particle/agent-based modeling, including allocation, mapping, filteri
 force calculations, and field-agent coupling.
 """
 
-from typing import Callable, Optional, Dict, Any, Tuple
+from typing import Callable, Optional, Dict, Any, Tuple, Union
 import numpy as np
 
 

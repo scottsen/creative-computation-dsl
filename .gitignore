@@ -59,8 +59,13 @@ dmypy.json
 *.mp4
 *.wav
 *.mp3
+*.gif
+*.flac
 !mvp_test_output.png
 !examples/output_*.png
+
+# Generated showcase outputs (test artifacts)
+examples/outputs/
 
 # Temporary files
 *.tmp

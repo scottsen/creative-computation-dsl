@@ -21,8 +21,43 @@ Creates beautiful visualizations that react to audio:
 import numpy as np
 import subprocess
 from pathlib import Path
-from kairo.stdlib import audio, field, cellular, palette, color, image, noise, visual
+from kairo.stdlib import audio, field, cellular, palette, color, image, noise, visual, Visual
 from kairo.stdlib.field import Field2D
+
+
+def get_palette(colormap_name: str, resolution: int = 256):
+    """Get a palette by name.
+
+    Args:
+        colormap_name: Name of the colormap (plasma, magma, viridis, inferno, etc.)
+        resolution: Number of colors in palette
+
+    Returns:
+        Palette object
+    """
+    colormap_name = colormap_name.lower()
+
+    # Map common colormap names to palette methods
+    if colormap_name == 'plasma':
+        return palette.plasma(resolution)
+    elif colormap_name == 'magma':
+        return palette.magma(resolution)
+    elif colormap_name == 'viridis':
+        return palette.viridis(resolution)
+    elif colormap_name == 'inferno':
+        return palette.inferno(resolution)
+    elif colormap_name in ['hot', 'fire']:
+        return palette.fire(resolution)
+    elif colormap_name in ['cool', 'ice']:
+        return palette.ice(resolution)
+    elif colormap_name == 'rainbow':
+        return palette.rainbow(resolution)
+    elif colormap_name == 'greyscale':
+        return palette.greyscale(resolution)
+    else:
+        # Default to viridis for unknown colormaps
+        print(f"Warning: Unknown colormap '{colormap_name}', using viridis")
+        return palette.viridis(resolution)
 
 
 def create_video_with_audio(frames, audio_buffer, output_path, fps=30, cleanup=True):
@@ -103,7 +138,13 @@ def compute_fft_spectrum(audio_buffer, window_size=2048, hop_size=512):
         2D array of spectral magnitudes (time x frequency)
     """
     data = audio_buffer.data
+
+    # Handle edge case: audio too short for FFT
+    if len(data) < window_size:
+        return np.zeros((1, window_size // 2))
+
     num_frames = (len(data) - window_size) // hop_size + 1
+    num_frames = max(1, num_frames)  # Ensure at least 1 frame
 
     spectrum = np.zeros((num_frames, window_size // 2))
 
@@ -184,8 +225,8 @@ def create_spectrum_analyzer(audio_buffer, width=800, height=400,
         spectrum_final = spectrum_final / spectrum_final.max()
 
     # Apply colormap
-    pal = palette.create_gradient(colormap, 256)
-    img = palette.apply(pal, spectrum_final)
+    pal = get_palette(colormap, 256)
+    img = palette.map(pal,spectrum_final)
 
     return img
 
@@ -233,8 +274,8 @@ def create_waveform_visualization(audio_buffer, width=800, height=200,
         waveform_field[min_y:max_y+1, i] = 1.0
 
     # Apply colormap
-    pal = palette.create_gradient(colormap, 256)
-    img = palette.apply(pal, waveform_field)
+    pal = get_palette(colormap, 256)
+    img = palette.map(pal,waveform_field)
 
     return img
 
@@ -341,8 +382,8 @@ def create_beat_synchronized_patterns(audio_buffer, pattern_size=300):
     pattern.data = np.clip(pattern.data, 0, 1)
 
     # Apply colormap
-    pal = palette.create_gradient('hot', 256)
-    img = palette.apply(pal, pattern.data)
+    pal = get_palette('hot', 256)
+    img = palette.map(pal, pattern.data)
 
     return img
 
@@ -398,8 +439,8 @@ def create_audio_reactive_field(audio_buffer, width=400, height=400):
     heat_field.data = np.clip(heat_field.data, 0, 1)
 
     # Apply colormap
-    pal = palette.create_gradient('inferno', 256)
-    img = palette.apply(pal, heat_field.data)
+    pal = get_palette('inferno', 256)
+    img = palette.map(pal, heat_field.data)
 
     return img
 
@@ -500,8 +541,8 @@ def demo_audio_reactive_ca():
             ca_field = ca_frames[frame_idx]
 
             # Visualize
-            pal = palette.create_gradient('magma', 256)
-            img = palette.apply(pal, ca_field.data.astype(np.float32))
+            pal = get_palette('magma', 256)
+            img = palette.map(pal, ca_field.data.astype(np.float32))
 
             output_path = f"output_audio_reactive_ca_frame{idx:02d}.png"
             image.save(img, output_path)
@@ -652,11 +693,11 @@ def create_animated_spectrum_video(audio_buffer, output_path="output_spectrum_vi
             spectrum_resized = spectrum_resized / spectrum_resized.max()
 
         # Apply colormap
-        pal = palette.create_gradient('plasma', 256)
-        img = palette.apply(pal, spectrum_resized)
+        pal = get_palette('plasma', 256)
+        img = palette.map(pal, spectrum_resized)
 
         # Convert to Visual
-        vis = visual.Visual(img)
+        vis = Visual(img)
         frames.append(vis)
 
         if frame_idx % (fps * 2) == 0:
@@ -735,11 +776,11 @@ def create_waveform_animation(audio_buffer, output_path="output_waveform_video.m
         waveform_field[:, marker_x] = 0.5
 
         # Apply colormap
-        pal = palette.create_gradient('cool', 256)
-        img = palette.apply(pal, waveform_field)
+        pal = get_palette('cool', 256)
+        img = palette.map(pal, waveform_field)
 
         # Convert to Visual
-        vis = visual.Visual(img)
+        vis = Visual(img)
         frames.append(vis)
 
         if frame_idx % (fps * 2) == 0:
@@ -846,15 +887,205 @@ def demo_video_exports():
                 spectrum_resized = spectrum_resized / spectrum_resized.max()
 
             # Apply colormap
-            pal = palette.create_gradient('plasma', 256)
-            img = palette.apply(pal, spectrum_resized)
-            spectrum_frames.append(visual.Visual(img))
+            pal = get_palette('plasma', 256)
+            img = palette.map(pal, spectrum_resized)
+            spectrum_frames.append(Visual(img))
 
     if spectrum_frames:
         visual.video(spectrum_frames, "output_spectrum_loop.gif", fps=15)
         print("   ✓ Saved: output_spectrum_loop.gif")
 
     print()
+
+
+def generate_audio_visualizer(
+    output_generator,
+    seed: int = 42,
+    duration_seconds: float = None
+):
+    """
+    Generate audio visualizer showcase output for OutputGenerator framework.
+
+    Creates a composite visualization showing multiple audio-reactive modes:
+    - Spectrum analyzer
+    - Audio-reactive cellular automata
+    - Waveform display
+
+    Args:
+        output_generator: OutputGenerator instance with preset configuration
+        seed: Random seed for deterministic output
+        duration_seconds: Duration in seconds (uses preset if None)
+
+    Returns:
+        Tuple of (frames, audio_data, metadata)
+        - frames: List of Visual objects
+        - audio_data: Audio samples (numpy array)
+        - metadata: Dict with generation parameters
+    """
+    print("Generating audio visualizer showcase...")
+
+    if duration_seconds is None:
+        duration_seconds = min(10, output_generator.preset['max_duration'])
+
+    # Get configuration from preset
+    width, height = output_generator.preset['resolution']
+    fps = output_generator.preset['fps']
+    sample_rate = output_generator.preset['audio_sr']
+
+    # Set random seed for deterministic audio generation
+    np.random.seed(seed)
+
+    print(f"  Resolution: {width}x{height}")
+    print(f"  Duration: {duration_seconds}s @ {fps} fps")
+    print(f"  Audio: {sample_rate}Hz")
+    print()
+
+    # Generate test audio: Musical arpeggio with rhythm
+    print("  Generating audio...")
+    t = np.arange(int(duration_seconds * sample_rate)) / sample_rate
+
+    # Create musical sequence with rhythm
+    audio_data = np.zeros_like(t)
+
+    # Arpeggio pattern (C major chord with rhythm)
+    notes = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63]  # C, E, G, C, G, E
+    note_duration = duration_seconds / len(notes)
+
+    for i, freq in enumerate(notes):
+        start_time = i * note_duration
+        end_time = (i + 1) * note_duration
+        mask = (t >= start_time) & (t < end_time)
+
+        # Sine wave with envelope
+        note_t = t[mask] - start_time
+        envelope = np.exp(-3 * note_t)
+        audio_data[mask] = np.sin(2 * np.pi * freq * note_t) * envelope * 0.5
+
+    # Add subtle background rhythm (kick pattern)
+    for beat_time in np.arange(0, duration_seconds, 0.5):
+        beat_idx = int(beat_time * sample_rate)
+        decay_samples = int(0.15 * sample_rate)
+        if beat_idx + decay_samples < len(audio_data):
+            envelope = np.exp(-15 * np.arange(decay_samples) / sample_rate)
+            kick = np.sin(2 * np.pi * 80 * np.arange(decay_samples) / sample_rate) * envelope
+            audio_data[beat_idx:beat_idx+decay_samples] += kick * 0.3
+
+    audio_buffer = audio.AudioBuffer(data=audio_data, sample_rate=sample_rate)
+
+    print("  ✓ Audio generated")
+    print()
+
+    # Generate frames with composite visualization
+    print(f"  Generating {int(duration_seconds * fps)} frames...")
+
+    n_frames = int(duration_seconds * fps)
+    frames = []
+
+    # Calculate layout for composite view (3 panels stacked vertically)
+    panel_height = height // 3
+    spectrum_height = panel_height
+    ca_height = panel_height
+    waveform_height = height - (spectrum_height + ca_height)  # Remaining space
+
+    # Pre-compute cellular automata frames
+    print("  Computing audio-reactive cellular automata...")
+    ca_frames = audio_reactive_cellular_automata(audio_buffer, ca_size=min(width, 512), duration=duration_seconds)
+
+    # Generate composite frames
+    for frame_idx in range(n_frames):
+        if frame_idx % (fps * 2) == 0:
+            print(f"    Frame {frame_idx}/{n_frames} ({frame_idx/fps:.1f}s)")
+
+        # Current time
+        current_time = frame_idx / fps
+        start_sample = int(current_time * sample_rate)
+
+        # Panel 1: Spectrum analyzer
+        # Use a sliding window of audio
+        window_samples = int(sample_rate * 0.5)  # 0.5 second window
+        end_sample = min(start_sample + window_samples, len(audio_data))
+        audio_segment = audio.AudioBuffer(
+            data=audio_data[start_sample:end_sample],
+            sample_rate=sample_rate
+        )
+
+        if len(audio_segment.data) > 0:
+            spectrum_img = create_spectrum_analyzer(
+                audio_segment,
+                width=width,
+                height=spectrum_height,
+                colormap='plasma'
+            )
+        else:
+            spectrum_img = np.zeros((spectrum_height, width, 3), dtype=np.uint8)
+
+        # Panel 2: Audio-reactive CA
+        ca_frame_idx = min(frame_idx, len(ca_frames) - 1)
+        ca_field = ca_frames[ca_frame_idx]
+
+        # Resize CA to panel size
+        from scipy.ndimage import zoom
+        scale_y = ca_height / ca_field.data.shape[0]
+        scale_x = width / ca_field.data.shape[1]
+        ca_resized = zoom(ca_field.data.astype(np.float32), (scale_y, scale_x), order=1)
+
+        # Colorize
+        pal = get_palette('magma', 256)
+        ca_img = palette.map(pal, ca_resized)
+
+        # Panel 3: Waveform
+        # Show waveform around current time
+        window_duration = 1.0  # Show 1 second of waveform
+        waveform_start = max(0, start_sample - int(window_duration * sample_rate // 2))
+        waveform_end = min(len(audio_data), waveform_start + int(window_duration * sample_rate))
+
+        waveform_segment = audio.AudioBuffer(
+            data=audio_data[waveform_start:waveform_end],
+            sample_rate=sample_rate
+        )
+
+        waveform_img = create_waveform_visualization(
+            waveform_segment,
+            width=width,
+            height=waveform_height,
+            colormap='cool'
+        )
+
+        # Composite: Stack three panels vertically
+        composite = np.vstack([spectrum_img, ca_img, waveform_img])
+
+        # Convert to Visual
+        vis = Visual(composite)
+        frames.append(vis)
+
+    print(f"  ✓ Generated {len(frames)} frames")
+    print()
+
+    # Prepare metadata
+    metadata = {
+        'example': 'audio_visualizer',
+        'description': 'Cross-domain audio visualization with spectrum, cellular automata, and waveform',
+        'domains': ['Audio', 'Field', 'Cellular', 'Palette', 'Visual'],
+        'cross_domain_operations': [
+            'Audio → Spectrum (FFT)',
+            'Audio → Cellular Automata (amplitude → cell birth)',
+            'Audio → Waveform (temporal visualization)'
+        ],
+        'frames': len(frames),
+        'fps': fps,
+        'duration_seconds': duration_seconds,
+        'resolution': [width, height],
+        'audio_sample_rate': sample_rate,
+        'audio_duration_seconds': len(audio_data) / sample_rate,
+        'seed': seed,
+        'visualization_modes': [
+            'Spectrum analyzer (plasma colormap)',
+            'Audio-reactive cellular automata (magma colormap)',
+            'Waveform display (cool colormap)'
+        ]
+    }
+
+    return frames, audio_data, metadata
 
 
 def main():

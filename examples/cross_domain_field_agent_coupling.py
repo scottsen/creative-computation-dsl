@@ -24,7 +24,7 @@ from kairo.cross_domain.interface import FieldToAgentInterface, AgentToFieldInte
 from kairo.cross_domain.registry import CrossDomainRegistry
 
 # Import Kairo visualization
-from kairo.stdlib import visual
+from kairo.stdlib import visual, Visual
 from kairo.stdlib.field import Field2D
 
 # Optional: matplotlib for interactive visualization
@@ -129,7 +129,7 @@ class FlowFieldAgentSimulation:
         # Apply decay to density field (fade over time)
         self.density_field *= 0.95
 
-    def render_frame(self, width=512, height=512) -> visual.Visual:
+    def render_frame(self, width=512, height=512) -> Visual:
         """
         Render current simulation state as a Visual using Kairo stdlib.
 
@@ -292,7 +292,7 @@ def generate_field_agent_coupling(
     output_generator,
     seed: int = 42,
     duration_seconds: float = None
-) -> Tuple[List[visual.Visual], Optional[np.ndarray], Dict[str, Any]]:
+) -> Tuple[List[Visual], Optional[np.ndarray], Dict[str, Any]]:
     """
     Generate field-agent coupling visualization for showcase outputs.
 
