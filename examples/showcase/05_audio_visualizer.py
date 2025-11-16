@@ -7,6 +7,7 @@ This example demonstrates the power of combining multiple Kairo domains:
 - Cellular automata driven by audio
 - Palette and color for stunning visuals
 - Image composition and export
+- Video output with embedded audio
 
 Creates beautiful visualizations that react to audio:
 - Spectrum analyzers with smooth animations
@@ -14,11 +15,80 @@ Creates beautiful visualizations that react to audio:
 - Waveform visualizations
 - Beat-synchronized patterns
 - Multi-domain integration showcase
+- Video + audio synchronization (the killer feature!)
 """
 
 import numpy as np
-from kairo.stdlib import audio, field, cellular, palette, color, image, noise
+import subprocess
+from pathlib import Path
+from kairo.stdlib import audio, field, cellular, palette, color, image, noise, visual
 from kairo.stdlib.field import Field2D
+
+
+def create_video_with_audio(frames, audio_buffer, output_path, fps=30, cleanup=True):
+    """Create video file with embedded audio using ffmpeg.
+
+    Args:
+        frames: List of Visual objects or RGB numpy arrays
+        audio_buffer: AudioBuffer to embed
+        output_path: Output path for final video (e.g., 'output.mp4')
+        fps: Frames per second
+        cleanup: Remove temporary files after creation
+
+    Returns:
+        Path to created video file
+    """
+    output_path = Path(output_path)
+    temp_dir = output_path.parent / "temp"
+    temp_dir.mkdir(exist_ok=True)
+
+    # Temporary files
+    temp_video = temp_dir / f"{output_path.stem}_novideo.mp4"
+    temp_audio = temp_dir / f"{output_path.stem}_audio.wav"
+
+    try:
+        # 1. Export video (without audio)
+        print(f"  Creating video frames...")
+        visual.video(frames, str(temp_video), fps=fps)
+
+        # 2. Export audio
+        print(f"  Exporting audio...")
+        audio.save(audio_buffer, str(temp_audio))
+
+        # 3. Combine with ffmpeg
+        print(f"  Combining video + audio with ffmpeg...")
+        cmd = [
+            'ffmpeg', '-y',  # Overwrite output
+            '-i', str(temp_video),  # Input video
+            '-i', str(temp_audio),  # Input audio
+            '-c:v', 'copy',  # Copy video codec
+            '-c:a', 'aac',  # AAC audio codec
+            '-strict', 'experimental',
+            '-shortest',  # Match shortest stream
+            str(output_path)
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"  ⚠ FFmpeg warning: {result.stderr}")
+            # Fallback: just save video without audio
+            import shutil
+            shutil.copy(temp_video, output_path)
+            print(f"  ⚠ Saved video without audio (ffmpeg failed)")
+        else:
+            print(f"  ✓ Video with audio created: {output_path.name}")
+
+    finally:
+        # Cleanup temporary files
+        if cleanup:
+            if temp_video.exists():
+                temp_video.unlink()
+            if temp_audio.exists():
+                temp_audio.unlink()
+            if temp_dir.exists() and not list(temp_dir.iterdir()):
+                temp_dir.rmdir()
+
+    return output_path
 
 
 def compute_fft_spectrum(audio_buffer, window_size=2048, hop_size=512):
@@ -500,13 +570,300 @@ def demo_audio_field_diffusion():
     print("   ✓ Saved: output_audio_field_diffusion.png")
 
 
+def create_animated_spectrum_video(audio_buffer, output_path="output_spectrum_video.mp4",
+                                    width=800, height=400, fps=30):
+    """Create animated spectrum analyzer video with audio.
+
+    Args:
+        audio_buffer: Audio to visualize
+        output_path: Output video path
+        width: Video width
+        height: Video height
+        fps: Frames per second
+
+    Returns:
+        Path to created video
+    """
+    print(f"Creating animated spectrum video ({fps} fps)...")
+
+    # Calculate number of frames needed
+    duration = audio_buffer.duration
+    n_frames = int(duration * fps)
+
+    # Window size and hop for FFT
+    window_size = 2048
+    hop_size = audio_buffer.sample_rate // fps  # Hop to match frame rate
+
+    frames = []
+
+    for frame_idx in range(n_frames):
+        # Get audio segment for this frame
+        start_sample = frame_idx * hop_size
+        end_sample = start_sample + window_size * 4  # Use 4 windows worth of context
+
+        if end_sample > len(audio_buffer.data):
+            end_sample = len(audio_buffer.data)
+
+        # Extract segment
+        segment = audio.AudioBuffer(
+            data=audio_buffer.data[start_sample:end_sample],
+            sample_rate=audio_buffer.sample_rate
+        )
+
+        # Compute spectrum for this segment
+        spectrum = compute_fft_spectrum(segment, window_size=window_size, hop_size=hop_size//2)
+
+        if spectrum.shape[0] == 0:
+            # Not enough data, use previous frame or black
+            if frames:
+                frames.append(frames[-1])
+            continue
+
+        # Resize spectrum to fit display
+        time_frames, freq_bins = spectrum.shape
+        freq_bins_display = min(freq_bins, height)
+
+        # Take recent time frames (scrolling effect)
+        time_frames_display = min(time_frames, width)
+        spectrum_slice = spectrum[-time_frames_display:, :freq_bins_display]
+
+        # Pad if needed
+        if spectrum_slice.shape[0] < width:
+            padding = np.zeros((width - spectrum_slice.shape[0], freq_bins_display))
+            spectrum_slice = np.vstack([padding, spectrum_slice])
+
+        if spectrum_slice.shape[1] < height:
+            spectrum_resized = np.zeros((width, height))
+            for i in range(width):
+                spectrum_resized[i, :] = np.interp(
+                    np.linspace(0, spectrum_slice.shape[1] - 1, height),
+                    np.arange(spectrum_slice.shape[1]),
+                    spectrum_slice[i, :]
+                )
+        else:
+            spectrum_resized = spectrum_slice[:, :height]
+
+        # Transpose for proper orientation
+        spectrum_resized = spectrum_resized.T
+
+        # Normalize
+        spectrum_resized = spectrum_resized - spectrum_resized.min()
+        if spectrum_resized.max() > 0:
+            spectrum_resized = spectrum_resized / spectrum_resized.max()
+
+        # Apply colormap
+        pal = palette.create_gradient('plasma', 256)
+        img = palette.apply(pal, spectrum_resized)
+
+        # Convert to Visual
+        vis = visual.Visual(img)
+        frames.append(vis)
+
+        if frame_idx % (fps * 2) == 0:
+            print(f"  Frame {frame_idx}/{n_frames} ({frame_idx/fps:.1f}s)")
+
+    # Create video with audio
+    print(f"  Generated {len(frames)} frames")
+    create_video_with_audio(frames, audio_buffer, output_path, fps=fps)
+
+    return output_path
+
+
+def create_waveform_animation(audio_buffer, output_path="output_waveform_video.mp4",
+                               width=800, height=400, fps=30):
+    """Create animated waveform video with audio.
+
+    Shows a sliding window of the waveform as the audio plays.
+
+    Args:
+        audio_buffer: Audio to visualize
+        output_path: Output video path
+        width: Video width
+        height: Video height
+        fps: Frames per second
+    """
+    print(f"Creating animated waveform video ({fps} fps)...")
+
+    duration = audio_buffer.duration
+    n_frames = int(duration * fps)
+    samples_per_frame = len(audio_buffer.data) // n_frames
+    window_samples = samples_per_frame * 30  # Show 30 frames worth of audio
+
+    frames = []
+
+    for frame_idx in range(n_frames):
+        # Center position in audio
+        center_sample = frame_idx * samples_per_frame
+
+        # Window around center
+        start = max(0, center_sample - window_samples // 2)
+        end = min(len(audio_buffer.data), center_sample + window_samples // 2)
+
+        # Extract window
+        window_data = audio_buffer.data[start:end]
+
+        # Create waveform field
+        waveform_field = np.zeros((height, width), dtype=np.float32)
+
+        samples_per_pixel = len(window_data) // width
+        if samples_per_pixel == 0:
+            samples_per_pixel = 1
+
+        for i in range(min(width, len(window_data) // samples_per_pixel)):
+            win_start = i * samples_per_pixel
+            win_end = win_start + samples_per_pixel
+
+            if win_end > len(window_data):
+                break
+
+            pixel_window = window_data[win_start:win_end]
+            min_val = np.min(pixel_window)
+            max_val = np.max(pixel_window)
+
+            # Map to pixel coordinates
+            min_y = int((min_val + 1.0) * 0.5 * height)
+            max_y = int((max_val + 1.0) * 0.5 * height)
+
+            min_y = np.clip(min_y, 0, height - 1)
+            max_y = np.clip(max_y, 0, height - 1)
+
+            # Draw vertical line
+            waveform_field[min_y:max_y+1, i] = 1.0
+
+        # Add current position marker
+        marker_x = width // 2
+        waveform_field[:, marker_x] = 0.5
+
+        # Apply colormap
+        pal = palette.create_gradient('cool', 256)
+        img = palette.apply(pal, waveform_field)
+
+        # Convert to Visual
+        vis = visual.Visual(img)
+        frames.append(vis)
+
+        if frame_idx % (fps * 2) == 0:
+            print(f"  Frame {frame_idx}/{n_frames}")
+
+    print(f"  Generated {len(frames)} frames")
+    create_video_with_audio(frames, audio_buffer, output_path, fps=fps)
+
+    return output_path
+
+
+def demo_video_exports():
+    """Demo: Create video exports with embedded audio."""
+    print("\n" + "=" * 60)
+    print("VIDEO EXPORT DEMOS (WITH AUDIO)")
+    print("=" * 60)
+    print()
+
+    # Generate test audio for videos
+    print("Generating test audio...")
+    duration = 5.0
+    sample_rate = 44100
+
+    # Create a musical sequence
+    t = np.arange(int(duration * sample_rate)) / sample_rate
+
+    # Arpeggio pattern (C major scale)
+    notes = [261.63, 329.63, 392.00, 523.25]  # C, E, G, C
+    audio_data = np.zeros_like(t)
+
+    for i, freq in enumerate(notes):
+        start = i * duration / 4
+        end = (i + 1) * duration / 4
+        mask = (t >= start) & (t < end)
+
+        # Sine wave with envelope
+        note_t = t[mask] - start
+        envelope = np.exp(-3 * note_t)
+        audio_data[mask] = np.sin(2 * np.pi * freq * note_t) * envelope * 0.5
+
+    test_audio = audio.AudioBuffer(data=audio_data, sample_rate=sample_rate)
+
+    # Video 1: Animated spectrum
+    print("\nVideo 1: Animated Spectrum Analyzer")
+    print("-" * 60)
+    create_animated_spectrum_video(
+        test_audio,
+        output_path="output_spectrum_animated.mp4",
+        width=800,
+        height=400,
+        fps=30
+    )
+    print("   ✓ Saved: output_spectrum_animated.mp4")
+
+    # Video 2: Animated waveform
+    print("\nVideo 2: Animated Waveform")
+    print("-" * 60)
+    create_waveform_animation(
+        test_audio,
+        output_path="output_waveform_animated.mp4",
+        width=800,
+        height=400,
+        fps=30
+    )
+    print("   ✓ Saved: output_waveform_animated.mp4")
+
+    # Also create GIFs (without audio, for web)
+    print("\nCreating GIFs for web...")
+    print("-" * 60)
+
+    # Generate shorter clips for GIFs
+    short_duration = 2.0
+    short_audio = audio.AudioBuffer(
+        data=audio_data[:int(short_duration * sample_rate)],
+        sample_rate=sample_rate
+    )
+
+    # Spectrum GIF
+    print("  Creating spectrum GIF...")
+    spectrum_frames = []
+    n_frames = int(short_duration * 15)  # 15 fps for GIF
+    hop_size = len(short_audio.data) // n_frames
+
+    for i in range(n_frames):
+        start = i * hop_size
+        end = min(start + 2048 * 4, len(short_audio.data))
+        segment = audio.AudioBuffer(data=short_audio.data[start:end], sample_rate=sample_rate)
+
+        spectrum = compute_fft_spectrum(segment, window_size=2048, hop_size=512)
+        if spectrum.shape[0] > 0:
+            # Resize to 400x200 for smaller GIF
+            spectrum_slice = spectrum[-200:, :100] if spectrum.shape[0] >= 200 else spectrum[:, :100]
+
+            # Pad if needed
+            if spectrum_slice.shape[0] < 200:
+                padding = np.zeros((200 - spectrum_slice.shape[0], spectrum_slice.shape[1]))
+                spectrum_slice = np.vstack([padding, spectrum_slice])
+
+            spectrum_resized = spectrum_slice.T
+
+            # Normalize
+            spectrum_resized = spectrum_resized - spectrum_resized.min()
+            if spectrum_resized.max() > 0:
+                spectrum_resized = spectrum_resized / spectrum_resized.max()
+
+            # Apply colormap
+            pal = palette.create_gradient('plasma', 256)
+            img = palette.apply(pal, spectrum_resized)
+            spectrum_frames.append(visual.Visual(img))
+
+    if spectrum_frames:
+        visual.video(spectrum_frames, "output_spectrum_loop.gif", fps=15)
+        print("   ✓ Saved: output_spectrum_loop.gif")
+
+    print()
+
+
 def main():
     """Run all audio visualizer demonstrations."""
     print("=" * 60)
     print("AUDIO VISUALIZER - CROSS-DOMAIN SHOWCASE")
     print("=" * 60)
     print()
-    print("Domains: Audio + Field + Cellular + Palette + Image")
+    print("Domains: Audio + Field + Cellular + Palette + Image + Video")
     print()
 
     # Demo 1: Spectrum analyzer
@@ -539,6 +896,12 @@ def main():
     demo_audio_field_diffusion()
     print()
 
+    # Demo 6: Video exports
+    print("Demo 6: Video Exports with Audio")
+    print("-" * 60)
+    demo_video_exports()
+    print()
+
     print("=" * 60)
     print("ALL AUDIO VISUALIZER DEMOS COMPLETE!")
     print("=" * 60)
@@ -548,11 +911,17 @@ def main():
     print("  • Field operations (diffusion, heat propagation)")
     print("  • Cellular automata (audio-reactive patterns)")
     print("  • Color mapping and palettes")
+    print("  • Video output with embedded audio ⭐")
     print("  • Cross-domain integration")
     print()
     print("Key insight: Temporal domains (audio) can drive")
     print("spatial domains (field, cellular) to create")
     print("stunning audio-reactive visualizations!")
+    print()
+    print("🎬 Video files created with synchronized audio!")
+    print("   - output_spectrum_animated.mp4")
+    print("   - output_waveform_animated.mp4")
+    print("   - output_spectrum_loop.gif (web-friendly)")
 
 
 if __name__ == "__main__":
