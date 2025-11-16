@@ -94,25 +94,144 @@ class ASTVisitor:
 
 
 class TypeChecker(ASTVisitor):
-    """Type checker visitor."""
+    """Type checker visitor with dimensional analysis."""
 
     def __init__(self):
         self.symbol_table: dict[str, 'Type'] = {}
         self.errors: List[str] = []
 
+    def _validate_unit_expression(self, unit_str: Optional[str]) -> bool:
+        """Validate that a unit expression is parseable.
+
+        Args:
+            unit_str: Unit expression string
+
+        Returns:
+            True if valid or None, False if invalid
+        """
+        if unit_str is None:
+            return True
+
+        try:
+            from kairo.types.units import parse_unit
+            parse_unit(unit_str)
+            return True
+        except (ValueError, ImportError) as e:
+            self.errors.append(f"Invalid unit expression '{unit_str}': {e}")
+            return False
+
+    def _infer_arithmetic_unit(self, left_type: 'Type', right_type: 'Type', op: str) -> Optional[str]:
+        """Infer the resulting unit from an arithmetic operation.
+
+        Args:
+            left_type: Type of left operand
+            right_type: Type of right operand
+            op: Operator ('+', '-', '*', '/', '^')
+
+        Returns:
+            Resulting unit string, or None if units don't match or are incompatible
+        """
+        try:
+            from kairo.types.units import parse_unit
+
+            left_unit = getattr(left_type, 'unit', None)
+            right_unit = getattr(right_type, 'unit', None)
+
+            # For addition/subtraction, units must match
+            if op in ['+', '-']:
+                if left_unit is None and right_unit is None:
+                    return None
+                if left_unit is None:
+                    return right_unit
+                if right_unit is None:
+                    return left_unit
+
+                # Check dimensional compatibility
+                left_parsed = parse_unit(left_unit)
+                right_parsed = parse_unit(right_unit)
+                if not left_parsed.is_compatible_with(right_parsed):
+                    self.errors.append(
+                        f"Unit mismatch in {op} operation: [{left_unit}] and [{right_unit}] are not compatible"
+                    )
+                    return None
+                return left_unit
+
+            # For multiplication, multiply units
+            elif op == '*':
+                if left_unit is None and right_unit is None:
+                    return None
+                if left_unit is None:
+                    return right_unit
+                if right_unit is None:
+                    return left_unit
+
+                left_parsed = parse_unit(left_unit)
+                right_parsed = parse_unit(right_unit)
+                result = left_parsed * right_parsed
+                return result.symbol
+
+            # For division, divide units
+            elif op == '/':
+                if left_unit is None and right_unit is None:
+                    return None
+                if left_unit is None:
+                    left_unit = "1"
+                if right_unit is None:
+                    right_unit = "1"
+
+                left_parsed = parse_unit(left_unit)
+                right_parsed = parse_unit(right_unit)
+                result = left_parsed / right_parsed
+                return result.symbol if not result.is_dimensionless() else None
+
+            # For power, raise unit to power (right operand must be dimensionless)
+            elif op == '^':
+                if right_unit is not None:
+                    right_parsed = parse_unit(right_unit)
+                    if not right_parsed.is_dimensionless():
+                        self.errors.append(
+                            f"Exponent must be dimensionless, got [{right_unit}]"
+                        )
+                        return None
+                if left_unit is None:
+                    return None
+                # For now, only support integer exponents
+                # Would need to get the actual value to compute the power
+                return left_unit
+
+            return None
+
+        except (ImportError, ValueError, AttributeError):
+            # If unit parsing fails, fall back to no unit
+            return None
+
     def visit_assignment(self, node: Assignment) -> Any:
-        """Type-check an assignment."""
+        """Type-check an assignment with unit validation."""
         # Visit the value to infer its type
         value_type = self.visit(node.value)
 
         # If there's a type annotation, check compatibility
         if node.type_annotation:
+            # Validate the unit expression first
+            self._validate_unit_expression(node.type_annotation.unit)
+
             declared_type = self._resolve_type_annotation(node.type_annotation)
-            if not value_type.is_compatible_with(declared_type):
-                self.errors.append(
-                    f"Type mismatch: cannot assign {value_type} to {declared_type}"
-                )
-                return None
+            if declared_type and value_type:
+                if not value_type.is_compatible_with(declared_type):
+                    # Provide helpful error message with unit information
+                    value_unit = getattr(value_type, 'unit', None)
+                    declared_unit = getattr(declared_type, 'unit', None)
+                    if value_unit or declared_unit:
+                        self.errors.append(
+                            f"Type mismatch in assignment to '{node.target}': "
+                            f"cannot assign {value_type} with unit [{value_unit or 'dimensionless'}] "
+                            f"to {declared_type} with unit [{declared_unit or 'dimensionless'}]"
+                        )
+                    else:
+                        self.errors.append(
+                            f"Type mismatch: cannot assign {value_type} to {declared_type}"
+                        )
+                    return None
 
         # Store the symbol in the symbol table
         self.symbol_table[node.target] = value_type

@@ -4,6 +4,19 @@ from dataclasses import dataclass
 from typing import Optional, List, Union
 from enum import Enum
 
+# Import unit checking functionality
+try:
+    from kairo.types.units import check_unit_compatibility, get_unit_dimensions
+except ImportError:
+    # Fallback if units module not available
+    def check_unit_compatibility(u1: Optional[str], u2: Optional[str]) -> bool:
+        if u1 is None or u2 is None:
+            return True
+        return u1 == u2
+
+    def get_unit_dimensions(u: Optional[str]):
+        return None
+
 
 class BaseType(Enum):
     """Core type categories in the DSL."""
@@ -72,10 +85,8 @@ class ScalarType(Type):
         # Base type must match
         if self.base != other.base:
             return False
-        # Units must be compatible (None is compatible with any unit)
-        if self.unit is None or other.unit is None:
-            return True
-        return self.unit == other.unit
+        # Units must be dimensionally compatible
+        return check_unit_compatibility(self.unit, other.unit)
 
 
 @dataclass
@@ -99,9 +110,8 @@ class VectorType(Type):
             return False
         if not self.element_type.is_compatible_with(other.element_type):
             return False
-        if self.unit is None or other.unit is None:
-            return True
-        return self.unit == other.unit
+        # Units must be dimensionally compatible
+        return check_unit_compatibility(self.unit, other.unit)
 
 
 @dataclass
@@ -125,9 +135,8 @@ class FieldType(Type):
             return False
         if not self.element_type.is_compatible_with(other.element_type):
             return False
-        if self.unit is None or other.unit is None:
-            return True
-        return self.unit == other.unit
+        # Units must be dimensionally compatible
+        return check_unit_compatibility(self.unit, other.unit)
 
 
 @dataclass
@@ -187,9 +196,8 @@ class SignalType(Type):
             return False
         if not self.element_type.is_compatible_with(other.element_type):
             return False
-        if self.unit is None or other.unit is None:
-            return True
-        return self.unit == other.unit
+        # Units must be dimensionally compatible
+        return check_unit_compatibility(self.unit, other.unit)
 
 
 @dataclass

@@ -1,6 +1,17 @@
 """Type system and unit checking for Creative Computation DSL."""
 
-from .type_system import TypeSystem, TypeChecker
-from .units import Unit, UnitSystem
+from .units import (
+    Unit,
+    Dimensions,
+    parse_unit,
+    check_unit_compatibility,
+    get_unit_dimensions,
+)
 
-__all__ = ["TypeSystem", "TypeChecker", "Unit", "UnitSystem"]
+__all__ = [
+    "Unit",
+    "Dimensions",
+    "parse_unit",
+    "check_unit_compatibility",
+    "get_unit_dimensions",
+]
