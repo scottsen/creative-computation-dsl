@@ -29,6 +29,7 @@ class NodeType(Enum):
     RETURN = "return"
     MODULE = "module"
     COMPOSE = "compose"
+    LINK = "link"
 
     # Type annotations
     TYPE_ANNOTATION = "type_annotation"
@@ -250,6 +251,17 @@ class Compose(Statement):
 
     def accept(self, visitor: 'ASTVisitor') -> Any:
         return visitor.visit_compose(self)
+
+
+@dataclass
+class Link(Statement):
+    """Dependency link metadata (no runtime cost)."""
+    target: Expression  # Module or variable to link to
+    metadata: Optional[dict] = None  # Dependency metadata
+    node_type: NodeType = field(default=NodeType.LINK)
+
+    def accept(self, visitor: 'ASTVisitor') -> Any:
+        return visitor.visit_link(self)
 
 
 @dataclass
