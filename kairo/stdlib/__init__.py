@@ -23,6 +23,7 @@ from .noise import noise, NoiseField2D, NoiseField3D, NoiseOperations
 from .palette import palette, Palette, PaletteOperations
 from .color import color, ColorOperations
 from .image import image, Image, ImageOperations
+from .cellular import cellular, CellularField2D, CellularField1D, CellularOperations, CARule
 
 __all__ = [
     # Core domains
@@ -46,4 +47,5 @@ __all__ = [
     "palette", "Palette", "PaletteOperations",
     "color", "ColorOperations",
     "image", "Image", "ImageOperations",
+    "cellular", "CellularField2D", "CellularField1D", "CellularOperations", "CARule",
 ]
