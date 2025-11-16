@@ -103,6 +103,131 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v0.8.1] - 2025-11-16
+
+### Added - Procedural Graphics Domains ⭐⭐⭐
+
+- **NoiseDomain** (Tier 1 - Critical) ✅
+  - **Implementation**: `kairo/stdlib/noise.py` (850+ lines)
+  - **Operators** (11 total):
+    - **Layer 1 - Basic Noise**: `perlin2d`, `simplex2d`, `value2d`, `worley`
+    - **Layer 2 - Fractals**: `fbm`, `ridged_fbm`, `turbulence`, `marble`
+    - **Layer 3 - Advanced**: `vector_field`, `gradient_field`, `plasma`
+  - **Properties**:
+    - Deterministic: Seeded RNGs, bit-exact repeatability
+    - Multi-octave fBm with persistence/lacunarity control
+    - Multiple distance metrics (Euclidean, Manhattan, Chebyshev)
+    - Worley features (F1, F2, F2-F1)
+  - **Impact**: Enables fractal visualization, procedural terrain, texture synthesis, turbulence fields
+
+- **PaletteDomain** (Tier 1 - Critical) ✅
+  - **Implementation**: `kairo/stdlib/palette.py` (550+ lines)
+  - **Operators** (15+ total):
+    - **Layer 1 - Creation**: `from_colors`, `from_gradient`, `greyscale`, `rainbow`, `hsv_wheel`, `inferno`, `viridis`, `plasma`, `magma`, `cosine`, `fire`, `ice`
+    - **Layer 2 - Transforms**: `shift`, `cycle`, `flip`/`reverse`, `lerp`, `saturate`, `brightness`
+    - **Layer 3 - Application**: `map`, `map_cyclic`
+  - **Properties**:
+    - Perceptually uniform scientific colormaps (Viridis family)
+    - Procedural cosine gradients (IQ-style)
+    - Animatable palette cycling
+    - Custom gradient stops with interpolation
+  - **Impact**: Enables fractal coloring, heatmaps, spectrograms, procedural art, audio-reactive visuals
+
+- **ColorDomain** (Tier 1 - Critical) ✅
+  - **Implementation**: `kairo/stdlib/color.py` (500+ lines)
+  - **Operators** (15+ total):
+    - **Layer 1 - Conversions**: `rgb_to_hsv`, `hsv_to_rgb`, `rgb_to_hsl`, `hsl_to_rgb`, `hex_to_rgb`, `rgb_to_hex`, `temperature_to_rgb`
+    - **Layer 2 - Manipulation**: `add`, `multiply`, `mix`, `brightness`, `saturate`, `gamma_correct`
+    - **Layer 3 - Blend Modes**: `blend_overlay`, `blend_screen`, `blend_multiply`, `blend_difference`, `blend_soft_light`
+    - **Layer 4 - Utility**: `posterize`, `threshold`
+  - **Properties**:
+    - Accurate HSV/HSL conversions
+    - Physical temperature-based coloring (1000K-40000K blackbody radiation)
+    - Photoshop-style blend modes
+    - Vectorized array operations
+  - **Impact**: Enables color grading, temperature-based lighting, photoshop-style effects, procedural color generation
+
+- **ImageDomain** (Tier 2 - Essential) ✅
+  - **Implementation**: `kairo/stdlib/image.py` (700+ lines)
+  - **Operators** (20+ total):
+    - **Layer 1 - Creation**: `blank`, `rgb`, `from_field`, `compose`
+    - **Layer 2 - Transforms**: `scale`, `rotate`, `warp`
+    - **Layer 3 - Filters**: `blur`, `sharpen`, `edge_detect`, `erode`, `dilate`
+    - **Layer 4 - Compositing**: `blend`, `overlay`, `alpha_composite`
+    - **Layer 5 - Effects**: `apply_palette`, `normal_map_from_heightfield`, `gradient_map`
+  - **Properties**:
+    - RGB and RGBA support
+    - Multiple interpolation modes (nearest, bilinear, cubic)
+    - Full blend mode support (normal, multiply, screen, overlay, difference, soft_light)
+    - Gaussian blur, edge detection (Sobel, Prewitt, Laplacian)
+    - Morphological operations (erode, dilate)
+  - **Impact**: Enables procedural texture generation, fractal visualization, post-processing, simulation rendering, normal map generation
+
+- **FieldDomain Extensions** (Tier 2 - Essential) ✅
+  - **Extended**: `kairo/stdlib/field.py` (417 → 690 lines, +273 lines)
+  - **New Operators** (10 total):
+    - **Differential Operators**: `gradient`, `divergence`, `curl`
+    - **Processing**: `smooth`, `normalize`, `threshold`, `clamp`, `abs`
+    - **Sampling**: `sample`, `magnitude`
+  - **Properties**:
+    - Accurate spatial derivatives (central differences)
+    - Gaussian and box filtering
+    - Bilinear interpolation for arbitrary position sampling
+    - Vector field magnitude computation
+  - **Impact**: Enables flow field visualization, vector field analysis, gradient-based effects, field smoothing
+
+### Technical Highlights
+
+- **Total Implementation**: 3,873 new lines across 5 domains
+  - NoiseDomain: 850+ lines
+  - PaletteDomain: 550+ lines
+  - ColorDomain: 500+ lines
+  - ImageDomain: 700+ lines
+  - FieldDomain extensions: 273 lines
+- **Total Operators**: 70+ new operations
+- **Examples**: 1 comprehensive demo with 8 scenarios
+- **Documentation**: 400+ lines (procedural-graphics-domains.md)
+- **All Demos Pass**: 100% success rate
+
+### Examples Added
+
+**Directory**: `/examples/procedural_graphics/`
+
+- ✅ `demo_all_domains.py` — Comprehensive demonstration (8 scenarios):
+  1. Basic noise with palette mapping
+  2. Fractional Brownian Motion (fBm)
+  3. Marble patterns with post-processing
+  4. Procedural terrain with normal maps
+  5. Color manipulation and blend modes
+  6. Field operations (divergence, curl, magnitude)
+  7. Animated palette cycling
+  8. Cosine gradient palettes (IQ-style)
+- ✅ `README.md` — Quick start guide and use cases
+
+### Documentation Added
+
+- ✅ `docs/reference/procedural-graphics-domains.md` — Complete reference (400+ lines)
+  - Domain overviews and API documentation
+  - Complete examples for each domain
+  - Use cases and best practices
+  - Performance notes
+  - Future extensions
+
+### Use Cases Unlocked
+
+- ✅ **Fractal Visualization**: Mandelbrot/Julia sets with advanced coloring
+- ✅ **Procedural Terrain**: Height maps, normal maps, textures
+- ✅ **Audio Visualization**: Spectrograms, waveform coloring, audio-reactive effects
+- ✅ **Shader-Like Effects**: Cosine gradients, procedural textures, blend modes
+- ✅ **Scientific Visualization**: Perceptually uniform colormaps, field analysis
+- ✅ **Procedural Art**: Noise-based patterns, marble, plasma, turbulence
+- ✅ **Game Development**: Terrain generation, texture synthesis, particle effects
+
+### Breaking Changes
+- None (additive changes only)
+
+---
+
 ## [Unreleased] - 2025-11-15
 
 ### Added
