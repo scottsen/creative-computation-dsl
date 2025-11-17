@@ -23,6 +23,7 @@ import numpy as np
 from typing import List, Tuple, Optional, Callable, Union, Dict, Any
 from dataclasses import dataclass, field
 from enum import Enum
+from ..decorator import operator
 
 
 # ============================================================================
@@ -836,6 +837,7 @@ class Optimizer:
 # Convenience Functions
 # ============================================================================
 
+@operator
 def minimize(objective_fn, bounds=None, initial=None, method='auto', **kwargs):
     """
     Convenience function for minimization.
@@ -844,21 +846,25 @@ def minimize(objective_fn, bounds=None, initial=None, method='auto', **kwargs):
     return Optimizer.minimize(objective_fn, bounds, initial, method, **kwargs)
 
 
+@operator
 def differential_evolution(objective_fn, bounds, **kwargs):
     """Convenience function for DE optimization."""
     return DifferentialEvolution.optimize(objective_fn, bounds, **kwargs)
 
 
+@operator
 def cmaes(objective_fn, initial_mean, **kwargs):
     """Convenience function for CMA-ES optimization."""
     return CMAES.optimize(objective_fn, initial_mean, **kwargs)
 
 
+@operator
 def particle_swarm(objective_fn, bounds, **kwargs):
     """Convenience function for PSO optimization."""
     return ParticleSwarmOptimization.optimize(objective_fn, bounds, **kwargs)
 
 
+@operator
 def nelder_mead(objective_fn, initial, **kwargs):
     """Convenience function for Nelder-Mead optimization."""
     return NelderMead.optimize(objective_fn, initial, **kwargs)

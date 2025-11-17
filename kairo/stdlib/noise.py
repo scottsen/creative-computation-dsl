@@ -19,6 +19,7 @@ Supports multiple noise algorithms:
 
 from typing import Tuple, Optional, Callable
 import numpy as np
+from ..decorator import operator
 
 
 class NoiseField2D:
@@ -109,6 +110,7 @@ class NoiseOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def perlin2d(shape: Tuple[int, int],
                  scale: float = 1.0,
                  octaves: int = 1,
@@ -190,6 +192,7 @@ class NoiseOperations:
         return NoiseField2D(result, scale)
 
     @staticmethod
+    @operator
     def simplex2d(shape: Tuple[int, int],
                   scale: float = 1.0,
                   octaves: int = 1,
@@ -220,6 +223,7 @@ class NoiseOperations:
         return NoiseOperations.perlin2d(shape, scale, octaves, persistence, lacunarity, seed)
 
     @staticmethod
+    @operator
     def value2d(shape: Tuple[int, int],
                 scale: float = 1.0,
                 octaves: int = 1,
@@ -290,6 +294,7 @@ class NoiseOperations:
         return NoiseField2D(result, scale)
 
     @staticmethod
+    @operator
     def worley(shape: Tuple[int, int],
                num_points: int = 20,
                distance_metric: str = "euclidean",
@@ -363,6 +368,7 @@ class NoiseOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def fbm(shape: Tuple[int, int],
             scale: float = 1.0,
             octaves: int = 6,
@@ -400,6 +406,7 @@ class NoiseOperations:
             raise ValueError(f"Unknown noise type: {noise_type}")
 
     @staticmethod
+    @operator
     def ridged_fbm(shape: Tuple[int, int],
                    scale: float = 1.0,
                    octaves: int = 6,
@@ -435,6 +442,7 @@ class NoiseOperations:
         return NoiseField2D(result, scale)
 
     @staticmethod
+    @operator
     def turbulence(shape: Tuple[int, int],
                    scale: float = 1.0,
                    octaves: int = 6,
@@ -469,6 +477,7 @@ class NoiseOperations:
         return NoiseField2D(result, scale)
 
     @staticmethod
+    @operator
     def marble(shape: Tuple[int, int],
                scale: float = 1.0,
                turbulence_power: float = 5.0,
@@ -505,6 +514,7 @@ class NoiseOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def vector_field(shape: Tuple[int, int],
                      scale: float = 1.0,
                      octaves: int = 4,
@@ -533,6 +543,7 @@ class NoiseOperations:
         return vx, vy
 
     @staticmethod
+    @operator
     def gradient_field(shape: Tuple[int, int],
                        scale: float = 1.0,
                        octaves: int = 4,
@@ -559,6 +570,7 @@ class NoiseOperations:
         return NoiseField2D(grad_x, scale), NoiseField2D(grad_y, scale)
 
     @staticmethod
+    @operator
     def plasma(shape: Tuple[int, int],
                seed: int = 0) -> NoiseField2D:
         """Generate plasma effect using diamond-square algorithm.

@@ -52,7 +52,7 @@ A comprehensive 10-month roadmap to bring all 23 domains through 5 levels of com
 
 **Current Status:**
 - ✅ Level 1: 23/23 domains (DONE)
-- 🚧 Level 2: 5/23 domains (IN PROGRESS - registry complete, graph + signal + statemachine + terrain + vision integrated)
+- 🚧 Level 2: 9/23 domains (IN PROGRESS - 39.1% complete)
   - ✅ Domain registry system implemented
   - ✅ @operator decorator system complete
   - ✅ Graph domain: 19/19 operators integrated
@@ -60,7 +60,11 @@ A comprehensive 10-month roadmap to bring all 23 domains through 5 levels of com
   - ✅ StateMachine domain: 15/15 operators integrated
   - ✅ Terrain domain: 11/11 operators integrated
   - ✅ Vision domain: 13/13 operators integrated
-  - ⏭️ Next: 18 domains remaining
+  - ✅ Cellular domain: 18/18 operators integrated
+  - ✅ Optimization domain: 5/5 operators integrated
+  - ✅ Neural domain: 16/16 operators integrated
+  - ✅ Noise domain: 11/11 operators integrated
+  - ⏭️ Next: 14 domains remaining
 - ❌ Level 3: 0/23 domains (Blocker: type checker doesn't enforce units)
 - ❌ Level 4: 0/23 domains (Blocker: multirate scheduler not fully implemented)
 - ⚠️ Level 5: 4/23 domains (field, agent, audio, temporal have MLIR support)
@@ -391,6 +395,263 @@ Essential for computer vision, image analysis, object detection, and visual proc
 - `kairo/core/operator.py` - @operator decorator system
 - `kairo/core/domain_registry.py` - Central domain registry
 - `docs/guides/DOMAIN_FINISHING_GUIDE.md` - Complete roadmap
+
+---
+
+### Added - Level 2: Cellular Domain Integration
+
+**Date:** 2025-11-17
+**Timeline:** Month 3-4, Week 1 of 8
+
+Following the systematic approach established with graph, signal, statemachine, terrain, and vision domains, the cellular automata domain is now fully integrated into the domain registry system.
+
+**Cellular Domain - Fully Integrated:**
+
+The cellular domain is now the sixth fully-integrated domain, continuing the methodical completion of all 23 domains.
+
+- **18 operators** all decorated and discoverable:
+  - **6 CONSTRUCT**: `alloc`, `random_init`, `count_neighbors_moore`, `count_neighbors_von_neumann`, `apply_rule`, `apply_wolfram_rule`
+  - **4 TRANSFORM**: `step`, `evolve`, `history`, `analyze_pattern`
+  - **8 CONSTRUCT (Classic Automata)**: `game_of_life`, `brians_brain`, `brians_brain_step`, `highlife`, `seeds`, `wolfram_ca`, `to_array`, `from_array`
+
+- All operators have complete metadata:
+  - Domain: "cellular"
+  - Category: Semantic grouping (CONSTRUCT/TRANSFORM)
+  - Signature: Type information for future type checking
+  - Deterministic: Most cellular operations are deterministic (except `random_init` without seed)
+
+**Implementation Details:**
+
+- Added `from ..decorator import operator` import
+- Applied `@operator` decorator to all 18 methods in `CellularOperations` class
+- Categorized operators by layer:
+  - Layer 1: Atomic CA operations (alloc, init, neighbor counting, rule application)
+  - Layer 2: Composite CA operations (step, evolve, history, pattern analysis)
+  - Layer 3: Classic automata constructs (Game of Life, Brian's Brain, HighLife, Seeds, Wolfram CA)
+- All operations properly categorized
+- Exported all operators at module level for registry discovery
+
+**Module-Level Exports:**
+
+All 18 operators are exported at module level in `kairo/stdlib/cellular.py` for automatic discovery by the domain registry system:
+- Field Creation: alloc, random_init, from_array
+- Neighbor Counting: count_neighbors_moore, count_neighbors_von_neumann
+- Rule Application: apply_rule, apply_wolfram_rule
+- Evolution: step, evolve, history
+- Analysis: analyze_pattern
+- Classic Automata: game_of_life, brians_brain, brians_brain_step, highlife, seeds, wolfram_ca
+- Conversion: to_array
+
+**Integration Progress:**
+- ✅ Cellular domain: 18/18 operators integrated (100%)
+- ✅ 6/23 domains complete (26.1%)
+- ⏭️ Next: Continue with remaining 17 domains
+
+**What This Covers:**
+
+The cellular domain provides comprehensive cellular automata capabilities:
+1. **Classic CA**: Conway's Game of Life, Brian's Brain, HighLife, Seeds
+2. **Wolfram Elementary CA**: 1D cellular automata with 256 possible rules
+3. **Custom Rules**: Define birth/survival rules for custom automata
+4. **Neighborhoods**: Moore (8 neighbors) and von Neumann (4 neighbors)
+5. **Evolution & Analysis**: Step-by-step evolution, history tracking, pattern analysis
+
+Essential for emergent pattern simulation, artificial life, procedural generation, and complexity research.
+
+**Related:**
+- `kairo/stdlib/cellular.py` - Cellular automata operators with @operator decorators
+- `kairo/core/operator.py` - @operator decorator system
+- `kairo/core/domain_registry.py` - Central domain registry
+- `docs/guides/DOMAIN_FINISHING_GUIDE.md` - Complete roadmap
+
+---
+
+### Added - Level 2: Optimization Domain Integration
+
+**Date:** 2025-11-17
+**Timeline:** Month 3-4, Week 1 of 8
+
+Following the systematic approach, the optimization domain is now fully integrated into the domain registry system.
+
+**Optimization Domain - Fully Integrated:**
+
+The optimization domain is now the seventh fully-integrated domain, providing evolutionary algorithms and numerical optimization.
+
+- **5 operators** all decorated and discoverable:
+  - **OPTIMIZE**: `minimize`, `differential_evolution`, `cmaes`, `particle_swarm`, `nelder_mead`
+
+- All operators have complete metadata:
+  - Domain: "optimization"
+  - Category: Optimization algorithms
+  - Signature: Type information for future type checking
+  - Deterministic: All operations are deterministic with seed parameter
+
+**Implementation Details:**
+
+- Added `from ..decorator import operator` import
+- Applied `@operator` decorator to all 5 module-level convenience functions
+- Supports multiple optimization algorithms:
+  - Differential Evolution (DE): continuous parameter optimization
+  - CMA-ES: covariance matrix adaptation
+  - Particle Swarm Optimization (PSO): swarm intelligence
+  - Nelder-Mead: gradient-free local optimization
+  - Unified minimize interface with auto-selection
+
+**Module-Level Exports:**
+
+All 5 operators are module-level functions in `kairo/stdlib/optimization.py`:
+- minimize: unified optimization interface
+- differential_evolution: DE optimizer
+- cmaes: CMA-ES optimizer
+- particle_swarm: PSO optimizer
+- nelder_mead: simplex-based optimizer
+
+**Integration Progress:**
+- ✅ Optimization domain: 5/5 operators integrated (100%)
+- ✅ 7/23 domains complete (30.4%)
+- ⏭️ Next: Continue with remaining 16 domains
+
+**What This Covers:**
+
+The optimization domain provides comprehensive optimization capabilities:
+1. **Evolutionary Algorithms**: Differential Evolution for robust global optimization
+2. **Advanced Methods**: CMA-ES for high-dimensional problems
+3. **Swarm Intelligence**: Particle Swarm Optimization
+4. **Local Optimization**: Nelder-Mead simplex method
+5. **Benchmark Functions**: Test functions for algorithm validation
+
+Essential for parameter tuning, design discovery, multi-objective optimization, and automated system configuration.
+
+**Related:**
+- `kairo/stdlib/optimization.py` - Optimization operators with @operator decorators
+- `kairo/core/operator.py` - @operator decorator system
+- `kairo/core/domain_registry.py` - Central domain registry
+
+---
+
+### Added - Level 2: Neural Domain Integration
+
+**Date:** 2025-11-17
+**Timeline:** Month 3-4, Week 1 of 8
+
+Following the systematic approach, the neural network domain is now fully integrated into the domain registry system.
+
+**Neural Domain - Fully Integrated:**
+
+The neural domain is now the eighth fully-integrated domain, providing feedforward neural networks for agent control.
+
+- **16 operators** all decorated and discoverable:
+  - **7 TRANSFORM (Layer 1)**: `linear`, `tanh`, `relu`, `sigmoid`, `softmax`, `leaky_relu`, `apply_activation`
+  - **2 COMPOSE (Layer 2)**: `dense`, `forward`
+  - **6 CONSTRUCT (Layer 3)**: `alloc_layer`, `alloc_mlp`, `get_parameters`, `set_parameters`, `mutate_parameters`, `crossover_parameters`
+  - **1 PRESET (Layer 4)**: `flappy_bird_controller`
+
+- All operators have complete metadata:
+  - Domain: "neural"
+  - Category: Semantic grouping by layer
+  - Signature: Type information for future type checking
+  - Deterministic: All operations are deterministic (with seed where applicable)
+
+**Implementation Details:**
+
+- Added `from ..decorator import operator` import
+- Applied `@operator` decorator to all 16 methods in `NeuralOperations` class
+- Organized by 4-layer hierarchy:
+  - Layer 1: Atomic operations (linear, activation functions)
+  - Layer 2: Composite operations (dense layer, forward pass)
+  - Layer 3: Network constructs (MLP creation, parameter manipulation)
+  - Layer 4: Presets (domain-specific network architectures)
+
+**Module-Level Exports:**
+
+All 16 operators are exported via the `neural` singleton in `kairo/stdlib/neural.py`:
+- Activations: tanh, relu, sigmoid, softmax, leaky_relu
+- Core Ops: linear, apply_activation, dense, forward
+- Network Ops: alloc_layer, alloc_mlp
+- Parameter Ops: get_parameters, set_parameters, mutate_parameters, crossover_parameters
+- Presets: flappy_bird_controller
+
+**Integration Progress:**
+- ✅ Neural domain: 16/16 operators integrated (100%)
+- ✅ 8/23 domains complete (34.8%)
+- ⏭️ Next: Continue with remaining 15 domains
+
+**What This Covers:**
+
+The neural domain provides feedforward neural network capabilities:
+1. **Activation Functions**: tanh, ReLU, sigmoid, softmax, leaky ReLU
+2. **Layer Operations**: Dense layers with configurable activations
+3. **Network Architectures**: Multi-layer perceptrons (MLPs)
+4. **Genetic Algorithm Support**: Parameter extraction, mutation, crossover
+5. **Batch Inference**: Efficient parallel evaluation
+
+Essential for agent control, genetic algorithms, evolutionary robotics, and neuroevolution.
+
+**Related:**
+- `kairo/stdlib/neural.py` - Neural network operators with @operator decorators
+- `kairo/core/operator.py` - @operator decorator system
+- `kairo/core/domain_registry.py` - Central domain registry
+
+---
+
+### Added - Level 2: Noise Domain Integration
+
+**Date:** 2025-11-17
+**Timeline:** Month 3-4, Week 1 of 8
+
+Following the systematic approach, the noise generation domain is now fully integrated into the domain registry system.
+
+**Noise Domain - Fully Integrated:**
+
+The noise domain is now the ninth fully-integrated domain, providing procedural noise generation for textures and terrain.
+
+- **11 operators** all decorated and discoverable:
+  - **3 CONSTRUCT (Layer 2)**: `perlin2d`, `simplex2d`, `value2d`, `worley`
+  - **4 COMPOSE (Layer 3)**: `fbm`, `ridged_fbm`, `turbulence`, `marble`
+  - **3 ADVANCED (Layer 4)**: `vector_field`, `gradient_field`, `plasma`
+
+- All operators have complete metadata:
+  - Domain: "noise"
+  - Category: Semantic grouping by complexity
+  - Signature: Type information for future type checking
+  - Deterministic: All operations are deterministic with seed parameter
+
+**Implementation Details:**
+
+- Added `from ..decorator import operator` import
+- Applied `@operator` decorator to all 11 public methods in `NoiseOperations` class
+- Organized by layer hierarchy:
+  - Layer 2: Basic noise types (Perlin, Simplex, Value, Worley)
+  - Layer 3: Fractal patterns (FBM, ridged, turbulence, marble)
+  - Layer 4: Vector fields and advanced patterns
+
+**Module-Level Exports:**
+
+All 11 operators are exported via the `noise` singleton in `kairo/stdlib/noise.py`:
+- Basic Noise: perlin2d, simplex2d, value2d, worley
+- Fractal Noise: fbm, ridged_fbm, turbulence, marble
+- Advanced: vector_field, gradient_field, plasma
+
+**Integration Progress:**
+- ✅ Noise domain: 11/11 operators integrated (100%)
+- ✅ 9/23 domains complete (39.1%)
+- ⏭️ Next: Continue with remaining 14 domains
+
+**What This Covers:**
+
+The noise domain provides comprehensive procedural noise generation:
+1. **Classic Noise**: Perlin, Simplex, Value noise algorithms
+2. **Cellular Patterns**: Worley/Voronoi noise
+3. **Fractal Composition**: Fractal Brownian Motion (FBM)
+4. **Artistic Effects**: Marble, turbulence, ridged patterns
+5. **Vector Fields**: Flow fields and gradients for particle systems
+
+Essential for procedural textures, terrain generation, particle effects, and visual randomization.
+
+**Related:**
+- `kairo/stdlib/noise.py` - Noise generation operators with @operator decorators
+- `kairo/core/operator.py` - @operator decorator system
+- `kairo/core/domain_registry.py` - Central domain registry
 
 ---
 
