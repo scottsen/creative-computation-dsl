@@ -2,10 +2,34 @@
 Cross-Domain Type Validation
 
 Validates type compatibility and data flow correctness across domain boundaries.
+
+Level 3 Enhancements:
+- Physical unit compatibility checking
+- Rate compatibility validation
+- Dimensional analysis for cross-domain flows
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 import numpy as np
+
+# Import type system components
+if TYPE_CHECKING:
+    from kairo.ast.types import Type, StreamType, Rate
+
+# Import unit and rate checking
+try:
+    from kairo.types.units import check_unit_compatibility, parse_unit, Unit
+    from kairo.types.rate_compat import (
+        validate_rate_compatibility,
+        Rate,
+        RateCompatibilityError,
+        recommend_conversion_operator
+    )
+    _HAS_UNITS = True
+except ImportError:
+    _HAS_UNITS = False
+    Rate = None  # type: ignore
+    RateCompatibilityError = TypeError  # type: ignore
 
 
 class CrossDomainTypeError(TypeError):
@@ -227,3 +251,235 @@ def validate_mapping(
             )
 
     return True
+
+
+# Level 3: Unit Compatibility Validation
+
+def validate_unit_compatibility(
+    source_unit: Optional[str],
+    target_unit: Optional[str],
+    source_domain: str,
+    target_domain: str
+) -> bool:
+    """
+    Validate physical unit compatibility across domain boundaries.
+
+    Args:
+        source_unit: Source domain unit (e.g., "m/s")
+        target_unit: Target domain unit (e.g., "m/s")
+        source_domain: Source domain name
+        target_domain: Target domain name
+
+    Returns:
+        True if units are compatible
+
+    Raises:
+        CrossDomainTypeError: If units are incompatible
+
+    Examples:
+        >>> validate_unit_compatibility("m/s", "m/s", "field", "agents")
+        True
+
+        >>> validate_unit_compatibility("m/s", "m", "field", "agents")
+        CrossDomainTypeError: Unit mismatch (field → agents): m/s vs m
+    """
+    if not _HAS_UNITS:
+        # Fallback to string comparison if units module not available
+        if source_unit != target_unit:
+            raise CrossDomainTypeError(
+                source_domain,
+                target_domain,
+                f"Unit mismatch: {source_unit} vs {target_unit}"
+            )
+        return True
+
+    # Check dimensional compatibility
+    if not check_unit_compatibility(source_unit, target_unit):
+        # Parse units to get dimensional information
+        try:
+            source_parsed = parse_unit(source_unit) if source_unit else None
+            target_parsed = parse_unit(target_unit) if target_unit else None
+
+            source_dims = source_parsed.dimensions if source_parsed else "dimensionless"
+            target_dims = target_parsed.dimensions if target_parsed else "dimensionless"
+
+            raise CrossDomainTypeError(
+                source_domain,
+                target_domain,
+                f"Incompatible units: {source_unit} [{source_dims}] vs {target_unit} [{target_dims}]"
+            )
+        except ValueError as e:
+            raise CrossDomainTypeError(
+                source_domain,
+                target_domain,
+                f"Invalid unit expression: {e}"
+            )
+
+    return True
+
+
+def validate_rate_compatibility_cross_domain(
+    source_rate: Optional['Rate'],
+    target_rate: Optional['Rate'],
+    source_domain: str,
+    target_domain: str,
+    source_sample_rate: Optional[float] = None,
+    target_sample_rate: Optional[float] = None
+) -> bool:
+    """
+    Validate rate compatibility across domain boundaries.
+
+    Args:
+        source_rate: Source domain rate
+        target_rate: Target domain rate
+        source_domain: Source domain name
+        target_domain: Target domain name
+        source_sample_rate: Source sample rate (for audio)
+        target_sample_rate: Target sample rate (for audio)
+
+    Returns:
+        True if rates are compatible
+
+    Raises:
+        CrossDomainTypeError: If rates are incompatible
+
+    Examples:
+        >>> from kairo.types.rate_compat import Rate
+        >>> validate_rate_compatibility_cross_domain(
+        ...     Rate.AUDIO, Rate.AUDIO, "audio", "visual"
+        ... )
+        True
+
+        >>> validate_rate_compatibility_cross_domain(
+        ...     Rate.AUDIO, Rate.CONTROL, "audio", "visual"
+        ... )
+        CrossDomainTypeError: Rate mismatch (audio → visual): audio vs control
+    """
+    if not _HAS_UNITS or Rate is None:
+        return True  # Skip validation if rate module not available
+
+    if source_rate is None or target_rate is None:
+        return True  # Allow None rates for backward compatibility
+
+    # Validate using rate compatibility checker
+    is_compatible, error_msg = validate_rate_compatibility(
+        source_rate,
+        target_rate,
+        source_sample_rate,
+        target_sample_rate
+    )
+
+    if not is_compatible:
+        raise CrossDomainTypeError(
+            source_domain,
+            target_domain,
+            f"Rate incompatibility: {error_msg}"
+        )
+
+    return True
+
+
+def validate_type_with_units(
+    source_type: 'Type',
+    target_type: 'Type',
+    source_domain: str,
+    target_domain: str
+) -> bool:
+    """
+    Validate complete type compatibility including units and rates.
+
+    Args:
+        source_type: Source type object
+        target_type: Target type object
+        source_domain: Source domain name
+        target_domain: Target domain name
+
+    Returns:
+        True if types are fully compatible
+
+    Raises:
+        CrossDomainTypeError: If types are incompatible
+
+    Note:
+        This is the comprehensive Level 3 type validator that checks:
+        - Basic type compatibility
+        - Physical unit compatibility
+        - Rate compatibility (for stream types)
+    """
+    # Check basic type compatibility
+    if not source_type.is_compatible_with(target_type):
+        raise CrossDomainTypeError(
+            source_domain,
+            target_domain,
+            f"Incompatible types: {type(source_type).__name__} vs {type(target_type).__name__}"
+        )
+
+    # Check unit compatibility if types have units
+    source_unit = getattr(source_type, 'unit', None)
+    target_unit = getattr(target_type, 'unit', None)
+
+    if source_unit is not None or target_unit is not None:
+        validate_unit_compatibility(
+            source_unit,
+            target_unit,
+            source_domain,
+            target_domain
+        )
+
+    # Check rate compatibility for stream types
+    from kairo.ast.types import StreamType
+    if isinstance(source_type, StreamType) and isinstance(target_type, StreamType):
+        validate_rate_compatibility_cross_domain(
+            source_type.rate,
+            target_type.rate,
+            source_domain,
+            target_domain,
+            source_type.sample_rate,
+            target_type.sample_rate
+        )
+
+    return True
+
+
+def check_unit_conversion_needed(
+    source_unit: Optional[str],
+    target_unit: Optional[str]
+) -> Optional[float]:
+    """
+    Check if unit conversion is needed and return conversion factor.
+
+    Args:
+        source_unit: Source unit string
+        target_unit: Target unit string
+
+    Returns:
+        Conversion factor if conversion needed, None if units are identical
+        or conversion is not possible
+
+    Examples:
+        >>> check_unit_conversion_needed("m", "cm")
+        100.0
+
+        >>> check_unit_conversion_needed("m", "m")
+        None
+    """
+    if not _HAS_UNITS:
+        return None
+
+    if source_unit == target_unit:
+        return None
+
+    if source_unit is None or target_unit is None:
+        return None
+
+    try:
+        source_parsed = parse_unit(source_unit)
+        target_parsed = parse_unit(target_unit)
+
+        if source_parsed.is_compatible_with(target_parsed):
+            # Return conversion factor
+            return source_parsed.scale / target_parsed.scale
+        else:
+            return None
+    except ValueError:
+        return None
