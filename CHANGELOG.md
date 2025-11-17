@@ -52,7 +52,7 @@ A comprehensive 10-month roadmap to bring all 23 domains through 5 levels of com
 
 **Current Status:**
 - ✅ Level 1: 23/23 domains (DONE)
-- 🚧 Level 2: 5/23 domains (IN PROGRESS - registry complete, graph + signal + statemachine + terrain + vision integrated)
+- 🚧 Level 2: 6/23 domains (IN PROGRESS - registry complete, graph + signal + statemachine + terrain + vision + cellular integrated)
   - ✅ Domain registry system implemented
   - ✅ @operator decorator system complete
   - ✅ Graph domain: 19/19 operators integrated
@@ -60,7 +60,8 @@ A comprehensive 10-month roadmap to bring all 23 domains through 5 levels of com
   - ✅ StateMachine domain: 15/15 operators integrated
   - ✅ Terrain domain: 11/11 operators integrated
   - ✅ Vision domain: 13/13 operators integrated
-  - ⏭️ Next: 18 domains remaining
+  - ✅ Cellular domain: 18/18 operators integrated
+  - ⏭️ Next: 17 domains remaining
 - ❌ Level 3: 0/23 domains (Blocker: type checker doesn't enforce units)
 - ❌ Level 4: 0/23 domains (Blocker: multirate scheduler not fully implemented)
 - ⚠️ Level 5: 4/23 domains (field, agent, audio, temporal have MLIR support)
@@ -388,6 +389,74 @@ Essential for computer vision, image analysis, object detection, and visual proc
 
 **Related:**
 - `kairo/stdlib/vision.py` - Computer vision operators with @operator decorators
+- `kairo/core/operator.py` - @operator decorator system
+- `kairo/core/domain_registry.py` - Central domain registry
+- `docs/guides/DOMAIN_FINISHING_GUIDE.md` - Complete roadmap
+
+---
+
+### Added - Level 2: Cellular Domain Integration
+
+**Date:** 2025-11-17
+**Timeline:** Month 3-4, Week 1 of 8
+
+Following the systematic approach established with graph, signal, statemachine, terrain, and vision domains, the cellular automata domain is now fully integrated into the domain registry system.
+
+**Cellular Domain - Fully Integrated:**
+
+The cellular domain is now the sixth fully-integrated domain, continuing the methodical completion of all 23 domains.
+
+- **18 operators** all decorated and discoverable:
+  - **6 CONSTRUCT**: `alloc`, `random_init`, `count_neighbors_moore`, `count_neighbors_von_neumann`, `apply_rule`, `apply_wolfram_rule`
+  - **4 TRANSFORM**: `step`, `evolve`, `history`, `analyze_pattern`
+  - **8 CONSTRUCT (Classic Automata)**: `game_of_life`, `brians_brain`, `brians_brain_step`, `highlife`, `seeds`, `wolfram_ca`, `to_array`, `from_array`
+
+- All operators have complete metadata:
+  - Domain: "cellular"
+  - Category: Semantic grouping (CONSTRUCT/TRANSFORM)
+  - Signature: Type information for future type checking
+  - Deterministic: Most cellular operations are deterministic (except `random_init` without seed)
+
+**Implementation Details:**
+
+- Added `from ..decorator import operator` import
+- Applied `@operator` decorator to all 18 methods in `CellularOperations` class
+- Categorized operators by layer:
+  - Layer 1: Atomic CA operations (alloc, init, neighbor counting, rule application)
+  - Layer 2: Composite CA operations (step, evolve, history, pattern analysis)
+  - Layer 3: Classic automata constructs (Game of Life, Brian's Brain, HighLife, Seeds, Wolfram CA)
+- All operations properly categorized
+- Exported all operators at module level for registry discovery
+
+**Module-Level Exports:**
+
+All 18 operators are exported at module level in `kairo/stdlib/cellular.py` for automatic discovery by the domain registry system:
+- Field Creation: alloc, random_init, from_array
+- Neighbor Counting: count_neighbors_moore, count_neighbors_von_neumann
+- Rule Application: apply_rule, apply_wolfram_rule
+- Evolution: step, evolve, history
+- Analysis: analyze_pattern
+- Classic Automata: game_of_life, brians_brain, brians_brain_step, highlife, seeds, wolfram_ca
+- Conversion: to_array
+
+**Integration Progress:**
+- ✅ Cellular domain: 18/18 operators integrated (100%)
+- ✅ 6/23 domains complete (26.1%)
+- ⏭️ Next: Continue with remaining 17 domains
+
+**What This Covers:**
+
+The cellular domain provides comprehensive cellular automata capabilities:
+1. **Classic CA**: Conway's Game of Life, Brian's Brain, HighLife, Seeds
+2. **Wolfram Elementary CA**: 1D cellular automata with 256 possible rules
+3. **Custom Rules**: Define birth/survival rules for custom automata
+4. **Neighborhoods**: Moore (8 neighbors) and von Neumann (4 neighbors)
+5. **Evolution & Analysis**: Step-by-step evolution, history tracking, pattern analysis
+
+Essential for emergent pattern simulation, artificial life, procedural generation, and complexity research.
+
+**Related:**
+- `kairo/stdlib/cellular.py` - Cellular automata operators with @operator decorators
 - `kairo/core/operator.py` - @operator decorator system
 - `kairo/core/domain_registry.py` - Central domain registry
 - `docs/guides/DOMAIN_FINISHING_GUIDE.md` - Complete roadmap
