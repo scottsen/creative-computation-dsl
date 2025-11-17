@@ -21,6 +21,8 @@ from enum import Enum
 import scipy.signal as signal
 import scipy.fft as fft
 
+from kairo.core.operator import operator, OpCategory
+
 
 class WindowType(Enum):
     """Window function types"""
@@ -148,6 +150,13 @@ class SignalOperations:
     """Signal processing operations"""
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.CONSTRUCT,
+        signature="(data: ndarray, sample_rate: float, time_offset: float) -> Signal1D",
+        deterministic=True,
+        doc="Create a signal from data array"
+    )
     def create_signal(data: np.ndarray, sample_rate: float,
                      time_offset: float = 0.0) -> Signal1D:
         """Create a signal from data array
@@ -167,6 +176,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.CONSTRUCT,
+        signature="(frequency: float, duration: float, sample_rate: float, amplitude: float, phase: float) -> Signal1D",
+        deterministic=True,
+        doc="Generate sine wave"
+    )
     def sine_wave(frequency: float, duration: float, sample_rate: float,
                  amplitude: float = 1.0, phase: float = 0.0) -> Signal1D:
         """Generate sine wave
@@ -186,6 +202,13 @@ class SignalOperations:
         return Signal1D(data=data, sample_rate=sample_rate)
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.CONSTRUCT,
+        signature="(f0: float, f1: float, duration: float, sample_rate: float, method: str) -> Signal1D",
+        deterministic=True,
+        doc="Generate chirp signal (frequency sweep)"
+    )
     def chirp(f0: float, f1: float, duration: float, sample_rate: float,
              method: str = 'linear') -> Signal1D:
         """Generate chirp signal (frequency sweep)
@@ -205,6 +228,13 @@ class SignalOperations:
         return Signal1D(data=data, sample_rate=sample_rate)
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.CONSTRUCT,
+        signature="(duration: float, sample_rate: float, amplitude: float, seed: Optional[int]) -> Signal1D",
+        deterministic=False,
+        doc="Generate white noise"
+    )
     def white_noise(duration: float, sample_rate: float,
                    amplitude: float = 1.0, seed: Optional[int] = None) -> Signal1D:
         """Generate white noise
@@ -226,6 +256,13 @@ class SignalOperations:
         return Signal1D(data=data, sample_rate=sample_rate)
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.TRANSFORM,
+        signature="(sig: Signal1D, window_type: WindowType, beta: float) -> Signal1D",
+        deterministic=True,
+        doc="Apply window function to signal"
+    )
     def window(sig: Signal1D, window_type: WindowType,
               beta: float = 8.6) -> Signal1D:
         """Apply window function to signal
@@ -263,6 +300,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.TRANSFORM,
+        signature="(sig: Signal1D) -> Spectrum",
+        deterministic=True,
+        doc="Compute Fast Fourier Transform"
+    )
     def fft(sig: Signal1D) -> Spectrum:
         """Compute Fast Fourier Transform
 
@@ -286,6 +330,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.TRANSFORM,
+        signature="(spectrum: Spectrum) -> Signal1D",
+        deterministic=True,
+        doc="Compute Inverse Fast Fourier Transform"
+    )
     def ifft(spectrum: Spectrum) -> Signal1D:
         """Compute Inverse Fast Fourier Transform
 
@@ -307,6 +358,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.TRANSFORM,
+        signature="(sig: Signal1D) -> Spectrum",
+        deterministic=True,
+        doc="Compute Real FFT (only positive frequencies)"
+    )
     def rfft(sig: Signal1D) -> Spectrum:
         """Compute Real FFT (only positive frequencies)
 
@@ -330,6 +388,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.TRANSFORM,
+        signature="(sig: Signal1D, window_size: int, hop_size: Optional[int], window_type: WindowType) -> Spectrogram",
+        deterministic=True,
+        doc="Compute Short-Time Fourier Transform"
+    )
     def stft(sig: Signal1D, window_size: int = 256,
             hop_size: Optional[int] = None,
             window_type: WindowType = WindowType.HANN) -> Spectrogram:
@@ -374,6 +439,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.TRANSFORM,
+        signature="(spec: Spectrogram, window_size: int, hop_size: Optional[int], window_type: WindowType) -> Signal1D",
+        deterministic=True,
+        doc="Compute Inverse Short-Time Fourier Transform"
+    )
     def istft(spec: Spectrogram, window_size: int = 256,
              hop_size: Optional[int] = None,
              window_type: WindowType = WindowType.HANN) -> Signal1D:
@@ -416,6 +488,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.TRANSFORM,
+        signature="(sig: Signal1D, cutoff: float, order: int) -> Signal1D",
+        deterministic=True,
+        doc="Apply lowpass filter"
+    )
     def lowpass(sig: Signal1D, cutoff: float, order: int = 5) -> Signal1D:
         """Apply lowpass filter
 
@@ -439,6 +518,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.TRANSFORM,
+        signature="(sig: Signal1D, cutoff: float, order: int) -> Signal1D",
+        deterministic=True,
+        doc="Apply highpass filter"
+    )
     def highpass(sig: Signal1D, cutoff: float, order: int = 5) -> Signal1D:
         """Apply highpass filter
 
@@ -462,6 +548,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.TRANSFORM,
+        signature="(sig: Signal1D, low: float, high: float, order: int) -> Signal1D",
+        deterministic=True,
+        doc="Apply bandpass filter"
+    )
     def bandpass(sig: Signal1D, low: float, high: float, order: int = 5) -> Signal1D:
         """Apply bandpass filter
 
@@ -487,6 +580,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.TRANSFORM,
+        signature="(sig: Signal1D, new_sample_rate: float) -> Signal1D",
+        deterministic=True,
+        doc="Resample signal to new sample rate"
+    )
     def resample(sig: Signal1D, new_sample_rate: float) -> Signal1D:
         """Resample signal to new sample rate
 
@@ -507,6 +607,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.TRANSFORM,
+        signature="(sig: Signal1D) -> Signal1D",
+        deterministic=True,
+        doc="Extract signal envelope using Hilbert transform"
+    )
     def envelope(sig: Signal1D) -> Signal1D:
         """Extract signal envelope using Hilbert transform
 
@@ -526,6 +633,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.QUERY,
+        signature="(sig1: Signal1D, sig2: Signal1D, mode: str) -> Signal1D",
+        deterministic=True,
+        doc="Cross-correlation of two signals"
+    )
     def correlate(sig1: Signal1D, sig2: Signal1D, mode: str = 'full') -> Signal1D:
         """Cross-correlation of two signals
 
@@ -547,6 +661,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.QUERY,
+        signature="(sig: Signal1D, height: Optional[float], distance: Optional[int]) -> ndarray",
+        deterministic=True,
+        doc="Detect peaks in signal"
+    )
     def peak_detection(sig: Signal1D, height: Optional[float] = None,
                       distance: Optional[int] = None) -> np.ndarray:
         """Detect peaks in signal
@@ -563,6 +684,13 @@ class SignalOperations:
         return peaks
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.QUERY,
+        signature="(sig: Signal1D, window_size: int, hop_size: Optional[int]) -> Spectrogram",
+        deterministic=True,
+        doc="Compute power spectrogram"
+    )
     def spectrogram_power(sig: Signal1D, window_size: int = 256,
                          hop_size: Optional[int] = None) -> Spectrogram:
         """Compute power spectrogram
@@ -596,6 +724,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.QUERY,
+        signature="(sig: Signal1D, window_size: int) -> Spectrum",
+        deterministic=True,
+        doc="Estimate power spectral density using Welch's method"
+    )
     def welch_psd(sig: Signal1D, window_size: int = 256) -> Spectrum:
         """Estimate power spectral density using Welch's method
 
@@ -619,6 +754,13 @@ class SignalOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="signal",
+        category=OpCategory.TRANSFORM,
+        signature="(sig: Signal1D, method: str) -> Signal1D",
+        deterministic=True,
+        doc="Normalize signal"
+    )
     def normalize(sig: Signal1D, method: str = 'peak') -> Signal1D:
         """Normalize signal
 
@@ -653,3 +795,25 @@ class SignalOperations:
 
 # Export singleton instance for DSL access
 sig = SignalOperations()
+
+# Export operators for domain registry discovery
+create_signal = SignalOperations.create_signal
+sine_wave = SignalOperations.sine_wave
+chirp = SignalOperations.chirp
+white_noise = SignalOperations.white_noise
+window = SignalOperations.window
+fft = SignalOperations.fft
+ifft = SignalOperations.ifft
+rfft = SignalOperations.rfft
+stft = SignalOperations.stft
+istft = SignalOperations.istft
+lowpass = SignalOperations.lowpass
+highpass = SignalOperations.highpass
+bandpass = SignalOperations.bandpass
+resample = SignalOperations.resample
+envelope = SignalOperations.envelope
+correlate = SignalOperations.correlate
+peak_detection = SignalOperations.peak_detection
+spectrogram_power = SignalOperations.spectrogram_power
+welch_psd = SignalOperations.welch_psd
+normalize = SignalOperations.normalize

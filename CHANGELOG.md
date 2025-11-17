@@ -52,11 +52,12 @@ A comprehensive 10-month roadmap to bring all 23 domains through 5 levels of com
 
 **Current Status:**
 - ✅ Level 1: 23/23 domains (DONE)
-- 🚧 Level 2: 1/23 domains (IN PROGRESS - registry complete, graph integrated)
+- 🚧 Level 2: 2/23 domains (IN PROGRESS - registry complete, graph + signal integrated)
   - ✅ Domain registry system implemented
   - ✅ @operator decorator system complete
   - ✅ Graph domain: 19/19 operators integrated
-  - ⏭️ Next: 22 domains remaining
+  - ✅ Signal domain: 20/20 operators integrated
+  - ⏭️ Next: 21 domains remaining
 - ❌ Level 3: 0/23 domains (Blocker: type checker doesn't enforce units)
 - ❌ Level 4: 0/23 domains (Blocker: multirate scheduler not fully implemented)
 - ⚠️ Level 5: 4/23 domains (field, agent, audio, temporal have MLIR support)
@@ -142,12 +143,59 @@ This infrastructure is the foundation for:
 
 **Progress Tracking:**
 - Week 1 of 8 for Level 2 (Language Integration)
-- 1/23 domains fully integrated (4.3%)
+- 2/23 domains fully integrated (8.7%)
 - Infrastructure complete, ready for rapid domain integration
 
 **Next Steps:**
-- Add @operator decorators to remaining 22 domains
+- Add @operator decorators to remaining 21 domains
 - Implement parser enhancement for `use` statement
+
+---
+
+### Added - Level 2: Signal Domain Integration
+
+**Date:** 2025-11-17
+**Timeline:** Month 3-4, Week 1 of 8
+
+Following the pattern established with the graph domain, the signal processing domain is now fully integrated into the domain registry system.
+
+**Signal Domain - Fully Integrated:**
+
+The signal domain is now the second fully-integrated domain, demonstrating the systematic approach for completing all 23 domains.
+
+- **20 operators** all decorated and discoverable:
+  - **4 CONSTRUCT**: `create_signal`, `sine_wave`, `chirp`, `white_noise`
+  - **12 TRANSFORM**: `window`, `fft`, `ifft`, `rfft`, `stft`, `istft`, `lowpass`, `highpass`, `bandpass`, `resample`, `envelope`, `normalize`
+  - **4 QUERY**: `correlate`, `peak_detection`, `spectrogram_power`, `welch_psd`
+
+- All operators have complete metadata:
+  - Domain: "signal"
+  - Category: Semantic grouping (CONSTRUCT/TRANSFORM/QUERY)
+  - Signature: Type information for future type checking
+  - Deterministic: All signal operations are deterministic (except `white_noise` without seed)
+
+**Module-Level Exports:**
+
+All 20 operators are exported at module level in `kairo/stdlib/signal.py` for automatic discovery by the domain registry system.
+
+**Integration Progress:**
+- ✅ Signal domain: 20/20 operators integrated (100%)
+- ✅ 2/23 domains complete (8.7%)
+- ⏭️ Next: Continue with remaining 21 domains
+
+**What This Demonstrates:**
+
+This integration validates the systematic approach:
+1. Add `@operator` decorators to all domain operators
+2. Categorize operators semantically (CONSTRUCT, TRANSFORM, QUERY)
+3. Export operators at module level for discovery
+4. Verify registration and operator metadata
+
+**Related:**
+- `kairo/stdlib/signal.py` - Signal processing operators with @operator decorators
+- `kairo/core/operator.py` - @operator decorator system
+- `kairo/core/domain_registry.py` - Central domain registry
+- `docs/guides/DOMAIN_FINISHING_GUIDE.md` - Complete roadmap
 - Create operator syntax bindings
 - Integration testing across all domains
 
