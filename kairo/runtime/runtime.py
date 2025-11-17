@@ -381,11 +381,13 @@ class Runtime:
         from ..ast.nodes import (
             Assignment, ExpressionStatement, Step, Substep, Module, Compose,
             Call, Identifier, Literal, BinaryOp, UnaryOp, FieldAccess,
-            Function, Return, Flow, Struct
+            Function, Return, Flow, Struct, Use
         )
 
         # Handle different statement types
-        if isinstance(stmt, Assignment):
+        if isinstance(stmt, Use):
+            return self.execute_use(stmt)
+        elif isinstance(stmt, Assignment):
             return self.execute_assignment(stmt)
         elif isinstance(stmt, ExpressionStatement):
             return self.execute_expression(stmt.expression)
@@ -670,6 +672,37 @@ class Runtime:
 
         # Raise exception to exit function
         raise ReturnValue(value)
+
+    def execute_use(self, use_node) -> None:
+        """Execute a use statement to validate domain imports.
+
+        Args:
+            use_node: Use AST node
+
+        Raises:
+            ValueError: If a domain is not registered
+        """
+        from ..core.domain_registry import DomainRegistry
+
+        # Ensure registry is initialized
+        DomainRegistry.initialize()
+
+        # Validate each domain
+        for domain_name in use_node.domains:
+            if not DomainRegistry.has_domain(domain_name):
+                available = DomainRegistry.list_domains()
+                raise ValueError(
+                    f"Domain '{domain_name}' not found. "
+                    f"Available domains: {', '.join(available)}"
+                )
+
+        # Note: The use statement doesn't create variables or modify the symbol table.
+        # Domain access happens through the global namespaces (field.alloc, etc.)
+        # which are already registered in _setup_builtins().
+        # The use statement primarily serves as:
+        # 1. Documentation of dependencies
+        # 2. Validation that domains exist
+        # 3. Future: could be used for scoping/importing specific operators
 
     def execute_if_else(self, if_else_node) -> Any:
         """Execute an if/else expression.
