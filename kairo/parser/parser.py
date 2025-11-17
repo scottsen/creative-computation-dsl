@@ -113,6 +113,10 @@ class Parser:
         if token.type == TokenType.LINK:
             return self.parse_link()
 
+        # Use statement
+        if token.type == TokenType.USE:
+            return self.parse_use()
+
         # Assignment or expression statement
         if token.type == TokenType.IDENTIFIER:
             # Look ahead to determine if it's an assignment or expression statement
@@ -488,6 +492,49 @@ class Parser:
 
         from kairo.ast.nodes import Link
         return Link(target=target, metadata=metadata)
+
+    def parse_use(self) -> 'Use':
+        """
+        Parse a use statement to import domain operators.
+
+        Syntax:
+            use field                    # Import single domain
+            use field, agent, visual     # Multiple imports
+            use field as f               # Aliased import (future)
+        """
+        self.expect(TokenType.USE)
+
+        domains = []
+        aliases = {}
+
+        # Parse first domain
+        domain = self.expect(TokenType.IDENTIFIER).value
+        domains.append(domain)
+
+        # Check for alias (future: use field as f)
+        if (self.current_token().type == TokenType.IDENTIFIER and
+            self.current_token().value == "as"):
+            self.advance()  # Skip 'as'
+            alias = self.expect(TokenType.IDENTIFIER).value
+            aliases[domain] = alias
+
+        # Parse additional domains (comma-separated)
+        while self.current_token().type == TokenType.COMMA:
+            self.advance()  # Skip comma
+            self.skip_newlines()  # Allow newlines after comma
+
+            domain = self.expect(TokenType.IDENTIFIER).value
+            domains.append(domain)
+
+            # Check for alias
+            if (self.current_token().type == TokenType.IDENTIFIER and
+                self.current_token().value == "as"):
+                self.advance()  # Skip 'as'
+                alias = self.expect(TokenType.IDENTIFIER).value
+                aliases[domain] = alias
+
+        from kairo.ast.nodes import Use
+        return Use(domains=domains, aliases=aliases)
 
     def parse_assignment(self, decorators: List[Decorator] = None) -> Assignment:
         """Parse an assignment statement."""

@@ -30,6 +30,7 @@ class NodeType(Enum):
     MODULE = "module"
     COMPOSE = "compose"
     LINK = "link"
+    USE = "use"
 
     # Type annotations
     TYPE_ANNOTATION = "type_annotation"
@@ -309,6 +310,23 @@ class Return(Statement):
 
     def accept(self, visitor: 'ASTVisitor') -> Any:
         return visitor.visit_return(self)
+
+
+@dataclass
+class Use(Statement):
+    """Use statement to import domain operators.
+
+    Syntax:
+        use field                    # Import field domain
+        use field, agent, visual     # Multiple imports
+        use field as f               # Aliased import (future)
+    """
+    domains: List[str]  # Domain names to import
+    aliases: dict[str, str] = field(default_factory=dict)  # Optional aliases
+    node_type: NodeType = field(default=NodeType.USE)
+
+    def accept(self, visitor: 'ASTVisitor') -> Any:
+        return visitor.visit_use(self)
 
 
 # ============================================================================

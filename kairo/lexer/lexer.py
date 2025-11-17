@@ -31,6 +31,7 @@ class TokenType(Enum):
     SOLVER = auto()
     ITERATE = auto()
     LINK = auto()
+    USE = auto()
 
     # Operators
     PLUS = auto()
@@ -102,6 +103,7 @@ class Lexer:
         "solver": TokenType.SOLVER,
         "iterate": TokenType.ITERATE,
         "link": TokenType.LINK,
+        "use": TokenType.USE,
         "true": TokenType.BOOL,
         "false": TokenType.BOOL,
     }
