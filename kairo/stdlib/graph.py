@@ -21,6 +21,8 @@ from enum import Enum
 import heapq
 from collections import deque, defaultdict
 
+from kairo.core.operator import operator, OpCategory
+
 
 class GraphType(Enum):
     """Graph type enumeration"""
@@ -82,6 +84,13 @@ class GraphOperations:
     """Graph and network analysis operations"""
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.CONSTRUCT,
+        signature="(num_nodes: int, graph_type: GraphType) -> Graph",
+        deterministic=True,
+        doc="Create an empty graph with specified number of nodes"
+    )
     def create_empty(num_nodes: int, graph_type: GraphType = GraphType.UNDIRECTED) -> Graph:
         """Create an empty graph with specified number of nodes
 
@@ -99,6 +108,13 @@ class GraphOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.TRANSFORM,
+        signature="(graph: Graph, node1: int, node2: int, weight: float) -> Graph",
+        deterministic=True,
+        doc="Add an edge to the graph"
+    )
     def add_edge(graph: Graph, node1: int, node2: int, weight: float = 1.0) -> Graph:
         """Add an edge to the graph
 
@@ -123,6 +139,13 @@ class GraphOperations:
         return result
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.TRANSFORM,
+        signature="(graph: Graph, node1: int, node2: int) -> Graph",
+        deterministic=True,
+        doc="Remove an edge from the graph"
+    )
     def remove_edge(graph: Graph, node1: int, node2: int) -> Graph:
         """Remove an edge from the graph
 
@@ -150,6 +173,13 @@ class GraphOperations:
         return result
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.CONSTRUCT,
+        signature="(adj_matrix: np.ndarray, graph_type: GraphType, threshold: float) -> Graph",
+        deterministic=True,
+        doc="Create graph from adjacency matrix"
+    )
     def from_adjacency_matrix(adj_matrix: np.ndarray,
                             graph_type: GraphType = GraphType.UNDIRECTED,
                             threshold: float = 0.0) -> Graph:
@@ -179,6 +209,13 @@ class GraphOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.TRANSFORM,
+        signature="(graph: Graph) -> np.ndarray",
+        deterministic=True,
+        doc="Convert graph to adjacency matrix"
+    )
     def to_adjacency_matrix(graph: Graph) -> np.ndarray:
         """Convert graph to adjacency matrix
 
@@ -197,6 +234,13 @@ class GraphOperations:
         return matrix
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.QUERY,
+        signature="(graph: Graph, start: int) -> Tuple[Dict[int, float], Dict[int, Optional[int]]]",
+        deterministic=True,
+        doc="Dijkstra's shortest path algorithm"
+    )
     def dijkstra(graph: Graph, start: int) -> Tuple[Dict[int, float], Dict[int, Optional[int]]]:
         """Dijkstra's shortest path algorithm
 
@@ -233,6 +277,13 @@ class GraphOperations:
         return distances, predecessors
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.QUERY,
+        signature="(graph: Graph, start: int, end: int) -> Tuple[List[int], float]",
+        deterministic=True,
+        doc="Find shortest path between two nodes"
+    )
     def shortest_path(graph: Graph, start: int, end: int) -> Tuple[List[int], float]:
         """Find shortest path between two nodes
 
@@ -262,6 +313,13 @@ class GraphOperations:
         return path, distances[end]
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.QUERY,
+        signature="(graph: Graph, start: int) -> Dict[int, int]",
+        deterministic=True,
+        doc="Breadth-first search traversal"
+    )
     def bfs(graph: Graph, start: int) -> Dict[int, int]:
         """Breadth-first search
 
@@ -288,6 +346,13 @@ class GraphOperations:
         return distances
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.QUERY,
+        signature="(graph: Graph, start: int, visited: Optional[Set[int]]) -> List[int]",
+        deterministic=True,
+        doc="Depth-first search traversal"
+    )
     def dfs(graph: Graph, start: int, visited: Optional[Set[int]] = None) -> List[int]:
         """Depth-first search
 
@@ -315,6 +380,13 @@ class GraphOperations:
         return result
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.QUERY,
+        signature="(graph: Graph) -> List[List[int]]",
+        deterministic=True,
+        doc="Find connected components in undirected graph"
+    )
     def connected_components(graph: Graph) -> List[List[int]]:
         """Find connected components in undirected graph
 
@@ -335,6 +407,13 @@ class GraphOperations:
         return components
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.QUERY,
+        signature="(graph: Graph) -> GraphMetrics",
+        deterministic=True,
+        doc="Calculate degree centrality for all nodes"
+    )
     def degree_centrality(graph: Graph) -> GraphMetrics:
         """Calculate degree centrality for all nodes
 
@@ -355,6 +434,13 @@ class GraphOperations:
         return GraphMetrics(node_metrics=node_metrics)
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.QUERY,
+        signature="(graph: Graph) -> GraphMetrics",
+        deterministic=True,
+        doc="Calculate betweenness centrality (simplified)"
+    )
     def betweenness_centrality(graph: Graph) -> GraphMetrics:
         """Calculate betweenness centrality (simplified)
 
@@ -389,6 +475,13 @@ class GraphOperations:
         return GraphMetrics(node_metrics=betweenness)
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.QUERY,
+        signature="(graph: Graph, damping: float, max_iter: int, tol: float) -> GraphMetrics",
+        deterministic=True,
+        doc="Calculate PageRank scores"
+    )
     def pagerank(graph: Graph, damping: float = 0.85, max_iter: int = 100,
                 tol: float = 1e-6) -> GraphMetrics:
         """Calculate PageRank scores
@@ -427,6 +520,13 @@ class GraphOperations:
         return GraphMetrics(node_metrics=node_metrics)
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.QUERY,
+        signature="(graph: Graph) -> GraphMetrics",
+        deterministic=True,
+        doc="Calculate local clustering coefficient for each node"
+    )
     def clustering_coefficient(graph: Graph) -> GraphMetrics:
         """Calculate local clustering coefficient for each node
 
@@ -462,6 +562,13 @@ class GraphOperations:
         return GraphMetrics(node_metrics=node_metrics)
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.TRANSFORM,
+        signature="(graph: Graph) -> Graph",
+        deterministic=True,
+        doc="Find minimum spanning tree using Prim's algorithm"
+    )
     def minimum_spanning_tree(graph: Graph) -> Graph:
         """Find minimum spanning tree using Prim's algorithm
 
@@ -500,6 +607,13 @@ class GraphOperations:
         return mst
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.QUERY,
+        signature="(graph: Graph) -> Optional[List[int]]",
+        deterministic=True,
+        doc="Topological sort for directed acyclic graph"
+    )
     def topological_sort(graph: Graph) -> Optional[List[int]]:
         """Topological sort for directed acyclic graph
 
@@ -538,6 +652,13 @@ class GraphOperations:
         return result
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.QUERY,
+        signature="(graph: Graph, source: int, sink: int) -> float",
+        deterministic=True,
+        doc="Calculate maximum flow using Ford-Fulkerson with BFS (Edmonds-Karp)"
+    )
     def max_flow(graph: Graph, source: int, sink: int) -> float:
         """Calculate maximum flow using Ford-Fulkerson with BFS (Edmonds-Karp)
 
@@ -621,6 +742,13 @@ class GraphOperations:
         return max_flow_value
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.CONSTRUCT,
+        signature="(num_nodes: int, edge_probability: float, graph_type: GraphType, seed: Optional[int]) -> Graph",
+        deterministic=True,
+        doc="Generate random graph (Erdős–Rényi model)"
+    )
     def random_graph(num_nodes: int, edge_probability: float,
                     graph_type: GraphType = GraphType.UNDIRECTED,
                     seed: Optional[int] = None) -> Graph:
@@ -649,6 +777,13 @@ class GraphOperations:
         return graph
 
     @staticmethod
+    @operator(
+        domain="graph",
+        category=OpCategory.CONSTRUCT,
+        signature="(rows: int, cols: int, diagonal: bool) -> Graph",
+        deterministic=True,
+        doc="Create a grid graph"
+    )
     def grid_graph(rows: int, cols: int, diagonal: bool = False) -> Graph:
         """Create a grid graph
 
@@ -692,3 +827,24 @@ class GraphOperations:
 
 # Export singleton instance for DSL access
 graph = GraphOperations()
+
+# Export operators for domain registry discovery
+create_empty = GraphOperations.create_empty
+add_edge = GraphOperations.add_edge
+remove_edge = GraphOperations.remove_edge
+from_adjacency_matrix = GraphOperations.from_adjacency_matrix
+to_adjacency_matrix = GraphOperations.to_adjacency_matrix
+dijkstra = GraphOperations.dijkstra
+shortest_path = GraphOperations.shortest_path
+bfs = GraphOperations.bfs
+dfs = GraphOperations.dfs
+connected_components = GraphOperations.connected_components
+degree_centrality = GraphOperations.degree_centrality
+betweenness_centrality = GraphOperations.betweenness_centrality
+pagerank = GraphOperations.pagerank
+clustering_coefficient = GraphOperations.clustering_coefficient
+minimum_spanning_tree = GraphOperations.minimum_spanning_tree
+topological_sort = GraphOperations.topological_sort
+max_flow = GraphOperations.max_flow
+random_graph = GraphOperations.random_graph
+grid_graph = GraphOperations.grid_graph

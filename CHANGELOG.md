@@ -7,6 +7,152 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Strategic - Domain Finishing Initiative
+
+**Date:** 2025-11-17
+**Status:** Active Roadmap
+**Timeline:** 10 months (Months 1-10)
+
+We are launching a strategic pivot from breadth (adding more domains) to depth (finishing the 23 domains we have). This initiative is documented in `docs/guides/DOMAIN_FINISHING_GUIDE.md`.
+
+**The Problem:**
+We have 23 domains implemented, but most are "half-finished" — they work in Python but aren't fully integrated into Kairo/Morphogen as a platform.
+
+**The Solution:**
+A comprehensive 10-month roadmap to bring all 23 domains through 5 levels of completion:
+
+1. **Level 1: Python Runtime** ✅ COMPLETE (23/23 domains)
+   - All domains work as Python libraries
+   - Operators implemented, tested, with examples
+
+2. **Level 2: Language Integration** (Months 3-4, 8 weeks)
+   - Domain registry system
+   - `use {domain}` statement support
+   - Operators callable from `.kairo` source files
+   - Type signatures for all operators
+
+3. **Level 3: Type System Enforcement** (Months 5-6, 8 weeks)
+   - Physical units enforced at compile time
+   - Cross-domain type validation
+   - Rate compatibility checking
+   - Clear error messages
+
+4. **Level 4: Scheduler Integration** (Months 7-8, 8 weeks)
+   - Multirate execution (audio @ 48kHz, control @ 1kHz, visual @ 60Hz)
+   - Sample-accurate timing
+   - Cross-rate communication and resampling
+   - Deterministic scheduling
+
+5. **Level 5: MLIR Native Compilation** (Ongoing, prioritized)
+   - MLIR dialects for performance-critical domains
+   - 5-10x performance improvements
+   - JIT/AOT compilation support
+
+**Current Status:**
+- ✅ Level 1: 23/23 domains (DONE)
+- 🚧 Level 2: 1/23 domains (IN PROGRESS - registry complete, graph integrated)
+  - ✅ Domain registry system implemented
+  - ✅ @operator decorator system complete
+  - ✅ Graph domain: 19/19 operators integrated
+  - ⏭️ Next: 22 domains remaining
+- ❌ Level 3: 0/23 domains (Blocker: type checker doesn't enforce units)
+- ❌ Level 4: 0/23 domains (Blocker: multirate scheduler not fully implemented)
+- ⚠️ Level 5: 4/23 domains (field, agent, audio, temporal have MLIR support)
+
+**Phase 1: Showcase & Validation** (Months 1-2)
+- Generate professional outputs from existing domains
+- Gather community feedback
+- Validate use cases before infrastructure investment
+
+**Phase 2: Core Infrastructure** (Months 3-8)
+- Implement domain registry and language integration
+- Build type system with units, domains, and rates
+- Create multirate scheduler with cross-domain support
+
+**Phase 3: Production Readiness** (Months 9-10)
+- MLIR integration for high-priority domains
+- Build 3 real-world applications
+- Production deployment
+
+**Key Insight:**
+> "Stop adding domains. Finish the 23 we have. Then every future domain integrates from day 1."
+
+**Success Metrics:**
+- By Month 4: All 23 domains usable from `.kairo` files
+- By Month 6: Full type safety across all domains
+- By Month 8: Multirate execution working
+- By Month 10: 3 production applications + 5+ domains with native compilation
+
+**Related Documentation:**
+- `docs/guides/DOMAIN_FINISHING_GUIDE.md` - Complete roadmap with implementation details
+- `docs/planning/EXECUTION_PLAN_Q4_2025.md` - Master timeline
+- `docs/guides/domain-implementation.md` - MLIR integration guide
+- `docs/CROSS_DOMAIN_API.md` - Cross-domain patterns
+
+---
+
+### Added - Level 2: Domain Registry Infrastructure
+
+**Implementation of Level 2, Phase 1 from Domain Finishing Guide**
+
+We've begun Level 2 (Language Integration) by implementing the core domain registry infrastructure. This is the foundation that will enable all 23 domains to be accessible from `.kairo` source files.
+
+**New Core Infrastructure:**
+
+- **`kairo/core/operator.py`** - Operator metadata system
+  - `@operator` decorator for marking domain operators
+  - `OpCategory` enum: CONSTRUCT, TRANSFORM, QUERY, INTEGRATE, COMPOSE, MUTATE, SAMPLE, RENDER
+  - `OperatorMetadata` dataclass: domain, category, signature, determinism, documentation
+  - Helper functions: `get_operator_metadata()`, `is_operator()`
+
+- **`kairo/core/domain_registry.py`** - Central domain registry
+  - `DomainDescriptor`: Metadata container for domains
+  - `DomainRegistry`: Singleton registry with auto-discovery of operators
+  - `register_stdlib_domains()`: Auto-registers all 23 stdlib domains
+  - Operator discovery via `@operator` decorator introspection
+
+- **`tests/test_domain_registry.py`** - Comprehensive test suite
+  - 19 tests covering decorator, descriptor, and registry functionality
+  - All tests passing ✅
+
+**Graph Domain - Fully Integrated (Proof of Concept):**
+
+The graph domain is now the first fully-integrated domain, serving as the template for the remaining 22 domains.
+
+- **19 operators** all decorated and discoverable:
+  - **4 CONSTRUCT**: `create_empty`, `from_adjacency_matrix`, `grid_graph`, `random_graph`
+  - **11 QUERY**: `bfs`, `dfs`, `dijkstra`, `shortest_path`, `connected_components`, `degree_centrality`, `betweenness_centrality`, `pagerank`, `clustering_coefficient`, `topological_sort`, `max_flow`
+  - **4 TRANSFORM**: `add_edge`, `remove_edge`, `to_adjacency_matrix`, `minimum_spanning_tree`
+
+- All operators have complete metadata:
+  - Domain: "graph"
+  - Category: Semantic grouping
+  - Signature: Type information for future type checking
+  - Deterministic: All graph operations are deterministic
+
+**What This Enables:**
+
+This infrastructure is the foundation for:
+1. `use graph` statements in `.kairo` files (parser enhancement needed)
+2. Type checking of operator calls (type system needed)
+3. Auto-generated documentation (tooling needed)
+4. IDE autocompletion (LSP integration needed)
+
+**Progress Tracking:**
+- Week 1 of 8 for Level 2 (Language Integration)
+- 1/23 domains fully integrated (4.3%)
+- Infrastructure complete, ready for rapid domain integration
+
+**Next Steps:**
+- Add @operator decorators to remaining 22 domains
+- Implement parser enhancement for `use` statement
+- Create operator syntax bindings
+- Integration testing across all domains
+
+---
+
 ## [v0.10.0] - 2025-11-16
 
 ### Added - Five New Computational Domains ⭐⭐⭐
