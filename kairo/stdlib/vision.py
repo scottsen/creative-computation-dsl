@@ -20,6 +20,8 @@ from enum import Enum
 import scipy.ndimage as ndimage
 from scipy.signal import convolve2d
 
+from kairo.core.operator import operator, OpCategory
+
 
 class EdgeDetector(Enum):
     """Edge detection algorithms"""
@@ -117,6 +119,13 @@ class VisionOperations:
     """Computer vision operations"""
 
     @staticmethod
+    @operator(
+        domain="vision",
+        category=OpCategory.CONSTRUCT,
+        signature="(data: np.ndarray) -> ImageGray",
+        deterministic=True,
+        doc="Create grayscale image from array"
+    )
     def create_image(data: np.ndarray) -> ImageGray:
         """Create grayscale image from array
 
@@ -135,6 +144,13 @@ class VisionOperations:
         return ImageGray(data=data)
 
     @staticmethod
+    @operator(
+        domain="vision",
+        category=OpCategory.ANALYSIS,
+        signature="(img: ImageGray) -> EdgeMap",
+        deterministic=True,
+        doc="Sobel edge detection"
+    )
     def sobel(img: ImageGray) -> EdgeMap:
         """Sobel edge detection
 
@@ -164,6 +180,13 @@ class VisionOperations:
         return EdgeMap(magnitude=magnitude, direction=direction)
 
     @staticmethod
+    @operator(
+        domain="vision",
+        category=OpCategory.ANALYSIS,
+        signature="(img: ImageGray) -> ImageGray",
+        deterministic=True,
+        doc="Laplacian edge detection"
+    )
     def laplacian(img: ImageGray) -> ImageGray:
         """Laplacian edge detection
 
@@ -182,6 +205,13 @@ class VisionOperations:
         return ImageGray(data=np.abs(result))
 
     @staticmethod
+    @operator(
+        domain="vision",
+        category=OpCategory.ANALYSIS,
+        signature="(img: ImageGray, low_threshold: float, high_threshold: float) -> ImageGray",
+        deterministic=True,
+        doc="Canny edge detection (simplified)"
+    )
     def canny(img: ImageGray, low_threshold: float = 0.1,
              high_threshold: float = 0.3) -> ImageGray:
         """Canny edge detection (simplified)
@@ -245,6 +275,13 @@ class VisionOperations:
         return ImageGray(data=edges.astype(np.float64))
 
     @staticmethod
+    @operator(
+        domain="vision",
+        category=OpCategory.ANALYSIS,
+        signature="(img: ImageGray, k: float, threshold: float) -> List[Keypoint]",
+        deterministic=True,
+        doc="Harris corner detection"
+    )
     def harris_corners(img: ImageGray, k: float = 0.04,
                       threshold: float = 0.01) -> List[Keypoint]:
         """Harris corner detection
@@ -299,6 +336,13 @@ class VisionOperations:
         return keypoints
 
     @staticmethod
+    @operator(
+        domain="vision",
+        category=OpCategory.TRANSFORM,
+        signature="(img: ImageGray, sigma: float) -> ImageGray",
+        deterministic=True,
+        doc="Apply Gaussian blur"
+    )
     def gaussian_blur(img: ImageGray, sigma: float = 1.0) -> ImageGray:
         """Apply Gaussian blur
 
@@ -313,6 +357,13 @@ class VisionOperations:
         return ImageGray(data=blurred)
 
     @staticmethod
+    @operator(
+        domain="vision",
+        category=OpCategory.TRANSFORM,
+        signature="(img: ImageGray, operation: MorphOp, kernel_size: int) -> ImageGray",
+        deterministic=True,
+        doc="Apply morphological operation"
+    )
     def morphological(img: ImageGray, operation: MorphOp,
                      kernel_size: int = 3) -> ImageGray:
         """Apply morphological operation
@@ -355,6 +406,13 @@ class VisionOperations:
         return ImageGray(data=result.astype(np.float64))
 
     @staticmethod
+    @operator(
+        domain="vision",
+        category=OpCategory.TRANSFORM,
+        signature="(img: ImageGray, threshold: float) -> ImageGray",
+        deterministic=True,
+        doc="Apply binary threshold"
+    )
     def threshold(img: ImageGray, threshold: float = 0.5) -> ImageGray:
         """Apply binary threshold
 
@@ -369,6 +427,13 @@ class VisionOperations:
         return ImageGray(data=binary)
 
     @staticmethod
+    @operator(
+        domain="vision",
+        category=OpCategory.TRANSFORM,
+        signature="(img: ImageGray, block_size: int, c: float) -> ImageGray",
+        deterministic=True,
+        doc="Apply adaptive threshold"
+    )
     def adaptive_threshold(img: ImageGray, block_size: int = 11,
                           c: float = 2.0) -> ImageGray:
         """Apply adaptive threshold
@@ -390,6 +455,13 @@ class VisionOperations:
         return ImageGray(data=binary)
 
     @staticmethod
+    @operator(
+        domain="vision",
+        category=OpCategory.ANALYSIS,
+        signature="(img: ImageGray, min_area: float) -> List[Contour]",
+        deterministic=True,
+        doc="Find contours in binary image (simplified)"
+    )
     def find_contours(img: ImageGray, min_area: float = 10.0) -> List[Contour]:
         """Find contours in binary image (simplified)
 
@@ -440,6 +512,13 @@ class VisionOperations:
         return contours
 
     @staticmethod
+    @operator(
+        domain="vision",
+        category=OpCategory.ANALYSIS,
+        signature="(img: ImageGray, template: ImageGray) -> np.ndarray",
+        deterministic=True,
+        doc="Template matching using normalized cross-correlation"
+    )
     def template_match(img: ImageGray, template: ImageGray) -> np.ndarray:
         """Template matching using normalized cross-correlation
 
@@ -470,6 +549,13 @@ class VisionOperations:
         return correlation
 
     @staticmethod
+    @operator(
+        domain="vision",
+        category=OpCategory.ANALYSIS,
+        signature="(edges: ImageGray, threshold: int) -> List[Tuple[float, float]]",
+        deterministic=True,
+        doc="Hough transform for line detection (simplified)"
+    )
     def hough_lines(edges: ImageGray, threshold: int = 50) -> List[Tuple[float, float]]:
         """Hough transform for line detection (simplified)
 
@@ -514,6 +600,13 @@ class VisionOperations:
         return lines
 
     @staticmethod
+    @operator(
+        domain="vision",
+        category=OpCategory.ANALYSIS,
+        signature="(img1: ImageGray, img2: ImageGray, window_size: int) -> Tuple[np.ndarray, np.ndarray]",
+        deterministic=True,
+        doc="Lucas-Kanade optical flow (simplified)"
+    )
     def optical_flow_lucas_kanade(img1: ImageGray, img2: ImageGray,
                                   window_size: int = 5) -> Tuple[np.ndarray, np.ndarray]:
         """Lucas-Kanade optical flow (simplified)
@@ -567,3 +660,18 @@ class VisionOperations:
 
 # Export singleton instance for DSL access
 vision = VisionOperations()
+
+# Export operators for domain registry discovery
+create_image = VisionOperations.create_image
+sobel = VisionOperations.sobel
+laplacian = VisionOperations.laplacian
+canny = VisionOperations.canny
+harris_corners = VisionOperations.harris_corners
+gaussian_blur = VisionOperations.gaussian_blur
+morphological = VisionOperations.morphological
+threshold = VisionOperations.threshold
+adaptive_threshold = VisionOperations.adaptive_threshold
+find_contours = VisionOperations.find_contours
+template_match = VisionOperations.template_match
+hough_lines = VisionOperations.hough_lines
+optical_flow_lucas_kanade = VisionOperations.optical_flow_lucas_kanade

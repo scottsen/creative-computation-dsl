@@ -52,14 +52,15 @@ A comprehensive 10-month roadmap to bring all 23 domains through 5 levels of com
 
 **Current Status:**
 - ✅ Level 1: 23/23 domains (DONE)
-- 🚧 Level 2: 4/23 domains (IN PROGRESS - registry complete, graph + signal + statemachine + terrain integrated)
+- 🚧 Level 2: 5/23 domains (IN PROGRESS - registry complete, graph + signal + statemachine + terrain + vision integrated)
   - ✅ Domain registry system implemented
   - ✅ @operator decorator system complete
   - ✅ Graph domain: 19/19 operators integrated
   - ✅ Signal domain: 20/20 operators integrated
   - ✅ StateMachine domain: 15/15 operators integrated
   - ✅ Terrain domain: 11/11 operators integrated
-  - ⏭️ Next: 19 domains remaining
+  - ✅ Vision domain: 13/13 operators integrated
+  - ⏭️ Next: 18 domains remaining
 - ❌ Level 3: 0/23 domains (Blocker: type checker doesn't enforce units)
 - ❌ Level 4: 0/23 domains (Blocker: multirate scheduler not fully implemented)
 - ⚠️ Level 5: 4/23 domains (field, agent, audio, temporal have MLIR support)
@@ -321,6 +322,72 @@ Essential for procedural world generation, game development, and geographic simu
 
 **Related:**
 - `kairo/stdlib/terrain.py` - Terrain generation operators with @operator decorators
+- `kairo/core/operator.py` - @operator decorator system
+- `kairo/core/domain_registry.py` - Central domain registry
+- `docs/guides/DOMAIN_FINISHING_GUIDE.md` - Complete roadmap
+
+---
+
+### Added - Level 2: Vision Domain Integration
+
+**Date:** 2025-11-17
+**Timeline:** Month 3-4, Week 1 of 8
+
+Following the systematic approach established with graph, signal, statemachine, and terrain domains, the vision domain is now fully integrated into the domain registry system.
+
+**Vision Domain - Fully Integrated:**
+
+The vision domain is now the fifth fully-integrated domain, continuing the methodical completion of all 23 domains.
+
+- **13 operators** all decorated and discoverable:
+  - **1 CONSTRUCT**: `create_image`
+  - **5 TRANSFORM**: `gaussian_blur`, `morphological`, `threshold`, `adaptive_threshold`
+  - **8 ANALYSIS**: `sobel`, `laplacian`, `canny`, `harris_corners`, `find_contours`, `template_match`, `hough_lines`, `optical_flow_lucas_kanade`
+
+- All operators have complete metadata:
+  - Domain: "vision"
+  - Category: Semantic grouping (CONSTRUCT/TRANSFORM/ANALYSIS)
+  - Signature: Type information for future type checking
+  - Deterministic: All vision operations are deterministic
+
+**Implementation Details:**
+
+- Added `from kairo.core.operator import operator, OpCategory` import
+- Applied `@operator` decorator to all 13 methods in `VisionOperations` class
+- Categorized operators by function:
+  - CONSTRUCT: Creating grayscale images from arrays
+  - TRANSFORM: Image filtering and preprocessing (blur, morphology, thresholding)
+  - ANALYSIS: Feature detection and computer vision algorithms (edge detection, corners, contours, template matching, optical flow)
+- All operations marked as deterministic
+- Exported all operators at module level for registry discovery
+
+**Module-Level Exports:**
+
+All 13 operators are exported at module level in `kairo/stdlib/vision.py` for automatic discovery by the domain registry system:
+- Construction: create_image
+- Edge Detection: sobel, laplacian, canny
+- Feature Detection: harris_corners, find_contours, hough_lines
+- Template/Flow: template_match, optical_flow_lucas_kanade
+- Transforms: gaussian_blur, morphological, threshold, adaptive_threshold
+
+**Integration Progress:**
+- ✅ Vision domain: 13/13 operators integrated (100%)
+- ✅ 5/23 domains complete (21.7%)
+- ⏭️ Next: Continue with remaining 18 domains
+
+**What This Covers:**
+
+The vision domain provides comprehensive computer vision and image analysis capabilities:
+1. **Edge Detection**: Sobel, Laplacian, Canny algorithms for finding edges
+2. **Feature Detection**: Harris corners, contour detection, Hough line detection
+3. **Image Processing**: Gaussian blur, morphological operations (erode, dilate, open, close)
+4. **Thresholding**: Binary and adaptive thresholding for segmentation
+5. **Advanced Analysis**: Template matching, optical flow (Lucas-Kanade)
+
+Essential for computer vision, image analysis, object detection, and visual processing applications.
+
+**Related:**
+- `kairo/stdlib/vision.py` - Computer vision operators with @operator decorators
 - `kairo/core/operator.py` - @operator decorator system
 - `kairo/core/domain_registry.py` - Central domain registry
 - `docs/guides/DOMAIN_FINISHING_GUIDE.md` - Complete roadmap
