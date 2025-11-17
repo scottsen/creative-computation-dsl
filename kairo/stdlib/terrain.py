@@ -19,6 +19,8 @@ from dataclasses import dataclass
 from typing import Tuple, Optional, List
 from enum import Enum
 
+from kairo.core.operator import operator, OpCategory
+
 
 class ErosionType(Enum):
     """Erosion simulation types"""
@@ -90,6 +92,13 @@ class TerrainOperations:
     """Terrain generation and manipulation operations"""
 
     @staticmethod
+    @operator(
+        domain="terrain",
+        category=OpCategory.CONSTRUCT,
+        signature="(width: int, height: int, scale: float) -> Heightmap",
+        deterministic=True,
+        doc="Create an empty heightmap"
+    )
     def create_heightmap(width: int, height: int, scale: float = 1.0) -> Heightmap:
         """Create an empty heightmap
 
@@ -107,6 +116,13 @@ class TerrainOperations:
         )
 
     @staticmethod
+    @operator(
+        domain="terrain",
+        category=OpCategory.CONSTRUCT,
+        signature="(width: int, height: int, scale: float, octaves: int, persistence: float, lacunarity: float, seed: Optional[int]) -> Heightmap",
+        deterministic=False,  # Uses random seed
+        doc="Generate heightmap using Perlin noise"
+    )
     def from_noise_perlin(width: int, height: int, scale: float = 50.0,
                          octaves: int = 6, persistence: float = 0.5,
                          lacunarity: float = 2.0, seed: Optional[int] = None) -> Heightmap:
@@ -187,6 +203,13 @@ class TerrainOperations:
         return nx0 * (1 - sy) + nx1 * sy
 
     @staticmethod
+    @operator(
+        domain="terrain",
+        category=OpCategory.TRANSFORM,
+        signature="(terrain: Heightmap, iterations: int, rain_amount: float, evaporation: float, capacity: float) -> Heightmap",
+        deterministic=True,
+        doc="Simulate hydraulic (water) erosion"
+    )
     def hydraulic_erosion(terrain: Heightmap, iterations: int = 100,
                          rain_amount: float = 0.01,
                          evaporation: float = 0.5,
@@ -262,6 +285,13 @@ class TerrainOperations:
         return result
 
     @staticmethod
+    @operator(
+        domain="terrain",
+        category=OpCategory.TRANSFORM,
+        signature="(terrain: Heightmap, iterations: int, talus_angle: float) -> Heightmap",
+        deterministic=True,
+        doc="Simulate thermal erosion (smoothing based on slope)"
+    )
     def thermal_erosion(terrain: Heightmap, iterations: int = 50,
                        talus_angle: float = 0.5) -> Heightmap:
         """Simulate thermal erosion (smoothing based on slope)
@@ -301,6 +331,13 @@ class TerrainOperations:
         return result
 
     @staticmethod
+    @operator(
+        domain="terrain",
+        category=OpCategory.ANALYSIS,
+        signature="(terrain: Heightmap) -> np.ndarray",
+        deterministic=True,
+        doc="Calculate terrain slope at each point"
+    )
     def calculate_slope(terrain: Heightmap) -> np.ndarray:
         """Calculate terrain slope at each point
 
@@ -315,6 +352,13 @@ class TerrainOperations:
         return slope
 
     @staticmethod
+    @operator(
+        domain="terrain",
+        category=OpCategory.ANALYSIS,
+        signature="(terrain: Heightmap) -> np.ndarray",
+        deterministic=True,
+        doc="Calculate terrain aspect (direction of slope)"
+    )
     def calculate_aspect(terrain: Heightmap) -> np.ndarray:
         """Calculate terrain aspect (direction of slope)
 
@@ -329,6 +373,13 @@ class TerrainOperations:
         return aspect
 
     @staticmethod
+    @operator(
+        domain="terrain",
+        category=OpCategory.ANALYSIS,
+        signature="(terrain: Heightmap, moisture: Optional[np.ndarray], temperature: Optional[np.ndarray]) -> BiomeMap",
+        deterministic=True,
+        doc="Classify terrain into biomes based on height, moisture, temperature"
+    )
     def classify_biomes(terrain: Heightmap, moisture: Optional[np.ndarray] = None,
                        temperature: Optional[np.ndarray] = None) -> BiomeMap:
         """Classify terrain into biomes based on height, moisture, temperature
@@ -381,6 +432,13 @@ class TerrainOperations:
         return BiomeMap(data=biome_data, biome_types=biome_types)
 
     @staticmethod
+    @operator(
+        domain="terrain",
+        category=OpCategory.TRANSFORM,
+        signature="(terrain: Heightmap, num_levels: int) -> Heightmap",
+        deterministic=True,
+        doc="Create terraced terrain (stepped levels)"
+    )
     def terrace(terrain: Heightmap, num_levels: int = 5) -> Heightmap:
         """Create terraced terrain (stepped levels)
 
@@ -400,6 +458,13 @@ class TerrainOperations:
         return result
 
     @staticmethod
+    @operator(
+        domain="terrain",
+        category=OpCategory.TRANSFORM,
+        signature="(terrain: Heightmap, iterations: int, strength: float) -> Heightmap",
+        deterministic=True,
+        doc="Smooth terrain using averaging filter"
+    )
     def smooth(terrain: Heightmap, iterations: int = 1, strength: float = 0.5) -> Heightmap:
         """Smooth terrain using averaging filter
 
@@ -422,6 +487,13 @@ class TerrainOperations:
         return result
 
     @staticmethod
+    @operator(
+        domain="terrain",
+        category=OpCategory.TRANSFORM,
+        signature="(terrain: Heightmap, min_val: float, max_val: float) -> Heightmap",
+        deterministic=True,
+        doc="Normalize heightmap to specified range"
+    )
     def normalize(terrain: Heightmap, min_val: float = 0.0, max_val: float = 1.0) -> Heightmap:
         """Normalize heightmap to specified range
 
@@ -448,6 +520,13 @@ class TerrainOperations:
         return result
 
     @staticmethod
+    @operator(
+        domain="terrain",
+        category=OpCategory.TRANSFORM,
+        signature="(terrain: Heightmap, falloff: float) -> Heightmap",
+        deterministic=True,
+        doc="Apply radial falloff to create island"
+    )
     def island_mask(terrain: Heightmap, falloff: float = 0.5) -> Heightmap:
         """Apply radial falloff to create island
 
@@ -480,3 +559,16 @@ class TerrainOperations:
 
 # Export singleton instance for DSL access
 terrain = TerrainOperations()
+
+# Export operators for domain registry discovery
+create_heightmap = TerrainOperations.create_heightmap
+from_noise_perlin = TerrainOperations.from_noise_perlin
+hydraulic_erosion = TerrainOperations.hydraulic_erosion
+thermal_erosion = TerrainOperations.thermal_erosion
+calculate_slope = TerrainOperations.calculate_slope
+calculate_aspect = TerrainOperations.calculate_aspect
+classify_biomes = TerrainOperations.classify_biomes
+terrace = TerrainOperations.terrace
+smooth = TerrainOperations.smooth
+normalize = TerrainOperations.normalize
+island_mask = TerrainOperations.island_mask
