@@ -67,6 +67,30 @@ Both compile to the same Graph IR, share the same operator registry, and guarant
 
 ---
 
+## Sister Project: Philbrick
+
+**Kairo** (software) and **[Philbrick](https://github.com/scottsen/philbrick)** (hardware) are **two halves of one vision** — modular computation in different substrates.
+
+| Aspect | Kairo (Digital) | Philbrick (Analog/Hybrid) |
+|--------|----------------|---------------------------|
+| **Purpose** | Digital simulation of continuous phenomena | Physical embodiment of continuous dynamics |
+| **Primitives** | Streams, fields, transforms | Sum, integrate, nonlinearity, events |
+| **Safety** | Type system (domain/rate/units) | Pin contracts (voltage/impedance/latency) |
+| **Execution** | Multirate deterministic scheduler | Latency-aware routing fabric |
+| **Philosophy** | **Computation = composition** | **Computation = composition** |
+
+### The Bridge
+
+- **Design in Kairo** → Simulate and optimize continuous-time systems
+- **Build in Philbrick** → Physical modules implementing the same primitives
+- **Validate Together** → Software and hardware mirror each other
+
+Both platforms share the same four core operations (sum, integrate, nonlinearity, events) and the same compositional philosophy. They will eventually compile to each other.
+
+> 🔧 **Learn More**: [Philbrick](https://github.com/scottsen/philbrick) - Modular analog/digital hybrid computing platform
+
+---
+
 ## Cross-Domain in Action
 
 Here's what sets Kairo apart — domains working together seamlessly:
