@@ -52,7 +52,11 @@ A comprehensive 10-month roadmap to bring all 23 domains through 5 levels of com
 
 **Current Status:**
 - ✅ Level 1: 23/23 domains (DONE)
-- ❌ Level 2: 0/23 domains (Blocker: domain registry not implemented)
+- 🚧 Level 2: 1/23 domains (IN PROGRESS - registry complete, graph integrated)
+  - ✅ Domain registry system implemented
+  - ✅ @operator decorator system complete
+  - ✅ Graph domain: 19/19 operators integrated
+  - ⏭️ Next: 22 domains remaining
 - ❌ Level 3: 0/23 domains (Blocker: type checker doesn't enforce units)
 - ❌ Level 4: 0/23 domains (Blocker: multirate scheduler not fully implemented)
 - ⚠️ Level 5: 4/23 domains (field, agent, audio, temporal have MLIR support)
@@ -86,6 +90,66 @@ A comprehensive 10-month roadmap to bring all 23 domains through 5 levels of com
 - `docs/planning/EXECUTION_PLAN_Q4_2025.md` - Master timeline
 - `docs/guides/domain-implementation.md` - MLIR integration guide
 - `docs/CROSS_DOMAIN_API.md` - Cross-domain patterns
+
+---
+
+### Added - Level 2: Domain Registry Infrastructure
+
+**Implementation of Level 2, Phase 1 from Domain Finishing Guide**
+
+We've begun Level 2 (Language Integration) by implementing the core domain registry infrastructure. This is the foundation that will enable all 23 domains to be accessible from `.kairo` source files.
+
+**New Core Infrastructure:**
+
+- **`kairo/core/operator.py`** - Operator metadata system
+  - `@operator` decorator for marking domain operators
+  - `OpCategory` enum: CONSTRUCT, TRANSFORM, QUERY, INTEGRATE, COMPOSE, MUTATE, SAMPLE, RENDER
+  - `OperatorMetadata` dataclass: domain, category, signature, determinism, documentation
+  - Helper functions: `get_operator_metadata()`, `is_operator()`
+
+- **`kairo/core/domain_registry.py`** - Central domain registry
+  - `DomainDescriptor`: Metadata container for domains
+  - `DomainRegistry`: Singleton registry with auto-discovery of operators
+  - `register_stdlib_domains()`: Auto-registers all 23 stdlib domains
+  - Operator discovery via `@operator` decorator introspection
+
+- **`tests/test_domain_registry.py`** - Comprehensive test suite
+  - 19 tests covering decorator, descriptor, and registry functionality
+  - All tests passing ✅
+
+**Graph Domain - Fully Integrated (Proof of Concept):**
+
+The graph domain is now the first fully-integrated domain, serving as the template for the remaining 22 domains.
+
+- **19 operators** all decorated and discoverable:
+  - **4 CONSTRUCT**: `create_empty`, `from_adjacency_matrix`, `grid_graph`, `random_graph`
+  - **11 QUERY**: `bfs`, `dfs`, `dijkstra`, `shortest_path`, `connected_components`, `degree_centrality`, `betweenness_centrality`, `pagerank`, `clustering_coefficient`, `topological_sort`, `max_flow`
+  - **4 TRANSFORM**: `add_edge`, `remove_edge`, `to_adjacency_matrix`, `minimum_spanning_tree`
+
+- All operators have complete metadata:
+  - Domain: "graph"
+  - Category: Semantic grouping
+  - Signature: Type information for future type checking
+  - Deterministic: All graph operations are deterministic
+
+**What This Enables:**
+
+This infrastructure is the foundation for:
+1. `use graph` statements in `.kairo` files (parser enhancement needed)
+2. Type checking of operator calls (type system needed)
+3. Auto-generated documentation (tooling needed)
+4. IDE autocompletion (LSP integration needed)
+
+**Progress Tracking:**
+- Week 1 of 8 for Level 2 (Language Integration)
+- 1/23 domains fully integrated (4.3%)
+- Infrastructure complete, ready for rapid domain integration
+
+**Next Steps:**
+- Add @operator decorators to remaining 22 domains
+- Implement parser enhancement for `use` statement
+- Create operator syntax bindings
+- Integration testing across all domains
 
 ---
 
