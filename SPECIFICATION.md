@@ -1,4 +1,4 @@
-# Kairo v0.6.0 Language Specification
+# Kairo v0.10.0 Language Specification
 
 **A Language of Creative Determinism**
 
@@ -8,8 +8,8 @@
 
 ## Document Information
 
-- **Version**: 0.6.0
-- **Date**: 2025-11-14
+- **Version**: 0.10.0
+- **Date**: 2025-11-16
 - **Status**: Draft Specification
 - **Authors**: Scott Sen, with Claude
 - **Target Audience**: Implementors and Language Designers
@@ -2240,6 +2240,17 @@ state = match agent.state {
 ---
 
 ## Document History
+
+- **v0.10.0** (2025-11-16): Five New Computational Domains
+  - Graph/Network domain with 15+ algorithms
+  - Signal Processing domain with FFT/STFT and spectral analysis
+  - State Machine domain with FSM and behavior trees
+  - Terrain Generation domain with erosion and biome classification
+  - Computer Vision domain with edge detection and feature extraction
+  - Updated domain count to 23 implemented domains
+  - RigidBody Physics domain (v0.8.2)
+  - Cellular Automata domain (v0.9.1)
+  - Cross-domain composition infrastructure (v0.9.0)
 
 - **v0.6.0** (2025-11-14): Audio I/O and Visual Extensions
   - Audio I/O operations: play(), save(), load(), record()

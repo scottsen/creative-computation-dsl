@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="kairo",
-    version="0.3.1",
+    version="0.10.0",
     author="Scott Sen",
     description="A language of creative determinism for simulation, sound, and visual form",
     long_description=long_description,

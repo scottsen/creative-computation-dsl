@@ -255,10 +255,9 @@ flow(dt=0.016) {  // 60 FPS
 - Impulse-based collision response with restitution and friction
 - Static and dynamic bodies
 - Deterministic physics simulation
-- 32 comprehensive tests
 - Example simulations: bouncing balls, collisions, stacking
 
-**Status:** Production-ready as of v0.8.2 (2025-11-16)
+**Status:** Production-ready as of v0.8.2
 
 ### 3. Agent Dialect - Sparse Particle Systems
 
@@ -331,7 +330,148 @@ audio.save(final, "out.wav") # Export to WAV/FLAC
 
 **Status:** Production-ready as of v0.5.0 (2025-11-14), I/O added in v0.6.0
 
-### 5. Visual Dialect - Rendering and Composition
+### 5. Graph/Network Domain - Network Analysis and Algorithms
+
+**✅ PRODUCTION-READY - implemented in v0.10.0!**
+
+```kairo
+use graph
+
+// Create social network
+let network = graph.create_empty(directed=false)
+network = graph.add_edge(network, 0, 1, weight=1.0)
+network = graph.add_edge(network, 1, 2, weight=1.0)
+
+// Analyze network
+let centrality = graph.degree_centrality(network)
+let path = graph.shortest_path(network, source=0, target=2)
+let components = graph.connected_components(network)
+```
+
+**Features:**
+- Graph creation and modification
+- Path algorithms: Dijkstra, BFS, DFS, shortest paths
+- Network analysis: degree/betweenness/pagerank centrality
+- Community detection: connected components, clustering coefficient
+- Advanced algorithms: MST, topological sort, max flow
+- Graph generators: random graphs, grid graphs
+
+**Status:** Production-ready as of v0.10.0
+
+### 6. Signal Processing Domain - Frequency Analysis
+
+**✅ PRODUCTION-READY - implemented in v0.10.0!**
+
+```kairo
+use signal
+
+// Generate and analyze signal
+let sig = signal.sine_wave(freq=440.0, duration=1.0)
+let spectrum = signal.fft(sig)
+let spectrogram = signal.stft(sig, window_size=1024, hop_size=512)
+
+// Filtering
+let filtered = signal.lowpass(sig, cutoff=2000.0, order=4)
+```
+
+**Features:**
+- Transforms: FFT, RFFT, STFT (time-frequency analysis)
+- Signal generation: sine, chirp, noise
+- Filtering: lowpass, highpass, bandpass
+- Windowing: Hann, Hamming, Blackman, Kaiser
+- Analysis: envelope, correlation, peak detection, Welch PSD
+- Processing: resample, normalize
+
+**Status:** Production-ready as of v0.10.0
+
+### 7. State Machine Domain - Finite State Machines & Behavior Trees
+
+**✅ PRODUCTION-READY - implemented in v0.10.0!**
+
+```kairo
+use statemachine
+
+// Create game AI state machine
+let sm = statemachine.create()
+sm = sm.add_state("patrol")
+sm = sm.add_state("chase")
+sm = sm.add_transition("patrol", "chase", event="enemy_spotted")
+sm = sm.start("patrol")
+
+// Update based on events
+sm = sm.send_event("enemy_spotted")  // Transitions to chase
+```
+
+**Features:**
+- Finite state machines with event-driven transitions
+- Automatic and timeout-based transitions
+- Guard conditions and transition actions
+- Behavior trees (sequence, selector, action, condition nodes)
+- Graphviz export for visualization
+
+**Status:** Production-ready as of v0.10.0
+
+### 8. Terrain Generation Domain - Procedural Landscapes
+
+**✅ PRODUCTION-READY - implemented in v0.10.0!**
+
+```kairo
+use terrain
+
+// Generate procedural terrain
+let heightmap = terrain.from_noise_perlin(
+    shape=(512, 512),
+    octaves=6,
+    persistence=0.5
+)
+
+// Apply erosion
+heightmap = terrain.hydraulic_erosion(heightmap, iterations=50)
+heightmap = terrain.thermal_erosion(heightmap, iterations=20)
+
+// Classify biomes
+let biomes = terrain.classify_biomes(heightmap)
+```
+
+**Features:**
+- Perlin noise generation with multi-octave support
+- Hydraulic and thermal erosion simulation
+- Slope and aspect calculation
+- Biome classification (ocean, beach, grassland, forest, mountain, snow, desert)
+- Terrain modification: terrace, smooth, normalize, island masking
+
+**Status:** Production-ready as of v0.10.0
+
+### 9. Computer Vision Domain - Image Analysis
+
+**✅ PRODUCTION-READY - implemented in v0.10.0!**
+
+```kairo
+use vision
+
+// Edge detection
+let edges_sobel = vision.sobel(image)
+let edges_canny = vision.canny(image, low=50, high=150)
+
+// Feature detection
+let corners = vision.harris_corners(image, threshold=0.01)
+let lines = vision.hough_lines(edges, threshold=100)
+
+// Morphological operations
+let dilated = vision.morphological(image, operation="dilate", kernel_size=5)
+```
+
+**Features:**
+- Edge detection: Sobel, Laplacian, Canny
+- Feature detection: Harris corners, Hough lines
+- Filtering: Gaussian blur
+- Morphology: erode, dilate, open, close, gradient, tophat, blackhat
+- Segmentation: threshold, adaptive threshold, contour finding
+- Analysis: template matching, optical flow (Lucas-Kanade)
+
+**Status:** Production-ready as of v0.10.0
+
+### 10. Visual Dialect - Rendering and Composition
 
 **✅ ENHANCED in v0.6.0 - Agent rendering and video export!**
 
@@ -431,9 +571,8 @@ See `examples/` directory for more!
 
 ## Project Status
 
-**Version**: 0.7.4
-**Stable Version**: 0.6.0
-**Status**: v0.7.0 Real MLIR Integration - All 6 Phases Complete ✅
+**Version**: 0.10.0
+**Status**: Active Development - 23 Computational Domains ✅
 
 ### ✅ Production-Ready
 - Language specification (comprehensive)
@@ -490,10 +629,15 @@ See `examples/` directory for more!
 
 Kairo's domain architecture has been massively expanded in November 2025, establishing it as a **universal multi-domain platform**.
 
-### Domain Coverage (20+ Domains Specified)
+### Domain Coverage (23 Domains Implemented)
 
-**Production-Ready** (v0.6-0.7):
-- Audio/DSP, Fields/Grids, Agents/Particles, Visual Rendering, Transform Dialect
+**Production-Ready** (v0.6-0.10):
+- **Core**: Audio/DSP, Fields/Grids, Agents/Particles, Visual Rendering, Transform Dialect
+- **Physics**: RigidBody (v0.8.2), Cellular Automata (v0.9.1)
+- **Analysis**: Graph/Network, Signal Processing, Computer Vision (v0.10.0)
+- **AI/Game**: State Machines, Optimization (Genetic Algorithms), Neural Networks
+- **Procedural**: Terrain Generation, Noise, Color, Image Processing (v0.10.0)
+- **Engineering**: Sparse Linear Algebra, Integrators, Acoustics, I/O Storage
 
 **Architecture Complete** (Comprehensive Specs):
 - Circuit Design & Analog Electronics
@@ -501,13 +645,12 @@ Kairo's domain architecture has been massively expanded in November 2025, establ
 - Instrument Modeling & Timbre Extraction
 - Video/Audio Encoding & Synchronization
 - Multi-Physics Engineering (Thermal, Combustion, FluidJet)
-- Optimization (16 algorithms: GA, CMA-ES, Bayesian, NSGA-II)
 - Geometry & Parametric CAD
 - Chemistry & Molecular Dynamics
 - Procedural Generation & Emergence
 
 **Planned**:
-- Graph/Network Analysis, Symbolic Math, Neural Operators, BI/Analytics
+- Symbolic Math, Advanced Neural Operators, BI/Analytics, Control & Robotics
 
 **Why This Matters**: These aren't isolated silos — they're integrated domains sharing:
 - One type system (with physical units)
@@ -686,4 +829,4 @@ MIT License - see [LICENSE](LICENSE) for details
 
 ---
 
-**Status:** v0.7.4 - Real MLIR Integration Complete (All 6 Phases) | **Stable Version:** 0.6.0 | **Current Version:** 0.7.4 | **Last Updated:** 2025-11-15
+**Status:** v0.10.0 - Five New Computational Domains | **Current Version:** 0.10.0 | **Last Updated:** 2025-11-16

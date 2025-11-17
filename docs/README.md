@@ -68,6 +68,21 @@ Planning and progress tracking
 - [Implementation Progress](roadmap/implementation-progress.md)
 - [Testing Strategy](roadmap/testing-strategy.md)
 
+### 📊 [Planning](planning/)
+Strategic planning documents and execution plans
+- [Q4 2025 Execution Plan](planning/EXECUTION_PLAN_Q4_2025.md)
+- [Project Review and Next Steps](planning/PROJECT_REVIEW_AND_NEXT_STEPS.md)
+- [Next Steps Action Plan](planning/NEXT_STEPS_ACTION_PLAN.md)
+- [Showcase Output Strategy](planning/SHOWCASE_OUTPUT_STRATEGY.md)
+
+### 🔬 [Analysis](analysis/)
+Technical analysis and integration guides
+- [Agents Domain Analysis](analysis/AGENTS_DOMAIN_ANALYSIS.md)
+- [Agents-VFX Integration Guide](analysis/AGENTS_VFX_INTEGRATION_GUIDE.md)
+- [Cross-Domain Implementation Summary](analysis/CROSS_DOMAIN_IMPLEMENTATION_SUMMARY.md)
+- [Codebase Exploration Summary](analysis/CODEBASE_EXPLORATION_SUMMARY.md)
+- [Exploration Guide](analysis/EXPLORATION_GUIDE.md)
+
 ### 📦 [Archive](archive/)
 Historical documents and old reviews (well-organized for reference)
 
@@ -95,7 +110,16 @@ Deprecated CCDSL v0.2.2 documentation (for historical reference)
 
 ## Recent Changes
 
-This documentation was reorganized on 2025-11-15 to improve discoverability and navigation. Key improvements:
+**2025-11-16: Major Documentation Reorganization**
+- ✅ Created `planning/` and `analysis/` directories for better organization
+- ✅ Moved strategic planning docs from root to `docs/planning/`
+- ✅ Moved analysis documents from root to `docs/analysis/`
+- ✅ Moved orphaned docs to proper locations (`specifications/`, `guides/`)
+- ✅ Updated all version numbers to v0.10.0 (23 domains implemented)
+- ✅ Fixed inconsistencies across README, STATUS, and SPECIFICATION
+
+**2025-11-15: Initial Documentation Reorganization**
+- Key improvements:
 
 - ✅ Consistent lowercase naming throughout
 - ✅ Logical grouping by user intent (why/what/how/how-to)

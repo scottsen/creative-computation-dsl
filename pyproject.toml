@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kairo"
-version = "0.7.0-dev"
+version = "0.10.0"
 description = "A language of creative determinism for simulation, sound, and visual form"
 readme = "README.md"
 requires-python = ">=3.9"
