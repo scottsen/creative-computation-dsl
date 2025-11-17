@@ -8,6 +8,8 @@ force calculations, and field-agent coupling.
 from typing import Callable, Optional, Dict, Any, Tuple, Union
 import numpy as np
 
+from kairo.core.operators import operator
+
 
 class Agents:
     """Sparse agent collection with per-agent properties.
@@ -144,6 +146,7 @@ class AgentOperations:
     """Namespace for agent operations (accessed as 'agents' in DSL)."""
 
     @staticmethod
+    @operator
     def alloc(count: int, properties: Dict[str, Any], **kwargs) -> Agents:
         """Allocate a new agent collection.
 
@@ -200,6 +203,7 @@ class AgentOperations:
         return Agents(count=count, properties=processed_props)
 
     @staticmethod
+    @operator
     def map(agents_obj: Agents, property_name: str, func: Callable) -> np.ndarray:
         """Apply function to each agent's property.
 
@@ -230,6 +234,7 @@ class AgentOperations:
             raise TypeError(f"Expected callable, got {type(func)}")
 
     @staticmethod
+    @operator
     def filter(agents_obj: Agents, property_name: str, condition: Callable) -> Agents:
         """Keep only agents matching condition.
 
@@ -261,6 +266,7 @@ class AgentOperations:
         return new_agents
 
     @staticmethod
+    @operator
     def reduce(agents_obj: Agents, property_name: str,
                operation: str = "sum", initial: Optional[Any] = None) -> Any:
         """Reduce agents to single value.
@@ -294,6 +300,7 @@ class AgentOperations:
             raise ValueError(f"Unknown reduction operation: {operation}")
 
     @staticmethod
+    @operator
     def compute_pairwise_forces(
         agents_obj: Agents,
         radius: float,
@@ -474,6 +481,7 @@ class AgentOperations:
         return forces
 
     @staticmethod
+    @operator
     def sample_field(agents_obj: Agents, field, position_property: str = 'pos') -> np.ndarray:
         """Sample field values at agent positions.
 
@@ -544,6 +552,7 @@ class AgentOperations:
     # ========================================================================
 
     @staticmethod
+    @operator
     def emit(count: int, position: Union[np.ndarray, Callable],
              velocity: Optional[Union[np.ndarray, Callable]] = None,
              lifetime: Optional[Union[float, Tuple[float, float]]] = None,
@@ -707,6 +716,7 @@ class AgentOperations:
         return AgentOperations.alloc(count=count, properties=particle_props)
 
     @staticmethod
+    @operator
     def age_particles(agents_obj: Agents, dt: float = 1.0,
                      age_property: str = 'age',
                      lifetime_property: str = 'lifetime') -> Agents:
@@ -746,6 +756,7 @@ class AgentOperations:
         return new_agents
 
     @staticmethod
+    @operator
     def get_particle_alpha(agents_obj: Agents,
                           age_property: str = 'age',
                           lifetime_property: str = 'lifetime',
@@ -789,6 +800,7 @@ class AgentOperations:
         return alpha
 
     @staticmethod
+    @operator
     def apply_force(agents_obj: Agents, force: Union[np.ndarray, Callable],
                    velocity_property: str = 'vel',
                    mass_property: Optional[str] = None,
@@ -851,6 +863,7 @@ class AgentOperations:
         return agents_obj.update(velocity_property, new_velocities)
 
     @staticmethod
+    @operator
     def integrate(agents_obj: Agents,
                  position_property: str = 'pos',
                  velocity_property: str = 'vel',
@@ -878,6 +891,7 @@ class AgentOperations:
         return agents_obj.update(position_property, new_positions)
 
     @staticmethod
+    @operator
     def update_trail(agents_obj: Agents,
                     position_property: str = 'pos',
                     trail_length: int = 10) -> Agents:
@@ -918,6 +932,7 @@ class AgentOperations:
         return new_agents
 
     @staticmethod
+    @operator
     def merge(agents_list: list) -> Agents:
         """Merge multiple agent collections into one.
 

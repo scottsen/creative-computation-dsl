@@ -6,6 +6,8 @@ PNG output, and interactive real-time display for the MVP.
 
 from typing import Optional, Union, Callable, Tuple
 import numpy as np
+
+from kairo.core.operators import operator
 import time
 
 
@@ -84,6 +86,7 @@ class VisualOperations:
     }
 
     @staticmethod
+    @operator
     def colorize(field, palette: str = "grayscale",
                  vmin: Optional[float] = None,
                  vmax: Optional[float] = None) -> Visual:
@@ -150,6 +153,7 @@ class VisualOperations:
         return Visual(rgb)
 
     @staticmethod
+    @operator
     def output(visual: Visual, path: str, format: str = "auto") -> None:
         """Save visual to file.
 
@@ -220,6 +224,7 @@ class VisualOperations:
         return np.clip(srgb, 0.0, 1.0)
 
     @staticmethod
+    @operator
     def display(frame_generator: Callable[[], Optional[Visual]],
                 title: str = "Creative Computation DSL",
                 target_fps: int = 30,
@@ -387,6 +392,7 @@ class VisualOperations:
     # ========================================================================
 
     @staticmethod
+    @operator
     def agents(agents, width: int = 512, height: int = 512,
                position_property: str = 'pos',
                color_property: Optional[str] = None,
@@ -639,6 +645,7 @@ class VisualOperations:
         return Visual(img)
 
     @staticmethod
+    @operator
     def layer(visual: Optional[Visual] = None, width: int = 512, height: int = 512,
               background: tuple = (0.0, 0.0, 0.0)) -> Visual:
         """Create a visual layer for composition.
@@ -670,6 +677,7 @@ class VisualOperations:
             return Visual(img)
 
     @staticmethod
+    @operator
     def composite(*layers: Visual, mode: str = "over",
                   opacity: Optional[Union[float, list]] = None) -> Visual:
         """Composite multiple visual layers.
@@ -754,6 +762,7 @@ class VisualOperations:
         return Visual(result)
 
     @staticmethod
+    @operator
     def video(frames: Union[list, Callable[[], Optional[Visual]]],
               path: str,
               fps: int = 30,

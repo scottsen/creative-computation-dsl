@@ -12,6 +12,8 @@ Supported Operations:
 
 from typing import Optional, Tuple, Callable, Union
 import numpy as np
+
+from kairo.core.operators import operator
 from scipy import sparse
 from scipy.sparse import linalg as sp_linalg
 

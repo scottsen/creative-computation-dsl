@@ -19,6 +19,8 @@ Layer 3: Evolution constructs (GA loop, island models)
 """
 
 import numpy as np
+
+from kairo.core.operators import operator
 from typing import List, Tuple, Optional, Callable
 from dataclasses import dataclass
 
@@ -100,6 +102,7 @@ class GeneticOperations:
     # === LAYER 1: ATOMIC OPERATORS ===
 
     @staticmethod
+    @operator
     def alloc_individual(genome_size: int, seed: Optional[int] = None) -> Individual:
         """
         Layer 1: Allocate a random individual.
@@ -118,6 +121,7 @@ class GeneticOperations:
         return Individual(genome=genome, fitness=0.0, age=0)
 
     @staticmethod
+    @operator
     def alloc_population(pop_size: int, genome_size: int,
                         seed: Optional[int] = None) -> Population:
         """
@@ -141,6 +145,7 @@ class GeneticOperations:
         return Population(individuals=individuals, generation=0)
 
     @staticmethod
+    @operator
     def evaluate_fitness(population: Population,
                         fitness_fn: Callable[[np.ndarray], float]) -> Population:
         """
@@ -159,6 +164,7 @@ class GeneticOperations:
         return new_pop
 
     @staticmethod
+    @operator
     def rank_population(population: Population) -> Population:
         """
         Layer 1: Sort population by fitness (descending).
@@ -176,6 +182,7 @@ class GeneticOperations:
         return new_pop
 
     @staticmethod
+    @operator
     def tournament_selection(population: Population, tournament_size: int = 3,
                            seed: Optional[int] = None) -> Individual:
         """
@@ -199,6 +206,7 @@ class GeneticOperations:
         return winner.copy()
 
     @staticmethod
+    @operator
     def roulette_selection(population: Population,
                           seed: Optional[int] = None) -> Individual:
         """
@@ -232,6 +240,7 @@ class GeneticOperations:
         return population.individuals[idx].copy()
 
     @staticmethod
+    @operator
     def elitism_select(population: Population, n_elite: int) -> List[Individual]:
         """
         Layer 1: Select top N individuals (elitism).
@@ -249,6 +258,7 @@ class GeneticOperations:
         return [ind.copy() for ind in population.individuals[:n_elite]]
 
     @staticmethod
+    @operator
     def mutate(genome: np.ndarray, mutation_rate: float = 0.1,
               mutation_scale: float = 0.3,
               seed: Optional[int] = None) -> np.ndarray:
@@ -273,6 +283,7 @@ class GeneticOperations:
         return new_genome
 
     @staticmethod
+    @operator
     def crossover_uniform(genome1: np.ndarray, genome2: np.ndarray,
                          seed: Optional[int] = None) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -295,6 +306,7 @@ class GeneticOperations:
         return offspring1, offspring2
 
     @staticmethod
+    @operator
     def crossover_single_point(genome1: np.ndarray, genome2: np.ndarray,
                               seed: Optional[int] = None) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -317,6 +329,7 @@ class GeneticOperations:
         return offspring1, offspring2
 
     @staticmethod
+    @operator
     def crossover_blend(genome1: np.ndarray, genome2: np.ndarray,
                        alpha: float = 0.5) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -337,6 +350,7 @@ class GeneticOperations:
     # === LAYER 2: COMPOSITE OPERATORS ===
 
     @staticmethod
+    @operator
     def breed(parent1: Individual, parent2: Individual,
              crossover_method: str = 'uniform',
              mutation_rate: float = 0.1,
@@ -386,6 +400,7 @@ class GeneticOperations:
         return offspring1, offspring2
 
     @staticmethod
+    @operator
     def evolve_generation(population: Population,
                          fitness_fn: Callable[[np.ndarray], float],
                          n_elite: int = 4,
@@ -484,6 +499,7 @@ class GeneticOperations:
     # === LAYER 3: EVOLUTION CONSTRUCTS ===
 
     @staticmethod
+    @operator
     def run_evolution(population: Population,
                      fitness_fn: Callable[[np.ndarray], float],
                      n_generations: int = 100,
@@ -513,6 +529,7 @@ class GeneticOperations:
         return population
 
     @staticmethod
+    @operator
     def get_best_individual(population: Population) -> Individual:
         """
         Layer 3: Get the best individual from population.
@@ -528,6 +545,7 @@ class GeneticOperations:
         return max(population.individuals, key=lambda x: x.fitness).copy()
 
     @staticmethod
+    @operator
     def get_diversity(population: Population) -> float:
         """
         Layer 3: Compute genetic diversity of population.
@@ -556,6 +574,7 @@ class GeneticOperations:
     # === LAYER 4: PRESETS ===
 
     @staticmethod
+    @operator
     def flappy_bird_evolution(pop_size: int = 128,
                              genome_size: int = 73,  # [4,8,1] MLP = 32+8+8+1 = 73 params
                              seed: Optional[int] = None) -> Population:

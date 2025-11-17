@@ -19,6 +19,8 @@ Supports multiple palette types:
 from typing import List, Tuple, Optional, Union
 import numpy as np
 
+from kairo.core.operators import operator
+
 
 class Palette:
     """Color palette for mapping scalar values to RGB colors.
@@ -93,6 +95,7 @@ class PaletteOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def from_colors(colors: List[Tuple[float, float, float]], name: str = "custom") -> Palette:
         """Create palette from list of RGB colors.
 
@@ -110,6 +113,7 @@ class PaletteOperations:
         return Palette(colors_array, name)
 
     @staticmethod
+    @operator
     def from_gradient(stops: List[Tuple[float, Tuple[float, float, float]]],
                      resolution: int = 256,
                      name: str = "gradient") -> Palette:
@@ -163,6 +167,7 @@ class PaletteOperations:
         return Palette(colors, name)
 
     @staticmethod
+    @operator
     def greyscale(resolution: int = 256) -> Palette:
         """Create greyscale palette.
 
@@ -177,6 +182,7 @@ class PaletteOperations:
         return Palette(colors, "greyscale")
 
     @staticmethod
+    @operator
     def rainbow(resolution: int = 256) -> Palette:
         """Create rainbow palette (HSV hue sweep).
 
@@ -214,6 +220,7 @@ class PaletteOperations:
         return Palette(colors, "rainbow")
 
     @staticmethod
+    @operator
     def hsv_wheel(resolution: int = 256) -> Palette:
         """Create HSV color wheel palette.
 
@@ -232,6 +239,7 @@ class PaletteOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def inferno(resolution: int = 256) -> Palette:
         """Create Inferno colormap.
 
@@ -256,6 +264,7 @@ class PaletteOperations:
         return PaletteOperations.from_gradient(stops, resolution, "inferno")
 
     @staticmethod
+    @operator
     def viridis(resolution: int = 256) -> Palette:
         """Create Viridis colormap.
 
@@ -279,6 +288,7 @@ class PaletteOperations:
         return PaletteOperations.from_gradient(stops, resolution, "viridis")
 
     @staticmethod
+    @operator
     def plasma(resolution: int = 256) -> Palette:
         """Create Plasma colormap.
 
@@ -302,6 +312,7 @@ class PaletteOperations:
         return PaletteOperations.from_gradient(stops, resolution, "plasma")
 
     @staticmethod
+    @operator
     def magma(resolution: int = 256) -> Palette:
         """Create Magma colormap.
 
@@ -329,6 +340,7 @@ class PaletteOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def cosine(a: Tuple[float, float, float] = (0.5, 0.5, 0.5),
                b: Tuple[float, float, float] = (0.5, 0.5, 0.5),
                c: Tuple[float, float, float] = (1.0, 1.0, 1.0),
@@ -376,6 +388,7 @@ class PaletteOperations:
         return Palette(colors, "cosine")
 
     @staticmethod
+    @operator
     def fire(resolution: int = 256) -> Palette:
         """Create fire palette (black → red → orange → yellow → white).
 
@@ -395,6 +408,7 @@ class PaletteOperations:
         return PaletteOperations.from_gradient(stops, resolution, "fire")
 
     @staticmethod
+    @operator
     def ice(resolution: int = 256) -> Palette:
         """Create ice palette (black → blue → cyan → white).
 
@@ -417,6 +431,7 @@ class PaletteOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def shift(pal: Palette, amount: float) -> Palette:
         """Shift palette colors cyclically.
 
@@ -435,6 +450,7 @@ class PaletteOperations:
         return Palette(colors, f"{pal.name}_shifted")
 
     @staticmethod
+    @operator
     def cycle(pal: Palette, speed: float, time: float) -> Palette:
         """Cycle palette colors over time.
 
@@ -452,6 +468,7 @@ class PaletteOperations:
         return PaletteOperations.shift(pal, amount)
 
     @staticmethod
+    @operator
     def flip(pal: Palette) -> Palette:
         """Flip palette (reverse color order).
 
@@ -465,6 +482,7 @@ class PaletteOperations:
         return Palette(colors, f"{pal.name}_flipped")
 
     @staticmethod
+    @operator
     def reverse(pal: Palette) -> Palette:
         """Reverse palette (alias for flip).
 
@@ -477,6 +495,7 @@ class PaletteOperations:
         return PaletteOperations.flip(pal)
 
     @staticmethod
+    @operator
     def lerp(pal_a: Palette, pal_b: Palette, t: float) -> Palette:
         """Interpolate between two palettes.
 
@@ -500,6 +519,7 @@ class PaletteOperations:
         return Palette(colors, f"lerp_{pal_a.name}_{pal_b.name}")
 
     @staticmethod
+    @operator
     def saturate(pal: Palette, factor: float) -> Palette:
         """Adjust palette saturation.
 
@@ -565,6 +585,7 @@ class PaletteOperations:
         return Palette(colors, f"{pal.name}_saturated")
 
     @staticmethod
+    @operator
     def brightness(pal: Palette, factor: float) -> Palette:
         """Adjust palette brightness.
 
@@ -583,6 +604,7 @@ class PaletteOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def map(pal: Palette, field: np.ndarray, vmin: Optional[float] = None,
             vmax: Optional[float] = None) -> np.ndarray:
         """Map scalar field to RGB using palette.
@@ -615,6 +637,7 @@ class PaletteOperations:
         return pal.sample(normalized)
 
     @staticmethod
+    @operator
     def map_cyclic(pal: Palette, field: np.ndarray, frequency: float = 1.0) -> np.ndarray:
         """Map scalar field to palette with cyclic wrapping.
 

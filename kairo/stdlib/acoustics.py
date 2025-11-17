@@ -11,6 +11,8 @@ from typing import Callable, Optional, Dict, Any, Tuple, Union, List
 import numpy as np
 from dataclasses import dataclass
 
+from kairo.core.operators import operator
+
 
 # Physical constants
 SPEED_OF_SOUND = 343.0  # m/s at 20°C
@@ -113,6 +115,7 @@ class AcousticsOperations:
     # ========================================================================
 
     @staticmethod
+    @operator
     def waveguide_from_geometry(
         geometry: PipeGeometry,
         discretization: float = 0.01,  # segment length in meters
@@ -168,6 +171,7 @@ class AcousticsOperations:
         )
 
     @staticmethod
+    @operator
     def reflection_coefficients(
         waveguide: WaveguideNetwork,
         end_condition: str = "open"  # "open", "closed", or "matched"
@@ -223,6 +227,7 @@ class AcousticsOperations:
     # ========================================================================
 
     @staticmethod
+    @operator
     def waveguide_step(
         pressure_forward: np.ndarray,
         pressure_backward: np.ndarray,
@@ -296,6 +301,7 @@ class AcousticsOperations:
         return p_fwd_new, p_bwd_new
 
     @staticmethod
+    @operator
     def total_pressure(
         pressure_forward: np.ndarray,
         pressure_backward: np.ndarray
@@ -318,6 +324,7 @@ class AcousticsOperations:
     # ========================================================================
 
     @staticmethod
+    @operator
     def helmholtz_frequency(
         volume: float,  # m³
         neck_length: float,  # m
@@ -350,6 +357,7 @@ class AcousticsOperations:
         return f_res
 
     @staticmethod
+    @operator
     def helmholtz_impedance(
         frequency: float,  # Hz
         volume: float,  # m³
@@ -398,6 +406,7 @@ class AcousticsOperations:
     # ========================================================================
 
     @staticmethod
+    @operator
     def radiation_impedance_unflanged(
         diameter: float,  # meters
         frequency: float,  # Hz
@@ -442,6 +451,7 @@ class AcousticsOperations:
     # ========================================================================
 
     @staticmethod
+    @operator
     def transfer_function(
         waveguide: WaveguideNetwork,
         reflections: List[ReflectionCoeff],
@@ -534,6 +544,7 @@ class AcousticsOperations:
         )
 
     @staticmethod
+    @operator
     def resonant_frequencies(
         frequency_response: FrequencyResponse,
         threshold_db: float = -3.0

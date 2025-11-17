@@ -22,6 +22,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 import numpy as np
 
+from kairo.core.operators import operator
+
 
 # ============================================================================
 # CORE TYPES

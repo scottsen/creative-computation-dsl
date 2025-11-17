@@ -17,6 +17,8 @@ Supported Methods:
 from typing import Callable, Tuple, Optional, Dict, Any
 import numpy as np
 
+from kairo.core.operators import operator
+
 
 # Type aliases for clarity
 StateVector = np.ndarray  # Shape: (n,) or (n, d) where n=num_entities, d=dimensions

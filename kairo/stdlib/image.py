@@ -19,6 +19,8 @@ Supports:
 
 from typing import Tuple, Optional, Union, Callable
 import numpy as np
+
+from kairo.core.operators import operator
 from scipy import ndimage
 
 
@@ -72,6 +74,7 @@ class ImageOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def blank(width: int, height: int, channels: int = 3,
              fill_value: float = 0.0) -> Image:
         """Create blank image.
@@ -89,6 +92,7 @@ class ImageOperations:
         return Image(data)
 
     @staticmethod
+    @operator
     def rgb(r: float, g: float, b: float, width: int, height: int) -> Image:
         """Create solid color RGB image.
 
@@ -109,6 +113,7 @@ class ImageOperations:
         return Image(data)
 
     @staticmethod
+    @operator
     def from_field(field: np.ndarray, palette: Optional[object] = None) -> Image:
         """Create image from scalar field.
 
@@ -148,6 +153,7 @@ class ImageOperations:
         return Image(rgb)
 
     @staticmethod
+    @operator
     def compose(r_channel: np.ndarray, g_channel: np.ndarray, b_channel: np.ndarray,
                 a_channel: Optional[np.ndarray] = None) -> Image:
         """Compose image from separate channel arrays.
@@ -191,6 +197,7 @@ class ImageOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def scale(img: Image, factor: float, method: str = "bilinear") -> Image:
         """Scale image by factor.
 
@@ -220,6 +227,7 @@ class ImageOperations:
         return Image(data)
 
     @staticmethod
+    @operator
     def rotate(img: Image, angle: float, reshape: bool = False) -> Image:
         """Rotate image by angle (degrees).
 
@@ -243,6 +251,7 @@ class ImageOperations:
             return Image(data)
 
     @staticmethod
+    @operator
     def warp(img: Image, displacement_field: Tuple[np.ndarray, np.ndarray]) -> Image:
         """Warp image using displacement field.
 
@@ -285,6 +294,7 @@ class ImageOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def blur(img: Image, sigma: float = 1.0) -> Image:
         """Apply Gaussian blur.
 
@@ -303,6 +313,7 @@ class ImageOperations:
         return Image(data)
 
     @staticmethod
+    @operator
     def sharpen(img: Image, strength: float = 1.0) -> Image:
         """Sharpen image using unsharp mask.
 
@@ -320,6 +331,7 @@ class ImageOperations:
         return Image(np.clip(data, 0, 1))
 
     @staticmethod
+    @operator
     def edge_detect(img: Image, method: str = "sobel") -> Image:
         """Detect edges in image.
 
@@ -354,6 +366,7 @@ class ImageOperations:
         return Image(data)
 
     @staticmethod
+    @operator
     def erode(img: Image, iterations: int = 1) -> Image:
         """Morphological erosion.
 
@@ -374,6 +387,7 @@ class ImageOperations:
         return Image(data)
 
     @staticmethod
+    @operator
     def dilate(img: Image, iterations: int = 1) -> Image:
         """Morphological dilation.
 
@@ -398,6 +412,7 @@ class ImageOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def blend(img_a: Image, img_b: Image, mode: str = "normal", opacity: float = 1.0) -> Image:
         """Blend two images using blend mode.
 
@@ -452,6 +467,7 @@ class ImageOperations:
         return Image(np.clip(result, 0, 1))
 
     @staticmethod
+    @operator
     def overlay(img: Image, overlay_img: Image, mask: Optional[np.ndarray] = None) -> Image:
         """Overlay image with optional mask.
 
@@ -482,6 +498,7 @@ class ImageOperations:
         return Image(np.clip(result, 0, 1))
 
     @staticmethod
+    @operator
     def alpha_composite(background: Image, foreground: Image) -> Image:
         """Alpha composite foreground over background.
 
@@ -526,6 +543,7 @@ class ImageOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def apply_palette(img: Image, palette: object, channel: str = "luminance") -> Image:
         """Apply palette to image based on channel.
 
@@ -572,6 +590,7 @@ class ImageOperations:
         return Image(rgb)
 
     @staticmethod
+    @operator
     def normal_map_from_heightfield(heightfield: np.ndarray, strength: float = 1.0) -> Image:
         """Generate normal map from height field.
 
@@ -614,6 +633,7 @@ class ImageOperations:
         return Image(np.clip(data, 0, 1))
 
     @staticmethod
+    @operator
     def gradient_map(img: Image, gradient_palette: object) -> Image:
         """Apply gradient map (like Photoshop gradient map).
 

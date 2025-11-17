@@ -19,6 +19,8 @@ Supports multiple color representations:
 from typing import Tuple, Union, List
 import numpy as np
 
+from kairo.core.operators import operator
+
 
 class ColorOperations:
     """Namespace for color operations (accessed as 'color' in DSL)."""
@@ -28,6 +30,7 @@ class ColorOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def rgb_to_hsv(rgb: Union[Tuple[float, float, float], np.ndarray]) -> Union[Tuple[float, float, float], np.ndarray]:
         """Convert RGB to HSV color space.
 
@@ -84,6 +87,7 @@ class ColorOperations:
         return hsv
 
     @staticmethod
+    @operator
     def hsv_to_rgb(hsv: Union[Tuple[float, float, float], np.ndarray]) -> Union[Tuple[float, float, float], np.ndarray]:
         """Convert HSV to RGB color space.
 
@@ -147,6 +151,7 @@ class ColorOperations:
         return rgb
 
     @staticmethod
+    @operator
     def rgb_to_hsl(rgb: Union[Tuple[float, float, float], np.ndarray]) -> Union[Tuple[float, float, float], np.ndarray]:
         """Convert RGB to HSL color space.
 
@@ -198,6 +203,7 @@ class ColorOperations:
         return hsl
 
     @staticmethod
+    @operator
     def hsl_to_rgb(hsl: Union[Tuple[float, float, float], np.ndarray]) -> Union[Tuple[float, float, float], np.ndarray]:
         """Convert HSL to RGB color space.
 
@@ -257,6 +263,7 @@ class ColorOperations:
         return rgb
 
     @staticmethod
+    @operator
     def hex_to_rgb(hex_color: str) -> Tuple[float, float, float]:
         """Convert hex color string to RGB.
 
@@ -282,6 +289,7 @@ class ColorOperations:
         return (r, g, b)
 
     @staticmethod
+    @operator
     def rgb_to_hex(rgb: Tuple[float, float, float]) -> str:
         """Convert RGB to hex color string.
 
@@ -303,6 +311,7 @@ class ColorOperations:
         return f"#{r_int:02X}{g_int:02X}{b_int:02X}"
 
     @staticmethod
+    @operator
     def temperature_to_rgb(kelvin: Union[float, np.ndarray]) -> Union[Tuple[float, float, float], np.ndarray]:
         """Convert color temperature (Kelvin) to RGB.
 
@@ -361,6 +370,7 @@ class ColorOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def add(color_a: Union[Tuple[float, float, float], np.ndarray],
             color_b: Union[Tuple[float, float, float], np.ndarray]) -> Union[Tuple[float, float, float], np.ndarray]:
         """Add two colors (clamped to [0, 1]).
@@ -377,6 +387,7 @@ class ColorOperations:
         return np.clip(a + b, 0, 1)
 
     @staticmethod
+    @operator
     def multiply(color_a: Union[Tuple[float, float, float], np.ndarray],
                  color_b: Union[Tuple[float, float, float], np.ndarray]) -> Union[Tuple[float, float, float], np.ndarray]:
         """Multiply two colors element-wise.
@@ -393,6 +404,7 @@ class ColorOperations:
         return a * b
 
     @staticmethod
+    @operator
     def mix(color_a: Union[Tuple[float, float, float], np.ndarray],
             color_b: Union[Tuple[float, float, float], np.ndarray],
             t: Union[float, np.ndarray]) -> Union[Tuple[float, float, float], np.ndarray]:
@@ -416,6 +428,7 @@ class ColorOperations:
         return a * (1 - t) + b * t
 
     @staticmethod
+    @operator
     def brightness(rgb: Union[Tuple[float, float, float], np.ndarray],
                    factor: float) -> Union[Tuple[float, float, float], np.ndarray]:
         """Adjust color brightness.
@@ -431,6 +444,7 @@ class ColorOperations:
         return np.clip(rgb * factor, 0, 1)
 
     @staticmethod
+    @operator
     def saturate(rgb: Union[Tuple[float, float, float], np.ndarray],
                  factor: float) -> Union[Tuple[float, float, float], np.ndarray]:
         """Adjust color saturation.
@@ -454,6 +468,7 @@ class ColorOperations:
         return ColorOperations.hsv_to_rgb(hsv)
 
     @staticmethod
+    @operator
     def gamma_correct(rgb: Union[Tuple[float, float, float], np.ndarray],
                       gamma: float = 2.2) -> Union[Tuple[float, float, float], np.ndarray]:
         """Apply gamma correction to color.
@@ -477,6 +492,7 @@ class ColorOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def blend_overlay(base: Union[Tuple[float, float, float], np.ndarray],
                      blend: Union[Tuple[float, float, float], np.ndarray]) -> Union[Tuple[float, float, float], np.ndarray]:
         """Overlay blend mode.
@@ -500,6 +516,7 @@ class ColorOperations:
         return np.clip(result, 0, 1)
 
     @staticmethod
+    @operator
     def blend_screen(base: Union[Tuple[float, float, float], np.ndarray],
                     blend: Union[Tuple[float, float, float], np.ndarray]) -> Union[Tuple[float, float, float], np.ndarray]:
         """Screen blend mode (inverted multiply).
@@ -517,6 +534,7 @@ class ColorOperations:
         return 1 - (1 - base) * (1 - blend)
 
     @staticmethod
+    @operator
     def blend_multiply(base: Union[Tuple[float, float, float], np.ndarray],
                       blend: Union[Tuple[float, float, float], np.ndarray]) -> Union[Tuple[float, float, float], np.ndarray]:
         """Multiply blend mode.
@@ -531,6 +549,7 @@ class ColorOperations:
         return ColorOperations.multiply(base, blend)
 
     @staticmethod
+    @operator
     def blend_difference(base: Union[Tuple[float, float, float], np.ndarray],
                         blend: Union[Tuple[float, float, float], np.ndarray]) -> Union[Tuple[float, float, float], np.ndarray]:
         """Difference blend mode.
@@ -548,6 +567,7 @@ class ColorOperations:
         return np.abs(base - blend)
 
     @staticmethod
+    @operator
     def blend_soft_light(base: Union[Tuple[float, float, float], np.ndarray],
                         blend: Union[Tuple[float, float, float], np.ndarray]) -> Union[Tuple[float, float, float], np.ndarray]:
         """Soft light blend mode (gentle overlay).
@@ -573,6 +593,7 @@ class ColorOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def posterize(rgb: Union[Tuple[float, float, float], np.ndarray],
                   levels: int) -> Union[Tuple[float, float, float], np.ndarray]:
         """Posterize color (reduce to N discrete levels).
@@ -595,6 +616,7 @@ class ColorOperations:
         return np.clip(quantized, 0, 1)
 
     @staticmethod
+    @operator
     def threshold(rgb: Union[Tuple[float, float, float], np.ndarray],
                   threshold_value: float = 0.5) -> Union[Tuple[float, float, float], np.ndarray]:
         """Threshold color to black or white.

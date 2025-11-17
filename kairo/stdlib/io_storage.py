@@ -16,11 +16,14 @@ import numpy as np
 import json
 from pathlib import Path
 
+from kairo.core.operators import operator
+
 
 # ============================================================================
 # IMAGE I/O
 # ============================================================================
 
+@operator
 def load_image(
     path: Union[str, Path],
     as_float: bool = True,
@@ -82,6 +85,7 @@ def load_image(
     return arr
 
 
+@operator
 def save_image(
     path: Union[str, Path],
     data: np.ndarray,
@@ -154,6 +158,7 @@ def save_image(
 # AUDIO I/O
 # ============================================================================
 
+@operator
 def load_audio(
     path: Union[str, Path],
     sample_rate: Optional[int] = None,
@@ -213,6 +218,7 @@ def load_audio(
     return data, sr
 
 
+@operator
 def save_audio(
     path: Union[str, Path],
     data: np.ndarray,
@@ -261,6 +267,7 @@ def save_audio(
 # JSON I/O
 # ============================================================================
 
+@operator
 def load_json(path: Union[str, Path]) -> Dict[str, Any]:
     """Load JSON file as Python dict.
 
@@ -282,6 +289,7 @@ def load_json(path: Union[str, Path]) -> Dict[str, Any]:
         return json.load(f)
 
 
+@operator
 def save_json(
     path: Union[str, Path],
     data: Dict[str, Any],
@@ -304,6 +312,7 @@ def save_json(
 
     # Custom JSON encoder for NumPy types
     class NumpyEncoder(json.JSONEncoder):
+        @operator
         def default(self, obj):
             if isinstance(obj, np.ndarray):
                 return obj.tolist()
@@ -323,6 +332,7 @@ def save_json(
 # HDF5 I/O
 # ============================================================================
 
+@operator
 def load_hdf5(
     path: Union[str, Path],
     dataset: Optional[str] = None
@@ -366,6 +376,7 @@ def load_hdf5(
         else:
             # Load all datasets
             data = {}
+            @operator
             def load_recursive(name, obj):
                 if isinstance(obj, h5py.Dataset):
                     data[name] = np.array(obj)
@@ -373,6 +384,7 @@ def load_hdf5(
             return data
 
 
+@operator
 def save_hdf5(
     path: Union[str, Path],
     data: Union[np.ndarray, Dict[str, np.ndarray]],
@@ -432,6 +444,7 @@ def save_hdf5(
 # CHECKPOINT/RESUME
 # ============================================================================
 
+@operator
 def save_checkpoint(
     path: Union[str, Path],
     state: Dict[str, Any],
@@ -493,6 +506,7 @@ def save_checkpoint(
                 meta_group.attrs[key] = value
 
 
+@operator
 def load_checkpoint(path: Union[str, Path]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     """Load simulation checkpoint.
 

@@ -7,6 +7,8 @@ for the MVP, including advection, diffusion, projection, and boundary conditions
 from typing import Callable, Optional, Tuple, Union
 import numpy as np
 
+from kairo.core.operators import operator
+
 
 class Field2D:
     """2D field with NumPy backend.
@@ -49,6 +51,7 @@ class FieldOperations:
     """Namespace for field operations (accessed as 'field' in DSL)."""
 
     @staticmethod
+    @operator
     def alloc(shape: Tuple[int, int], dtype: type = np.float32,
               fill_value: float = 0.0, dx: float = 1.0, dy: float = 1.0) -> Field2D:
         """Allocate a new field.
@@ -67,6 +70,7 @@ class FieldOperations:
         return Field2D(data, dx, dy)
 
     @staticmethod
+    @operator
     def advect(field: Field2D, velocity: Field2D, dt: float,
                method: str = "semi_lagrangian") -> Field2D:
         """Advect field by velocity field.
@@ -139,6 +143,7 @@ class FieldOperations:
         return result
 
     @staticmethod
+    @operator
     def diffuse(field: Field2D, rate: float, dt: float,
                 method: str = "jacobi", iterations: int = 20) -> Field2D:
         """Diffuse field using implicit solver.
@@ -179,6 +184,7 @@ class FieldOperations:
         return result
 
     @staticmethod
+    @operator
     def laplacian(field: Field2D) -> Field2D:
         """Compute Laplacian of field using 5-point stencil.
 
@@ -230,6 +236,7 @@ class FieldOperations:
         return result
 
     @staticmethod
+    @operator
     def project(velocity: Field2D, method: str = "jacobi",
                 iterations: int = 20, tolerance: float = 1e-4) -> Field2D:
         """Make velocity field divergence-free (pressure projection).
@@ -291,6 +298,7 @@ class FieldOperations:
         return result
 
     @staticmethod
+    @operator
     def combine(field_a: Field2D, field_b: Field2D,
                 operation: Union[str, Callable] = "add") -> Field2D:
         """Combine two fields element-wise.
@@ -328,6 +336,7 @@ class FieldOperations:
         return result
 
     @staticmethod
+    @operator
     def map(field: Field2D, func: Union[str, Callable]) -> Field2D:
         """Apply function to each element of field.
 
@@ -362,6 +371,7 @@ class FieldOperations:
         return result
 
     @staticmethod
+    @operator
     def boundary(field: Field2D, spec: str = "reflect") -> Field2D:
         """Apply boundary conditions.
 
@@ -394,6 +404,7 @@ class FieldOperations:
         return result
 
     @staticmethod
+    @operator
     def random(shape: Tuple[int, int], seed: int = 0,
                low: float = 0.0, high: float = 1.0) -> Field2D:
         """Create field with random values.
@@ -416,6 +427,7 @@ class FieldOperations:
     # ============================================================================
 
     @staticmethod
+    @operator
     def gradient(field: Field2D) -> Tuple[Field2D, Field2D]:
         """Compute gradient of scalar field.
 
@@ -436,6 +448,7 @@ class FieldOperations:
         return Field2D(grad_x, field.dx, field.dy), Field2D(grad_y, field.dx, field.dy)
 
     @staticmethod
+    @operator
     def divergence(velocity: Field2D) -> Field2D:
         """Compute divergence of vector field.
 
@@ -466,6 +479,7 @@ class FieldOperations:
         return Field2D(div, velocity.dx, velocity.dy)
 
     @staticmethod
+    @operator
     def curl(velocity: Field2D) -> Field2D:
         """Compute curl (vorticity) of 2D vector field.
 
@@ -496,6 +510,7 @@ class FieldOperations:
         return Field2D(curl_z, velocity.dx, velocity.dy)
 
     @staticmethod
+    @operator
     def smooth(field: Field2D, iterations: int = 1, method: str = "gaussian") -> Field2D:
         """Smooth field using filtering.
 
@@ -534,6 +549,7 @@ class FieldOperations:
         return result
 
     @staticmethod
+    @operator
     def normalize(field: Field2D, target_min: float = 0.0, target_max: float = 1.0) -> Field2D:
         """Normalize field values to target range.
 
@@ -564,6 +580,7 @@ class FieldOperations:
         return result
 
     @staticmethod
+    @operator
     def threshold(field: Field2D, threshold_value: float,
                  low_value: float = 0.0, high_value: float = 1.0) -> Field2D:
         """Threshold field values.
@@ -585,6 +602,7 @@ class FieldOperations:
         return result
 
     @staticmethod
+    @operator
     def sample(field: Field2D, positions: np.ndarray, method: str = "bilinear") -> np.ndarray:
         """Sample field at arbitrary positions.
 
@@ -633,6 +651,7 @@ class FieldOperations:
             return sampled.reshape(*original_shape, field.data.shape[2])
 
     @staticmethod
+    @operator
     def clamp(field: Field2D, min_value: float, max_value: float) -> Field2D:
         """Clamp field values to range.
 
@@ -649,6 +668,7 @@ class FieldOperations:
         return result
 
     @staticmethod
+    @operator
     def abs(field: Field2D) -> Field2D:
         """Compute absolute value of field.
 
@@ -663,6 +683,7 @@ class FieldOperations:
         return result
 
     @staticmethod
+    @operator
     def magnitude(velocity: Field2D) -> Field2D:
         """Compute magnitude of vector field.
 
