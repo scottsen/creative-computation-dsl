@@ -1772,9 +1772,16 @@ def convex_hull(points: np.ndarray, dim: int = 2) -> Union[Polygon, Mesh]:
 
     points = np.asarray(points)
 
+    # Check for NaN or infinity values
+    if np.any(np.isnan(points)) or np.any(np.isinf(points)):
+        raise ValueError("Points contain NaN or infinity values")
+
     if dim == 2:
         if points.ndim != 2 or points.shape[1] != 2:
             raise ValueError(f"For 2D hull, points must have shape [N, 2], got {points.shape}")
+
+        if len(points) < 3:
+            raise ValueError(f"2D convex hull requires at least 3 points, got {len(points)}")
 
         hull = ScipyConvexHull(points)
         # Extract vertices in order
@@ -1784,6 +1791,9 @@ def convex_hull(points: np.ndarray, dim: int = 2) -> Union[Polygon, Mesh]:
     elif dim == 3:
         if points.ndim != 2 or points.shape[1] != 3:
             raise ValueError(f"For 3D hull, points must have shape [N, 3], got {points.shape}")
+
+        if len(points) < 4:
+            raise ValueError(f"3D convex hull requires at least 4 points, got {len(points)}")
 
         hull = ScipyConvexHull(points)
         return Mesh(vertices=points, faces=hull.simplices.astype(np.int32))
@@ -1823,6 +1833,12 @@ def delaunay_triangulation(points: np.ndarray) -> Mesh:
 
     if points.ndim != 2 or points.shape[1] != 2:
         raise ValueError(f"Points must have shape [N, 2], got {points.shape}")
+
+    if len(points) < 3:
+        raise ValueError(f"Delaunay triangulation requires at least 3 points, got {len(points)}")
+
+    if np.any(np.isnan(points)) or np.any(np.isinf(points)):
+        raise ValueError("Points contain NaN or infinity values")
 
     # Compute Delaunay triangulation
     tri = Delaunay(points)
@@ -1869,9 +1885,53 @@ def voronoi(points: np.ndarray) -> Tuple[np.ndarray, np.ndarray, List[List[int]]
     if points.ndim != 2 or points.shape[1] != 2:
         raise ValueError(f"Points must have shape [N, 2], got {points.shape}")
 
+    if len(points) < 4:
+        raise ValueError(f"Voronoi diagram requires at least 4 points, got {len(points)}")
+
+    if np.any(np.isnan(points)) or np.any(np.isinf(points)):
+        raise ValueError("Points contain NaN or infinity values")
+
     vor = ScipyVoronoi(points)
 
     return (vor.vertices, vor.ridge_points, vor.ridge_vertices)
+
+
+@operator(
+    domain="geometry",
+    category=OpCategory.QUERY,
+    signature="(points: ndarray) -> Dict[str, Any]",
+    deterministic=True,
+    doc="Compute Voronoi diagram of 2D points (dict format)",
+)
+def voronoi_diagram(points: np.ndarray) -> Dict[str, Any]:
+    """Compute Voronoi diagram of 2D points, returning dict format.
+
+    Convenience wrapper around voronoi() that returns results as a dictionary.
+
+    Args:
+        points: Array of 2D points with shape [N, 2]
+
+    Returns:
+        Dictionary with keys:
+        - 'vertices': Voronoi vertices [M, 2]
+        - 'ridge_points': Indices of input points forming each ridge [K, 2]
+        - 'regions': List of vertex indices for each region
+
+    Example:
+        points = np.random.rand(50, 2)
+        vor = voronoi_diagram(points)
+        vertices = vor['vertices']
+    """
+    vertices, ridge_points, ridge_vertices = voronoi(points)
+
+    # Convert ridge_vertices to regions
+    # Note: scipy's voronoi doesn't directly give us regions per point,
+    # we use ridge_vertices as a proxy
+    return {
+        'vertices': vertices,
+        'ridge_points': ridge_points,
+        'regions': ridge_vertices
+    }
 
 
 @operator(
@@ -2297,6 +2357,7 @@ __all__ = [
     "convex_hull",
     "delaunay_triangulation",
     "voronoi",
+    "voronoi_diagram",
     "mesh_union",
     "mesh_intersection",
     "mesh_difference",

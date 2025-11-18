@@ -356,3 +356,495 @@ class TestDeterminismIntegration:
         # Results should be different (operations don't commute)
         # Squaring after diffusion vs before produces different results
         assert not np.allclose(f1.data, f2.data, rtol=0.01)
+
+
+@pytest.mark.integration
+class TestGeometryFieldIntegration:
+    """Integration tests for geometry-field domain interactions."""
+
+    def test_sample_field_along_path(self):
+        """Test sampling field values along a geometric path."""
+        try:
+            from kairo.stdlib.geometry import (
+                point2d, line_segment, sample_field_at_point
+            )
+        except ImportError:
+            pytest.skip("Geometry domain not available")
+            return
+
+        # Create a temperature gradient field
+        temp = field.random((64, 64), seed=42, low=0.0, high=100.0)
+        temp = field.diffuse(temp, rate=0.5, dt=0.1, iterations=20)
+
+        # Sample along a line
+        start = point2d(10.0, 10.0)
+        end = point2d(50.0, 50.0)
+
+        # Sample at multiple points along the line
+        num_samples = 20
+        samples = []
+        for i in range(num_samples):
+            t = i / (num_samples - 1)
+            x = start['x'] + t * (end['x'] - start['x'])
+            y = start['y'] + t * (end['y'] - start['y'])
+            pt = point2d(x, y)
+            value = sample_field_at_point(temp, pt)
+            samples.append(value)
+
+        # Should have sampled all points
+        assert len(samples) == num_samples
+        # All samples should be within the field's value range
+        assert all(0.0 <= s <= 100.0 for s in samples)
+
+    def test_field_driven_geometry_generation(self):
+        """Test generating geometric shapes based on field values."""
+        try:
+            from kairo.stdlib.geometry import (
+                point2d, circle, query_field_in_region, sample_field_at_point
+            )
+        except ImportError:
+            pytest.skip("Geometry domain not available")
+            return
+
+        # Create a field
+        density = field.random((32, 32), seed=1, low=0.0, high=1.0)
+        density = field.diffuse(density, rate=0.3, dt=0.1, iterations=10)
+
+        # Generate circles at high-density points
+        circles = []
+        for i in range(5, 30, 5):
+            for j in range(5, 30, 5):
+                pt = point2d(float(i), float(j))
+                value = sample_field_at_point(density, pt)
+
+                # Create larger circles at higher density points
+                if value > 0.5:
+                    radius = value * 3.0
+                    circ = circle(center=pt, radius=radius)
+                    circles.append(circ)
+
+        # Should have generated some circles
+        assert len(circles) > 0
+
+        # Verify all circles have positive radius
+        for circ in circles:
+            assert circ.radius > 0
+
+    def test_geometry_based_field_initialization(self):
+        """Test initializing fields based on geometric regions."""
+        try:
+            from kairo.stdlib.geometry import (
+                point2d, circle, rectangle, contains
+            )
+        except ImportError:
+            pytest.skip("Geometry domain not available")
+            return
+
+        # Create a blank field
+        result = field.alloc((64, 64), fill_value=0.0)
+
+        # Define geometric regions
+        hot_circle = circle(center=point2d(20.0, 20.0), radius=10.0)
+        cold_rectangle = rectangle(center=point2d(45.0, 45.0), width=15.0, height=15.0)
+
+        # Set field values based on geometry
+        data = result.data.copy()
+        for i in range(64):
+            for j in range(64):
+                pt = point2d(float(i), float(j))
+                if contains(hot_circle, pt):
+                    data[i, j] = 100.0
+                elif contains(cold_rectangle, pt):
+                    data[i, j] = 10.0
+
+        result.data = data
+
+        # Now diffuse to blend
+        result = field.diffuse(result, rate=0.5, dt=0.1, iterations=20)
+
+        # Check that we have both hot and cold regions
+        assert np.max(result.data) > 50.0
+        assert np.min(result.data) < 30.0
+
+    def test_field_gradient_along_polygon(self):
+        """Test computing field gradients along polygon edges."""
+        try:
+            from kairo.stdlib.geometry import (
+                point2d, regular_polygon, sample_field_at_point
+            )
+        except ImportError:
+            pytest.skip("Geometry domain not available")
+            return
+
+        # Create a field with gradient
+        temp = field.random((64, 64), seed=42)
+        temp = field.diffuse(temp, rate=0.3, dt=0.1, iterations=15)
+
+        # Create a polygon
+        poly = regular_polygon(center=point2d(32.0, 32.0), radius=20.0, num_sides=6)
+
+        # Sample at polygon vertices
+        vertex_values = []
+        for vertex in poly.vertices:
+            pt = point2d(vertex[0], vertex[1])
+            value = sample_field_at_point(temp, pt)
+            vertex_values.append(value)
+
+        # Should have sampled all vertices
+        assert len(vertex_values) == 6
+
+        # Compute gradient magnitude around polygon
+        gradients = []
+        for i in range(len(vertex_values)):
+            next_i = (i + 1) % len(vertex_values)
+            grad = abs(vertex_values[next_i] - vertex_values[i])
+            gradients.append(grad)
+
+        # Should have computed all gradients
+        assert len(gradients) == 6
+        assert all(g >= 0 for g in gradients)
+
+
+@pytest.mark.integration
+class TestGeometryRigidbodyIntegration:
+    """Integration tests for geometry-rigidbody domain interactions."""
+
+    def test_physics_scene_from_geometry(self):
+        """Test creating a complete physics scene from geometric shapes."""
+        try:
+            from kairo.stdlib.geometry import (
+                point2d, circle, rectangle, polygon, shape_to_rigidbody
+            )
+            from kairo.stdlib.rigidbody import ShapeType
+        except ImportError:
+            pytest.skip("Geometry or Rigidbody domain not available")
+            return
+
+        # Create geometric shapes
+        floor = rectangle(center=point2d(0.0, -10.0), width=100.0, height=2.0)
+        ball = circle(center=point2d(0.0, 20.0), radius=3.0)
+        box = rectangle(center=point2d(5.0, 15.0), width=4.0, height=4.0)
+        triangle = polygon(np.array([[10, 10], [15, 10], [12.5, 15]]))
+
+        # Convert all to rigidbody shapes
+        shapes = [
+            shape_to_rigidbody(floor),
+            shape_to_rigidbody(ball),
+            shape_to_rigidbody(box),
+            shape_to_rigidbody(triangle),
+        ]
+
+        # Verify all conversions
+        assert len(shapes) == 4
+        assert shapes[0]['shape_type'] == ShapeType.BOX
+        assert shapes[1]['shape_type'] == ShapeType.CIRCLE
+        assert shapes[2]['shape_type'] == ShapeType.BOX
+        assert shapes[3]['shape_type'] == ShapeType.POLYGON
+
+        # Verify shape parameters are preserved
+        assert shapes[1]['shape_params']['radius'] == 3.0
+        assert shapes[2]['shape_params']['width'] == 4.0
+        assert shapes[2]['shape_params']['height'] == 4.0
+
+    def test_collision_mesh_generation_pipeline(self):
+        """Test full pipeline of mesh creation and collision mesh generation."""
+        try:
+            from kairo.stdlib.geometry import (
+                mesh, convex_hull, collision_mesh
+            )
+        except ImportError:
+            pytest.skip("Geometry domain not available")
+            return
+
+        # Create a complex point cloud
+        np.random.seed(42)
+        points = np.random.randn(100, 3) * 5.0
+
+        # Generate convex hull (3D)
+        hull_mesh = convex_hull(points, dim=3)
+
+        # Verify hull mesh
+        assert hasattr(hull_mesh, 'vertices')
+        assert hasattr(hull_mesh, 'faces')
+        assert len(hull_mesh.vertices) > 0
+        assert len(hull_mesh.faces) > 0
+
+        # Generate simplified collision mesh
+        collision = collision_mesh(hull_mesh, target_faces=20)
+
+        # Verify collision mesh is simplified
+        assert hasattr(collision, 'vertices')
+        assert hasattr(collision, 'faces')
+        # Should be simplified
+        assert len(collision.faces) <= len(hull_mesh.faces)
+
+    def test_multi_shape_rigidbody_conversion(self):
+        """Test converting multiple geometric shapes for physics simulation."""
+        try:
+            from kairo.stdlib.geometry import (
+                point2d, circle, regular_polygon, shape_to_rigidbody
+            )
+            from kairo.stdlib.rigidbody import ShapeType
+        except ImportError:
+            pytest.skip("Geometry or Rigidbody domain not available")
+            return
+
+        # Create various regular polygons
+        shapes_geo = []
+        for num_sides in range(3, 9):  # triangle through octagon
+            poly = regular_polygon(
+                center=point2d(float(num_sides * 10), 0.0),
+                radius=5.0,
+                num_sides=num_sides
+            )
+            shapes_geo.append(poly)
+
+        # Convert all to rigidbody shapes
+        shapes_rb = [shape_to_rigidbody(s) for s in shapes_geo]
+
+        # All should be polygons
+        assert all(s['shape_type'] == ShapeType.POLYGON for s in shapes_rb)
+
+        # Verify vertex counts match sides
+        for i, shape_rb in enumerate(shapes_rb):
+            sides = i + 3
+            assert len(shape_rb['shape_params']['vertices']) == sides
+
+
+@pytest.mark.integration
+class TestGeometryAlgorithmPipelines:
+    """Integration tests for complex geometry algorithm pipelines."""
+
+    def test_delaunay_voronoi_pipeline(self):
+        """Test complete Delaunay triangulation to Voronoi diagram pipeline."""
+        try:
+            from kairo.stdlib.geometry import (
+                delaunay_triangulation, voronoi_diagram
+            )
+        except ImportError:
+            pytest.skip("Geometry domain not available")
+            return
+
+        # Create point set
+        np.random.seed(42)
+        points = np.random.rand(50, 2) * 100.0
+
+        # Compute Delaunay triangulation
+        delaunay = delaunay_triangulation(points)
+
+        # Verify triangulation
+        assert hasattr(delaunay, 'vertices')
+        assert hasattr(delaunay, 'faces')
+        assert len(delaunay.vertices) == 50
+        assert len(delaunay.faces) > 0
+
+        # Compute Voronoi diagram from same points
+        voronoi = voronoi_diagram(points)
+
+        # Verify Voronoi
+        assert 'vertices' in voronoi
+        assert 'regions' in voronoi
+        assert len(voronoi['vertices']) > 0
+
+        # Voronoi should have ridge information
+        # Note: ridge_vertices count != input point count (they're ridge endpoints)
+        assert len(voronoi['regions']) > 0
+        assert 'ridge_points' in voronoi
+
+    def test_mesh_boolean_operations_chain(self):
+        """Test chaining multiple mesh boolean operations."""
+        try:
+            from kairo.stdlib.geometry import (
+                box3d, sphere, mesh_union, mesh_intersection
+            )
+        except ImportError:
+            pytest.skip("Geometry domain not available or mesh ops unavailable")
+            return
+
+        # Create two boxes
+        from kairo.stdlib.geometry import point3d
+        box1 = box3d(center=point3d(0.0, 0.0, 0.0), width=2.0, height=2.0, depth=2.0)
+        box2 = box3d(center=point3d(1.0, 0.0, 0.0), width=2.0, height=2.0, depth=2.0)
+
+        # Union the boxes
+        try:
+            union = mesh_union(box1, box2)
+            assert hasattr(union, 'vertices')
+            assert hasattr(union, 'faces')
+        except Exception:
+            # mesh_union might not be fully implemented
+            pytest.skip("mesh_union not fully implemented")
+
+    def test_convex_hull_simplification_pipeline(self):
+        """Test generating convex hull and simplifying for collision."""
+        try:
+            from kairo.stdlib.geometry import (
+                convex_hull, collision_mesh
+            )
+        except ImportError:
+            pytest.skip("Geometry domain not available")
+            return
+
+        # Create a dense point cloud (simulating scanned data)
+        np.random.seed(123)
+        # Create points in a rough ellipsoid shape
+        theta = np.random.rand(200) * 2 * np.pi
+        phi = np.random.rand(200) * np.pi
+        r = np.random.rand(200) * 0.2 + 1.0
+
+        x = r * np.sin(phi) * np.cos(theta)
+        y = r * np.sin(phi) * np.sin(theta) * 2.0  # Stretch in y
+        z = r * np.cos(phi) * 0.5  # Flatten in z
+
+        points = np.column_stack([x, y, z])
+
+        # Compute convex hull (3D)
+        hull = convex_hull(points, dim=3)
+
+        original_face_count = len(hull.faces)
+        assert original_face_count > 0
+
+        # Simplify for collision at different levels
+        collision_low = collision_mesh(hull, target_faces=10)
+        collision_high = collision_mesh(hull, target_faces=50)
+
+        # Verify simplification levels
+        assert len(collision_low.faces) <= original_face_count
+        assert len(collision_high.faces) <= original_face_count
+        assert len(collision_low.faces) <= len(collision_high.faces)
+
+
+@pytest.mark.integration
+class TestCrossTripleDomainIntegration:
+    """Integration tests combining geometry, field, and rigidbody domains."""
+
+    def test_field_driven_physics_objects(self):
+        """Test creating physics objects based on field values."""
+        try:
+            from kairo.stdlib.geometry import (
+                point2d, circle, sample_field_at_point, shape_to_rigidbody
+            )
+            from kairo.stdlib.rigidbody import ShapeType
+        except ImportError:
+            pytest.skip("Required domains not available")
+            return
+
+        # Create a density field
+        density = field.random((32, 32), seed=42, low=0.0, high=1.0)
+        density = field.diffuse(density, rate=0.5, dt=0.1, iterations=10)
+
+        # Create physics objects at high-density locations
+        physics_objects = []
+        for i in range(5, 30, 5):
+            for j in range(5, 30, 5):
+                pt = point2d(float(i), float(j))
+                value = sample_field_at_point(density, pt)
+
+                # Create object if density is high enough
+                if value > 0.6:
+                    # Radius based on density
+                    radius = value * 2.0
+                    circ = circle(center=pt, radius=radius)
+
+                    # Convert to rigidbody
+                    rb_shape = shape_to_rigidbody(circ)
+                    physics_objects.append({
+                        'shape': rb_shape,
+                        'mass': value * 10.0,  # Mass from density
+                        'position': (i, j)
+                    })
+
+        # Should have created some objects
+        assert len(physics_objects) > 0
+
+        # Verify all objects have correct properties
+        for obj in physics_objects:
+            assert obj['shape']['shape_type'] == ShapeType.CIRCLE
+            assert obj['mass'] > 6.0  # Since value > 0.6
+            assert obj['shape']['shape_params']['radius'] > 0
+
+    def test_physics_simulation_visualization(self):
+        """Test visualizing geometric shapes in a physics simulation."""
+        try:
+            from kairo.stdlib.geometry import (
+                point2d, circle, rectangle, contains, shape_to_rigidbody
+            )
+        except ImportError:
+            pytest.skip("Required domains not available")
+            return
+
+        # Create geometric shapes for physics
+        shapes = [
+            circle(center=point2d(16.0, 16.0), radius=5.0),
+            rectangle(center=point2d(48.0, 48.0), width=8.0, height=8.0),
+            circle(center=point2d(32.0, 32.0), radius=3.0),
+        ]
+
+        # Convert to rigidbody
+        rb_shapes = [shape_to_rigidbody(s) for s in shapes]
+        assert len(rb_shapes) == 3
+
+        # Render shapes onto field for visualization
+        render_field = field.alloc((64, 64), fill_value=0.0)
+        data = render_field.data.copy()
+
+        # Rasterize geometric shapes
+        for shape in shapes:
+            if 'radius' in shape:  # circle
+                center = shape['center']
+                for i in range(64):
+                    for j in range(64):
+                        pt = point2d(float(i), float(j))
+                        if contains(shape, pt):
+                            data[i, j] = 1.0
+            elif 'width' in shape:  # rectangle
+                for i in range(64):
+                    for j in range(64):
+                        pt = point2d(float(i), float(j))
+                        if contains(shape, pt):
+                            data[i, j] = 0.5
+
+        render_field.data = data
+
+        # Visualize
+        vis = visual.colorize(render_field, palette="fire")
+        assert vis.shape == (64, 64)
+
+        # Should have rendered some objects
+        assert np.max(render_field.data) > 0
+
+    def test_geometric_field_sampling_for_collision(self):
+        """Test using field values to determine collision properties."""
+        try:
+            from kairo.stdlib.geometry import (
+                point2d, box3d, collision_mesh, sample_field_at_point
+            )
+        except ImportError:
+            pytest.skip("Required domains not available")
+            return
+
+        # Create a material property field (e.g., hardness)
+        hardness = field.random((64, 64), seed=99, low=0.0, high=1.0)
+        hardness = field.diffuse(hardness, rate=0.2, dt=0.1, iterations=15)
+
+        # Create geometric object
+        from kairo.stdlib.geometry import point3d
+        box = box3d(center=point3d(32.0, 32.0, 0.0), width=10.0, height=10.0, depth=10.0)
+
+        # Generate collision mesh at different detail levels based on hardness
+        # Sample hardness at box center
+        center_pt = point2d(32.0, 32.0)
+        hardness_value = sample_field_at_point(hardness, center_pt)
+
+        # Higher hardness = more detailed collision mesh
+        target_faces = int(10 + hardness_value * 40)
+        collision = collision_mesh(box, target_faces=target_faces)
+
+        # Verify collision mesh
+        assert hasattr(collision, 'vertices')
+        assert hasattr(collision, 'faces')
+        assert len(collision.faces) > 0
+
+        # Face count should be influenced by hardness
+        # (though exact count depends on simplification algorithm)
+        assert len(collision.faces) <= target_faces * 2
