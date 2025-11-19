@@ -507,8 +507,21 @@ class VisualOperations:
         img[:, :, :] = background
 
         # Map positions to pixel coordinates
-        x_norm = (positions[:, 0] - xmin) / (xmax - xmin)
-        y_norm = (positions[:, 1] - ymin) / (ymax - ymin)
+        # Handle degenerate case where all agents are at same position
+        x_range = xmax - xmin
+        y_range = ymax - ymin
+
+        if x_range == 0.0:
+            # All agents at same x - center horizontally
+            x_norm = np.full(len(positions), 0.5)
+        else:
+            x_norm = (positions[:, 0] - xmin) / x_range
+
+        if y_range == 0.0:
+            # All agents at same y - center vertically
+            y_norm = np.full(len(positions), 0.5)
+        else:
+            y_norm = (positions[:, 1] - ymin) / y_range
 
         px = (x_norm * (width - 1)).astype(int)
         py = ((1.0 - y_norm) * (height - 1)).astype(int)  # Flip Y axis
