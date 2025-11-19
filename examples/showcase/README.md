@@ -165,19 +165,177 @@ python examples/showcase/04_scientific_visualization.py
 
 ---
 
+### 5. Audio Visualizer 🎵
+
+**File**: `05_audio_visualizer.py`
+
+**Demonstrates**: Audio + Field + Cellular + Palette + Visual
+
+**What it does**: Creates stunning audio-reactive visualizations combining synthesis, spectral analysis, and multi-domain integration.
+
+**Domains integrated**:
+- **Audio**: Synthesis and processing
+- **Field**: Audio-reactive diffusion effects
+- **Cellular**: Audio-driven cellular automata
+- **Palette**: Color mapping for visualizations
+- **Visual**: Video output with embedded audio
+
+**Visualizations created**:
+1. **Spectrum Analyzer**: FFT-based frequency analysis
+2. **Waveform Display**: Temporal audio visualization
+3. **Audio-Reactive CA**: Cellular automata driven by audio amplitude
+4. **Beat-Synchronized Patterns**: Energy-based pattern generation
+5. **Field Diffusion**: Audio spectrum driving heat diffusion
+6. **Video Export**: MP4/GIF with synchronized audio
+
+**Run it**:
+```bash
+python examples/showcase/05_audio_visualizer.py
+```
+
+**Output**: Multiple visualizations and video files with embedded audio
+
+**Best for**: Audio engineers, VJ artists, creative coders, educators
+
+---
+
+### 6. Interactive Physics Sandbox ⚛️
+
+**File**: `06_physics_sandbox.py`
+
+**Demonstrates**: RigidBody + Field + Genetic + Cellular + Visual
+
+**What it does**: Creates interactive physics simulations with emergent behavior through multi-domain integration.
+
+**Domains integrated**:
+- **RigidBody**: Particle collisions and dynamics (simplified implementation)
+- **Field**: Gravity wells, force fields, and diffusion
+- **Genetic**: Evolutionary optimization of physics parameters
+- **Cellular**: Emergent structures from physics interactions
+- **Palette/Visual**: Beautiful real-time visualizations
+
+**Simulations created**:
+1. **Particle Collisions**: N-body collision sandbox with realistic physics
+2. **Gravity Fields**: Particles in multi-attractor gravity systems
+3. **Emergent Structures**: Physics + cellular automata creating patterns
+4. **Genetic Optimization**: Evolving optimal particle configurations
+
+**Physics features**:
+- Collision detection and response
+- Force field integration
+- Friction and damping
+- Energy conservation
+- Emergent clustering behavior
+
+**Run it**:
+```bash
+python examples/showcase/06_physics_sandbox.py
+```
+
+**Output**: Multiple physics simulation frames showing collision, gravity, and emergent behavior
+
+**Best for**: Game developers, physicists, educators, creative coders
+
+---
+
+### 7. Physical Modeling Instrument 🎸
+
+**File**: `07_physical_instrument.py`
+
+**Demonstrates**: Audio + Acoustics + Field + Signal + Visual
+
+**What it does**: Synthesizes musical instruments using physical models that simulate real-world vibrating systems.
+
+**Domains integrated**:
+- **Audio**: Sound synthesis and export
+- **Acoustics**: Waveguide models and resonance
+- **Field**: Vibration visualization
+- **Signal**: Spectral analysis
+- **Visual**: String vibration and mode visualization
+
+**Instruments modeled**:
+1. **String Instruments**: Karplus-Strong plucked strings (guitar, violin)
+2. **Drums**: Modal synthesis with inharmonic overtones
+3. **Bells**: Complex modal patterns
+4. **Multi-String**: Chord synthesis
+5. **Rhythmic Patterns**: Drum sequencing
+
+**Physical modeling techniques**:
+- Karplus-Strong algorithm
+- Modal synthesis (sum of damped sine waves)
+- Waveguide synthesis
+- Spectral analysis and visualization
+- Mode shape visualization
+
+**Run it**:
+```bash
+python examples/showcase/07_physical_instrument.py
+```
+
+**Output**: WAV audio files and spectrograms showing synthesized instruments
+
+**Best for**: Audio engineers, instrument designers, musicians, signal processing enthusiasts
+
+---
+
+### 8. Digital Twin 🏭
+
+**File**: `08_digital_twin.py`
+
+**Demonstrates**: Field + Integrators + SparseLinalg + Visual + I/O
+
+**What it does**: Creates digital twins - virtual representations of physical systems that simulate real-world behavior for monitoring, optimization, and control.
+
+**Domains integrated**:
+- **Field**: Thermal dynamics and fluid flow
+- **Integrators**: Time evolution of physical systems
+- **Sparse Linear Algebra**: PDE solving for complex physics
+- **Visual**: Real-time monitoring visualizations
+- **I/O**: Data logging and checkpointing
+
+**Digital twins created**:
+1. **Thermal Manufacturing**: Heat treatment process with quality metrics
+2. **Heat Exchanger**: Counter-flow heat exchanger with efficiency tracking
+3. **Active Cooling System**: Electronics cooling with feedback control
+4. **Multi-Physics**: Thermal-structural coupling (expansion and stress)
+
+**Industrial applications**:
+- Process optimization and monitoring
+- Predictive maintenance
+- Quality control
+- System design validation
+- Real-time performance tracking
+
+**Run it**:
+```bash
+python examples/showcase/08_digital_twin.py
+```
+
+**Output**: Thermal field visualizations and metrics for industrial processes
+
+**Best for**: Engineers, industrial designers, manufacturing professionals, systems engineers
+
+---
+
 ## 🎓 Learning Path
 
 ### For Beginners
 Start with **Fractal Explorer** - it's visually stunning and easier to understand than physics simulations.
 
 ### For Scientists/Engineers
-Go straight to **Physics Visualizer** or **Scientific Visualization Suite** to see practical applications.
+Go straight to **Physics Visualizer**, **Scientific Visualization Suite**, or **Digital Twin** to see practical applications.
 
 ### For Artists
 Check out **Procedural Art Generator** first, then explore **Fractal Explorer**.
 
+### For Audio Enthusiasts
+Start with **Audio Visualizer** and **Physical Modeling Instrument** to see cross-domain audio synthesis.
+
+### For Game Developers
+**Interactive Physics Sandbox** demonstrates emergent behavior and optimization.
+
 ### For Full Understanding
-Work through all four in order - each builds on concepts from the previous ones.
+Work through all eight examples in order - each builds on concepts from the previous ones.
 
 ---
 
@@ -190,13 +348,17 @@ The showcase examples demonstrate that **Kairo's true power emerges from domain 
 | Domain | Provides | Used By |
 |--------|----------|---------|
 | **Noise** | Organic texture | All visual examples |
-| **Field** | Spatial operations | Physics, PDEs, fractals |
+| **Field** | Spatial operations | Physics, PDEs, fractals, digital twins |
 | **Palette** | Color mapping | All visualization |
 | **Image** | Composition | All visual output |
-| **Integrators** | Time evolution | Physics systems |
-| **Sparse Linear Algebra** | PDE solving | Scientific computing |
-| **I/O** | Data persistence | Scientific workflows |
+| **Integrators** | Time evolution | Physics systems, digital twins |
+| **Sparse Linear Algebra** | PDE solving | Scientific computing, digital twins |
+| **I/O** | Data persistence | Scientific workflows, digital twins |
 | **Color** | Blend modes | Art, composition |
+| **Audio** | Sound synthesis | Audio visualizer, instruments |
+| **RigidBody** | Physics simulation | Physics sandbox |
+| **Genetic** | Optimization | Physics sandbox |
+| **Cellular** | Pattern formation | Emergent structures, audio viz |
 
 ### Design Patterns
 
@@ -460,12 +622,20 @@ Feel free to use, modify, and build upon these examples for your own projects!
 
 **Scientific Visualization**: Publication-ready PDE solutions
 
+**Audio Visualizer**: Real-time audio-reactive visualizations with video export
+
+**Interactive Physics Sandbox**: Particle collisions, gravity fields, emergent behavior
+
+**Physical Modeling Instrument**: Realistic instrument synthesis using physical models
+
+**Digital Twin**: Industrial process simulation and monitoring
+
 ---
 
 **Happy exploring!** 🚀
 
 These examples represent the cutting edge of what's possible when you combine Kairo's domains. Use them as inspiration, learning resources, or starting points for your own projects.
 
-**Last Updated**: 2025-11-16
-**Kairo Version**: v0.8.0+
-**Examples**: 4 showcase demonstrations
+**Last Updated**: 2025-11-19
+**Kairo Version**: v0.10.0+
+**Examples**: 8 showcase demonstrations
