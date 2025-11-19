@@ -130,8 +130,8 @@ class TestExpEnvelope:
     def test_envexp_fast_decay(self):
         """Test fast exponential decay."""
         env = audio.envexp(time_constant=0.01, duration=0.5)
-        # Should decay quickly
-        assert env.data[1000] < 0.1
+        # Should decay quickly (e^(-t/τ) at t=1000/44100≈0.0227s with τ=0.01 gives ~0.103)
+        assert env.data[1000] < 0.11
 
     def test_envexp_slow_decay(self):
         """Test slow exponential decay."""

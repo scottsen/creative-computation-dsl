@@ -348,15 +348,22 @@ def symplectic(
         return position_new, velocity_new
 
     elif order == 4:
-        # 4th order symplectic (Forest-Ruth)
-        # Coefficients for 4th order
-        theta = 1.0 / (2.0 - 2.0**(1.0/3.0))
-        c1 = c4 = 0.5 * theta
-        c2 = c3 = 0.5 * (1.0 - theta)
-        d1 = d3 = theta
-        d2 = -theta
+        # 4th order symplectic (Yoshida/Forest-Ruth)
+        # Coefficients for 4th order composition
+        # Reference: Yoshida, Physics Letters A 150, 262 (1990)
+        theta = 1.0 / (2.0 - 2.0**(1.0/3.0))  # ≈ 1.3512
+        w0 = -2.0**(1.0/3.0) / (2.0 - 2.0**(1.0/3.0))  # ≈ -1.7024
+        w1 = theta  # ≈ 1.3512
 
-        # 4-stage composition
+        # Velocity kick coefficients (c_i)
+        c1 = c4 = w1 / 2.0
+        c2 = c3 = (w0 + w1) / 2.0
+
+        # Position drift coefficients (d_i)
+        d1 = d3 = w1
+        d2 = w0
+
+        # 4-stage composition: kick-drift-kick-drift-kick-drift-kick
         velocity = velocity + c1 * dt * potential_gradient(position)
         position = position + d1 * dt * velocity
         velocity = velocity + c2 * dt * potential_gradient(position)

@@ -8,7 +8,7 @@
 
 ## Quick Summary
 
-### ✅ Production-Ready (Fully Implemented) - 23 Domains
+### ✅ Production-Ready (Fully Implemented) - 25 Domains
 
 **Core Infrastructure:**
 - **Language Frontend**: Complete lexer, parser, AST, type system
@@ -56,82 +56,81 @@
 - **MLIR Text-Based IR**: Legacy `ir_builder.py` and `optimizer.py` (marked deprecated)
 - Will be maintained during v0.7.0 transition, removed in v0.8.0+
 
-### 🎉 NEW: v0.10.0 Release - Five New Computational Domains (November 16, 2025)
+### 🎉 NEW: v0.10.0 Release - Level 2 & 3 Integration Complete (November 17, 2025)
 
-**Major Milestone**: Five production-ready domains added, bringing total to 23 implemented domains. This release completes Kairo's transformation into a comprehensive multi-domain computational platform.
+**Major Milestone**: USE statement + Geometry domain + Level 3 type system complete. All 23 domains now accessible from `.kairo` source files with full type safety and cross-domain validation.
 
-**New Domain Specifications** (6 PRs merged today):
+**Key Achievements:**
 
-1. **Circuit/Electrical Engineering Domain** ⭐ (PR #43)
-   - Complete specification: `SPEC-CIRCUIT.md` (1,136 lines)
-   - ADR-003: Circuit modeling domain design rationale
-   - 5 circuit examples: RC filters, op-amps, guitar pedals, PCB parasitic extraction
-   - Cross-domain: Circuit ↔ Audio, Geometry, Physics
-   - Status: **Architecture Complete**, ready for implementation
+1. **USE Statement Implementation** ✅ (PR #99)
+   - Complete lexer, parser, AST, runtime support
+   - Import syntax: `use field, audio, rigidbody`
+   - 16 comprehensive tests (all passing)
+   - Runtime validation against DomainRegistry
+   - Unlocks all 374 operators for `.kairo` programs
+   - Example: `examples/use_statement_demo.kairo`
 
-2. **Fluid Dynamics & Acoustics Domains** ⭐ (PR #44)
-   - FluidDynamics: Compressible/incompressible flow, gas dynamics, engine operators
-   - Acoustics: 1D waveguides, FDTD, Helmholtz resonators, radiation impedance
-   - Use case: 2-stroke muffler modeling (FluidDynamics → Acoustics → Audio)
-   - Complete specification in `DOMAIN_ARCHITECTURE.md` sections 2.9, 2.10
-   - Status: **Architecture Complete**, ready for implementation
+2. **Geometry Domain** ✅ (PR #100, #101, #102)
+   - 50+ operators for 2D/3D spatial operations
+   - 5 layers: primitives, transformations, queries, coordinate conversion, properties
+   - 90 comprehensive tests covering all operators
+   - 6 cross-domain examples (bouncing spheres, Voronoi, Delaunay, mesh morphing)
+   - NumPy-based implementation with deterministic operations
 
-3. **Instrument Modeling & Timbre Extraction** ⭐ (PR #45)
-   - Complete specification: `SPEC-TIMBRE-EXTRACTION.md` (752 lines)
-   - 35 operators: analysis, synthesis, modeling
-   - Enables: Record guitar → extract timbre → synthesize new notes
-   - ADR-003: Instrument modeling domain rationale
-   - Status: **Architecture Complete**, ready for implementation
+3. **Level 3 Type System** ✅ (PR #98)
+   - Physical unit checking: `[m]`, `[kg]`, `[s]`, `[K]`, `[N]`, etc.
+   - Rate compatibility validation for cross-domain operations
+   - Cross-domain type safety validators
+   - 595 tests for validators and rate compatibility
+   - See `LEVEL_3_TYPE_SYSTEM.md` for complete specification
 
-4. **Audio Time Alignment Operators** (PR #46)
-   - Measurement, analysis, and alignment operator families
-   - New operator catalog: `LEARNINGS/TIME_ALIGNMENT_OPERATORS.md` (862 lines)
-   - Solves pro audio problems: speaker alignment, crossover phase matching
-   - Status: **Architecture Complete**, ready for Audio dialect integration
+4. **Level 2 Integration Complete** ✅ (PR #96)
+   - All 23 domains registered and working
+   - 374 operators accessible via USE statement
+   - Temporal domain added (24 operators for scheduling/rhythm)
+   - Operator catalog complete across all domains
 
-5. **Multi-Physics Engineering Domains** ⭐ (PR #47)
-   - Complete specification: `SPEC-PHYSICS-DOMAINS.md` (1,079 lines)
-   - Four domains: FluidNetwork, ThermalODE, FluidJet, CombustionLight
-   - J-tube fire pit example: Geometry → Fluid → Thermal → Combustion
-   - Validates operator graph paradigm for engineering physics
-   - Status: **Architecture Complete**, ready for implementation
+5. **Cross-Domain Examples** ✅ (PR #97)
+   - Audio visualizer (real-time field + audio + visual)
+   - Generative art installation (geometry + field + agents)
+   - Interactive physics sandbox (rigidbody + visual + agents)
+   - Demonstrates USE statement + multi-domain composition
 
-6. **Optimization Algorithms Domain** ⭐ (PR #48)
-   - Complete catalog: `LEARNINGS/OPTIMIZATION_ALGORITHMS_CATALOG.md` (1,529 lines)
-   - 16 algorithms across 5 categories
-   - Evolutionary, Local, Surrogate, Combinatorial, Multi-Objective
-   - Transforms Kairo: simulation platform → design discovery platform
-   - Status: **Architecture Complete**, ready for implementation
+**Technical Impact:**
+- 64 files changed, 16,608 lines added
+- 900+ total tests across all domains
+- Complete operator registry with DomainRegistry
+- Full type safety across domain boundaries
+- Production-ready cross-domain composition
 
-**Documentation Added**:
-- 6 major specifications (6,400+ lines of detailed domain design)
-- 2 new ADRs (architectural decision records)
-- 3 comprehensive operator catalogs (LEARNINGS/)
-- 2 example directories (EXAMPLES/, USE_CASES/)
-- 6 circuit examples (examples/circuit/)
-- Updated CHANGELOG with all 6 PRs
+**What This Enables:**
+- Write `.kairo` programs using any of 374 operators
+- Type-safe cross-domain connections (field → agent, geometry → audio, etc.)
+- Physical unit validation at runtime
+- Rate-aware composition for audio/visual/physics sync
 
-**Complete Domain Catalog** (20+ domains now specified):
+**Complete Domain Catalog** (23 domains implemented):
 
-**Implemented** (v0.7.4):
-- Transform, Stochastic, Fields/Grids, Agent/Particle, Audio/DSP, Visual
+**Production-Ready** (v0.10.0):
+- Field, Visual, Agent, Audio, RigidBody, Geometry, Temporal
+- Graph, Signal, StateMachine, Terrain, Vision
+- Acoustics, Cellular, Color, Genetic, Image, Integrators
+- IO/Storage, Neural, Noise, Optimization, Palette, Sparse Linear Algebra
 
-**Architecture Complete** (Specs ready for implementation):
-- **Geometry**, **Circuit**, **Acoustics**, **FluidDynamics**, **InstrumentModeling**
-- **Optimization**, **Physics** (FluidNetwork, ThermalODE, FluidJet, CombustionLight)
-- Sparse Linear Algebra, Graph/Network, Image/Vision
+**Architecture Documented** (Future implementation):
+- Circuit, FluidDynamics, InstrumentModeling
+- Physics domains (FluidNetwork, ThermalODE, FluidJet, CombustionLight)
+- Symbolic/Algebraic, Control & Robotics
 
-**Planned** (Next wave):
-- Symbolic/Algebraic, Neural Operators, Control & Robotics
-
-See `docs/DOMAIN_ARCHITECTURE.md` (2,266 lines) for complete vision.
+See `docs/DOMAIN_ARCHITECTURE.md` for complete vision.
 
 ### 📋 Planned (Future Enhancements)
-- **Domain Implementation** (v0.9+): Implement specification-ready domains (Circuit, Geometry, etc.)
-- **Physical Units**: Type system exists, dimensional analysis not enforced yet
+- **Domain Implementation** (v0.11+): Implement specification-ready domains (Circuit, FluidDynamics, InstrumentModeling)
+- **Physical Units**: ✅ Type system complete, dimensional analysis working in Level 3
 - **Hot-reload**: Architecture designed, not implemented yet
 - **GPU Acceleration**: Via MLIR GPU dialect (planned for future phases)
 - **Visual Rendering Dialect**: Planned as potential Phase 7
+- **Web IDE**: Browser-based editor with live preview and operator gallery
 
 ---
 
@@ -670,7 +669,116 @@ kairo run examples/heat_diffusion.kairo
 
 ## Version History
 
-### v0.6.0 (Current) - 2025-11-14
+### v0.10.0 (Current) - 2025-11-17 (Updated 2025-11-18)
+**Focus:** Level 2 & 3 Integration Complete - USE Statement + Geometry Domain + Type System
+
+**Update 2025-11-18: Domain Export Visibility Fix**
+- ✅ 10 previously hidden domains now properly exported in `stdlib/__init__.py`
+- ✅ Newly accessible: agents, audio, geometry, graph, optimization, signal, statemachine, temporal, terrain, vision
+- ✅ All 25 implemented domains now importable: `from kairo.stdlib import <domain>`
+- ✅ Validated: All domains functional with comprehensive operator sets
+
+**Level 2 Integration - All 25 Domains:**
+- ✅ USE statement fully implemented (lexer, parser, AST, runtime)
+- ✅ 374+ operators across 25 domains accessible from `.kairo` files
+- ✅ 16 comprehensive USE statement tests (all passing)
+- ✅ Domain import syntax: `use field, audio, rigidbody`
+- ✅ Runtime validation against DomainRegistry
+- ✅ All domains registered and working: field, visual, agent, graph, signal, statemachine, terrain, vision, acoustics, color, genetic, image, integrators, io, neural, noise, optimization, palette, rigidbody, sparse_linalg, temporal, audio, geometry
+
+**Geometry Domain (NEW):**
+- ✅ 50+ operators for 2D/3D spatial operations
+- ✅ 5 layers: primitives (8), transformations (13), spatial queries (10), coordinate conversion (4), properties (4)
+- ✅ 90 comprehensive tests covering all operators
+- ✅ 6 working examples with cross-domain integration
+- ✅ NumPy-based implementation with deterministic operations
+
+**Level 3 Type System:**
+- ✅ Physical unit checking implemented (`[m]`, `[kg]`, `[s]`, `[K]`, `[N]`, etc.)
+- ✅ Rate compatibility validation for cross-domain operations
+- ✅ Cross-domain type safety validators
+- ✅ 595 tests for validators and rate compatibility
+- ✅ See LEVEL_3_TYPE_SYSTEM.md for complete specification
+
+**Temporal Domain (NEW):**
+- ✅ 24 operators for temporal logic and scheduling
+- ✅ Delay lines, timers, clocks, event sequences
+- ✅ Temporal composition and rhythm generation
+- ✅ Frame-accurate scheduling
+
+**Cross-Domain Examples:**
+- ✅ Audio visualizer (real-time field + audio + visual)
+- ✅ Generative art installation (geometry + field + agents)
+- ✅ Interactive physics sandbox (rigidbody + visual + agents)
+- ✅ Bouncing spheres, Voronoi heat, Delaunay terrain
+- ✅ Geometry patrol, mesh morphing, convex hull art
+
+**Documentation:**
+- ✅ LEVEL_3_TYPE_SYSTEM.md (377 lines)
+- ✅ Updated README with USE statement section
+- ✅ Comprehensive CHANGELOG with all changes
+- ✅ Domain Finishing Guide
+
+**Test Count:** 900+ total tests (all domains + USE + geometry + type system)
+
+**Files Changed:** 64 files, 16,608 insertions
+
+**Commits:** PR #96, #97, #98, #99, #100, #101, #102
+
+---
+
+### v0.9.0 - 2025-11-16
+**Focus:** Five Core Domains Implementation
+
+**New Domains:**
+- ✅ Graph/Network domain with Dijkstra, centrality, community detection, max flow
+- ✅ Signal Processing domain with FFT, STFT, filtering, windowing, spectral analysis
+- ✅ State Machines domain with FSM, behavior trees, event-driven transitions
+- ✅ Terrain Generation domain with Perlin noise, erosion, biome classification
+- ✅ Computer Vision domain with edge detection, feature extraction, morphology
+
+**Infrastructure:**
+- ✅ DomainRegistry for unified operator management
+- ✅ Operator decorator pattern standardized across all domains
+- ✅ Cross-domain operator catalog established
+
+---
+
+### v0.8.0 - 2025-11-15
+**Focus:** Domain Expansion & Integration Foundation
+
+**New Domains:**
+- ✅ Cellular Automata (Conway's Life, custom rules, analysis)
+- ✅ Optimization (genetic algorithms, CMA-ES, particle swarm)
+- ✅ RigidBody Physics (2D rigid body dynamics, collision detection)
+
+**Infrastructure:**
+- ✅ stdlib/ organization for all domains
+- ✅ Operator registry system foundation
+- ✅ Cross-domain integration patterns established
+
+---
+
+### v0.7.0 - 2025-11-15
+**Focus:** Real MLIR Integration - Complete Stack
+
+**All 6 Phases Complete:**
+- ✅ Phase 1: MLIR context, compiler V2, proof-of-concept
+- ✅ Phase 2: Field Operations Dialect (4 operations, field-to-SCF lowering)
+- ✅ Phase 3: Temporal Execution (6 operations, temporal-to-SCF lowering)
+- ✅ Phase 4: Agent Operations (4 operations, agent-to-SCF lowering, 36 tests)
+- ✅ Phase 5: Audio Operations (4 operations, audio-to-SCF lowering)
+- ✅ Phase 6: JIT/AOT Compilation (LLVM lowering, JIT engine, 7 output formats)
+
+**Timeline:** 12-month effort launched 2025-11-14, **ALL 6 PHASES COMPLETE Nov 15, 2025** 🎉
+
+**Code:** ~4,400 lines across mlir_v2/ directory
+**Tests:** Complete test suites for all dialects
+**Examples:** 8+ working MLIR compilation examples
+
+---
+
+### v0.6.0 - 2025-11-14
 **Focus:** Audio I/O and Visual Extensions - Complete multimedia I/O pipeline
 
 **Audio I/O:**

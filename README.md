@@ -669,7 +669,7 @@ See `examples/` directory for more!
 - **GPU Acceleration** - Via MLIR GPU dialect (planned Phase 3-4)
 - **Advanced Optimization** - Auto-vectorization, fusion, polyhedral optimization
 
-**Current Version**: v0.10.0 - Level 2 & 3 Integration Complete (23 domains, 374 operators, USE statement, type system)
+**Current Version**: v0.10.0 - Level 2 & 3 Integration Complete (25 domains, 374+ operators, USE statement, type system)
 **Next Focus**: Production hardening, performance optimization, geometry domain
 **Long-term Vision**: GPU acceleration, JIT compilation, advanced optimizations
 
@@ -679,7 +679,7 @@ See `examples/` directory for more!
 
 Kairo's domain architecture has been massively expanded in November 2025, establishing it as a **universal multi-domain platform**.
 
-### Domain Coverage (23 Domains Implemented)
+### Domain Coverage (25 Domains Implemented)
 
 **Production-Ready** (v0.6-0.10):
 - **Core**: Audio/DSP, Fields/Grids, Agents/Particles, Visual Rendering, Transform Dialect

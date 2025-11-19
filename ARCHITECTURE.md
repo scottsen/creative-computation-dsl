@@ -18,11 +18,14 @@ This architecture enables **cross-domain composition** that's impossible in trad
 
 ## 0) Design Tenets
 
-1. **Semantic kernel, not a monolith** — one place defines time/space/rate/units/state/profiles/determinism.
-2. **Transforms as a first-class grammar** — FFT is not special; *domain changes* are core operations.
-3. **Typed, reproducible computation** — every stream/field/event has type, units, domain, and a determinism tier.
-4. **Thin, pluggable backends** — CPU/GPU/Audio/FFT providers are replaceable modules.
-5. **Two user surfaces** — *Composer* (Kairo.Audio) and *Performer* (RiffStack) share the same kernel and operator registry.
+1. **Operator-theoretic foundation** — Every module, transform, and domain operation is an operator `O: X → X` with well-defined spectral properties. See **[docs/OPERATOR_PHILOSOPHY.md](docs/OPERATOR_PHILOSOPHY.md)** for the mathematical foundation.
+2. **Semantic kernel, not a monolith** — one place defines time/space/rate/units/state/profiles/determinism.
+3. **Transforms as a first-class grammar** — FFT is not special; *domain changes* are core operations that diagonalize operators to reveal their spectra.
+4. **Typed, reproducible computation** — every stream/field/event has type, units, domain, and a determinism tier. Operators must declare their algebraic properties (linear, unitary, self-adjoint).
+5. **Thin, pluggable backends** — CPU/GPU/Audio/FFT providers are replaceable modules implementing the same operator interfaces.
+6. **Two user surfaces** — *Composer* (Kairo.Audio) and *Performer* (RiffStack) share the same kernel and operator registry.
+
+> 📍 **Operator Philosophy:** Everything in Kairo is an operator. Systems are operators, dynamics are spectra. This unifies our discrete (digital) and continuous (Philbrick analog) computation under one mathematical framework. Read **[docs/OPERATOR_PHILOSOPHY.md](docs/OPERATOR_PHILOSOPHY.md)** for the deep foundation.
 
 > 📍 **Ecosystem Overview:** For a comprehensive map of all potential Kairo domains, modules, and expansion roadmap, see **[ECOSYSTEM_MAP.md](ECOSYSTEM_MAP.md)**
 
@@ -218,24 +221,42 @@ controls:
 
 ---
 
-## 8) Transform Mindset — baked into Kernel
+## 8) Transform Mindset — Spectral Decomposition as First-Class
 
-**Minimal v1 transform set** (strict & repro):
+**Core Insight**: Transforms don't just "change domains" — they **diagonalize operators** to reveal their spectra.
 
-* Time↔Frequency: `fft/ifft`, `stft/istft` (window/overlap explicit).
-* Space↔k-space (2D/3D Fourier) for fields/visuals.
-* DCT/IDCT (cosine basis) for compression/cepstrum.
-* Wavelet/IWavelet (family param) for multi-scale.
-* Graph spectral (Laplacian eigenbasis) for topology analysis.
-* Mel/Inverse-Mel for perceptual audio.
+When you run `fft(signal)`, you're not "converting to frequency." You're:
+1. Decomposing the signal into an orthogonal basis (complex exponentials)
+2. Projecting the signal operator onto its eigenbasis
+3. Revealing the operator's spectrum (eigenvalues = frequencies)
+
+**Why this matters**: The spectral view unifies all transforms under one mathematical framework.
+
+### Minimal v1 Transform Set (Strict & Reproducible)
+
+| Transform | Basis | Operator Diagonalized | Use Case |
+|-----------|-------|----------------------|----------|
+| `fft/ifft` | Complex exponentials | Convolution → Multiplication | Audio, signals |
+| `stft/istft` | Windowed exponentials | Time-varying convolution | Spectrograms |
+| `fft2d/ifft2d` | 2D/3D Fourier | Spatial convolution | Fields, images |
+| `dct/idct` | Cosine basis | Compression operators | JPEG, cepstrum |
+| `wavelet/iwavelet` | Wavelet family | Multi-scale analysis | Denoising, edges |
+| `graph_spectral` | Laplacian eigenvectors | Graph diffusion | Networks, topology |
+| `mel/imel` | Perceptual basis | Psychoacoustic operators | Audio perception |
 
 All exposed uniformly:
 
 ```kairo
+# Explicit spectral decomposition
 let spec = transform.to(sig, domain="frequency", method="fft", window="hann")
-let shaped = spec * pink_shelf
+let shaped = spec * pink_shelf    # Diagonal operator in frequency domain
 let out = transform.from(shaped, domain="time")
+
+# This is literally: O_ifft ∘ O_multiply ∘ O_fft
+# The FFT diagonalizes the convolution operator
 ```
+
+> 📖 **Deep Dive**: See [docs/OPERATOR_PHILOSOPHY.md](docs/OPERATOR_PHILOSOPHY.md) for the mathematical foundation of spectral decomposition and why transforms are operator diagonalization.
 
 ---
 

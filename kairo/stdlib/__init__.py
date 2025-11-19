@@ -19,7 +19,27 @@ from .flappy import flappy, Bird, Pipe, GameState, FlappyOperations
 from .neural import neural, DenseLayer, MLP, NeuralOperations
 from .genetic import genetic, Individual, Population, GeneticOperations
 
-# Procedural graphics domains (NEW)
+# Agent-based domains
+from . import agents
+from . import temporal
+
+# Audio domains
+from . import audio
+from . import signal
+
+# Geometry domains
+from . import geometry
+from . import graph
+
+# Optimization domains
+from . import optimization
+from . import statemachine
+
+# Terrain and vision domains
+from . import terrain
+from . import vision
+
+# Procedural graphics domains
 from .noise import noise, NoiseField2D, NoiseField3D, NoiseOperations
 from .palette import palette, Palette, PaletteOperations
 from .color import color, ColorOperations
@@ -43,6 +63,26 @@ __all__ = [
     "flappy", "Bird", "Pipe", "GameState", "FlappyOperations",
     "neural", "DenseLayer", "MLP", "NeuralOperations",
     "genetic", "Individual", "Population", "GeneticOperations",
+
+    # Agent-based domains
+    "agents",
+    "temporal",
+
+    # Audio domains
+    "audio",
+    "signal",
+
+    # Geometry domains
+    "geometry",
+    "graph",
+
+    # Optimization domains
+    "optimization",
+    "statemachine",
+
+    # Terrain and vision domains
+    "terrain",
+    "vision",
 
     # Procedural graphics domains
     "noise", "NoiseField2D", "NoiseField3D", "NoiseOperations",

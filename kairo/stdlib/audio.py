@@ -616,16 +616,19 @@ class AudioOperations:
         if delay_samples <= 0:
             return signal.copy()
 
-        # Create delay line
-        wet = np.zeros_like(signal.data)
+        # Create delay buffer
+        delayed = np.zeros_like(signal.data)
 
+        # Simple delay: shift signal and add feedback
         for i in range(len(signal.data)):
-            wet[i] = signal.data[i]
-            if i >= delay_samples:
-                wet[i] += feedback * wet[i - delay_samples]
+            if i < delay_samples:
+                delayed[i] = 0.0
+            else:
+                # Delayed input + feedback from previous delayed output
+                delayed[i] = signal.data[i - delay_samples] + feedback * delayed[i - delay_samples]
 
         # Mix dry and wet
-        output = (1.0 - mix) * signal.data + mix * wet
+        output = (1.0 - mix) * signal.data + mix * delayed
         return AudioBuffer(data=output, sample_rate=signal.sample_rate)
 
     @staticmethod
@@ -1071,24 +1074,34 @@ class AudioOperations:
             exc = audio.lowpass(exc, cutoff=6000.0)
             string_sound = audio.string(exc, freq=220.0, t60=1.5)
         """
+        if freq <= 0:
+            return excitation.copy()
+
         delay_samples = int(excitation.sample_rate / freq)
 
         if delay_samples <= 0:
             return excitation.copy()
 
+        # Output should be long enough for full decay (t60 + excitation)
+        output_duration = excitation.duration + t60
+        output_samples = int(output_duration * excitation.sample_rate)
+        output = np.zeros(output_samples)
+
         # Karplus-Strong algorithm
-        output = np.zeros(excitation.num_samples)
         delay_line = np.zeros(delay_samples)
 
         # Calculate feedback gain for desired T60
         feedback = 0.996 ** (1.0 / (t60 * freq))
 
-        for i in range(excitation.num_samples):
+        for i in range(output_samples):
             # Read from delay line
             delayed = delay_line[0]
 
-            # Add excitation
-            output[i] = excitation.data[i] + delayed
+            # Add excitation (if within excitation duration)
+            if i < excitation.num_samples:
+                output[i] = excitation.data[i] + delayed
+            else:
+                output[i] = delayed
 
             # Lowpass filter for damping (averaging filter)
             if damping > 0:
@@ -1137,24 +1150,29 @@ class AudioOperations:
         if len(frequencies) != len(decays) or len(frequencies) != len(amplitudes):
             raise ValueError("frequencies, decays, and amplitudes must have same length")
 
-        output = np.zeros(excitation.num_samples)
+        # Output duration should be long enough for longest decay
+        # Use 5 time constants for full decay
+        max_decay = max(decays)
+        output_duration = max_decay * 5.0
+        output_samples = int(output_duration * excitation.sample_rate)
+        output = np.zeros(output_samples)
 
         # Each mode is a decaying sinusoid
         for freq, decay, amp in zip(frequencies, decays, amplitudes):
             # Exponential decay envelope
             env = AudioOperations.envexp(time_constant=decay / 5.0,
-                                        duration=excitation.duration,
+                                        duration=output_duration,
                                         sample_rate=excitation.sample_rate)
 
             # Sinusoidal oscillator
-            osc = AudioOperations.sine(freq=freq, duration=excitation.duration,
+            osc = AudioOperations.sine(freq=freq, duration=output_duration,
                                       sample_rate=excitation.sample_rate)
 
             # Apply envelope and amplitude
             mode_output = osc.data * env.data * amp
 
-            # Convolve with excitation (simplified - just multiply)
-            output += mode_output * np.mean(excitation.data)
+            # Convolve with excitation (simplified - just multiply by excitation energy)
+            output += mode_output * np.mean(np.abs(excitation.data))
 
         # Normalize
         peak = np.max(np.abs(output))

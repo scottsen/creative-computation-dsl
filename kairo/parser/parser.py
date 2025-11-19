@@ -117,6 +117,10 @@ class Parser:
         if token.type == TokenType.USE:
             return self.parse_use()
 
+        # Const declaration
+        if token.type == TokenType.CONST:
+            return self.parse_const_declaration(decorators)
+
         # Assignment or expression statement
         if token.type == TokenType.IDENTIFIER:
             # Look ahead to determine if it's an assignment or expression statement
@@ -329,7 +333,7 @@ class Parser:
         return Return(value=value)
 
     def parse_lambda(self) -> Lambda:
-        """Parse a lambda expression: |args| expr or || expr (no params)"""
+        """Parse a lambda expression: |args| expr or |args| { stmts }"""
         self.expect(TokenType.PIPE)
 
         # Parse parameters (may be empty for || expr)
@@ -350,8 +354,24 @@ class Parser:
 
         self.expect(TokenType.PIPE)
 
-        # Parse body expression
-        body = self.parse_expression()
+        # Parse body - can be single expression or block
+        if self.current_token().type == TokenType.LBRACE:
+            # Block body: |args| { stmts }
+            self.advance()  # consume {
+            self.skip_newlines()
+
+            statements = []
+            while self.current_token().type != TokenType.RBRACE:
+                stmt = self.parse_statement()
+                if stmt:
+                    statements.append(stmt)
+                self.skip_newlines()
+
+            self.expect(TokenType.RBRACE)
+            body = Block(statements=statements)
+        else:
+            # Single expression body: |args| expr
+            body = self.parse_expression()
 
         return Lambda(params=params, body=body)
 
@@ -535,6 +555,25 @@ class Parser:
 
         from kairo.ast.nodes import Use
         return Use(domains=domains, aliases=aliases)
+
+    def parse_const_declaration(self, decorators: List[Decorator] = None) -> Assignment:
+        """Parse a const declaration: const NAME : Type = value"""
+        if decorators is None:
+            decorators = []
+
+        self.expect(TokenType.CONST)
+        target = self.expect(TokenType.IDENTIFIER).value
+
+        # Type annotation is required for const (based on examples)
+        type_annotation = None
+        if self.current_token().type == TokenType.COLON:
+            self.advance()
+            type_annotation = self.parse_type_annotation()
+
+        self.expect(TokenType.ASSIGN)
+        value = self.parse_expression()
+
+        return Assignment(target, value, type_annotation, decorators, is_const=True)
 
     def parse_assignment(self, decorators: List[Decorator] = None) -> Assignment:
         """Parse an assignment statement."""

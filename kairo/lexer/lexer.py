@@ -32,6 +32,7 @@ class TokenType(Enum):
     ITERATE = auto()
     LINK = auto()
     USE = auto()
+    CONST = auto()
 
     # Operators
     PLUS = auto()
@@ -104,6 +105,7 @@ class Lexer:
         "iterate": TokenType.ITERATE,
         "link": TokenType.LINK,
         "use": TokenType.USE,
+        "const": TokenType.CONST,
         "true": TokenType.BOOL,
         "false": TokenType.BOOL,
     }

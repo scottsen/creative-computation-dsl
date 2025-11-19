@@ -17,6 +17,7 @@ class NodeType(Enum):
     TUPLE = "tuple"
     LAMBDA = "lambda"
     IF_ELSE = "if_else"
+    BLOCK = "block"
 
     # Statements
     ASSIGNMENT = "assignment"
@@ -146,13 +147,23 @@ class Tuple(Expression):
 
 @dataclass
 class Lambda(Expression):
-    """Lambda expression (|args| expr)."""
+    """Lambda expression (|args| expr or |args| { stmts })."""
     params: List[str]  # Parameter names
-    body: Expression  # Single expression body
+    body: Expression  # Single expression body (can be Block for multi-statement)
     node_type: NodeType = field(default=NodeType.LAMBDA)
 
     def accept(self, visitor: 'ASTVisitor') -> Any:
         return visitor.visit_lambda(self)
+
+
+@dataclass
+class Block(Expression):
+    """Block expression ({ stmt1; stmt2; ... }) - evaluates to last expression."""
+    statements: List['Statement']  # Multiple statements
+    node_type: NodeType = field(default=NodeType.BLOCK)
+
+    def accept(self, visitor: 'ASTVisitor') -> Any:
+        return visitor.visit_block(self)
 
 
 @dataclass
@@ -195,6 +206,7 @@ class Assignment(Statement):
     value: Expression
     type_annotation: Optional['TypeAnnotation'] = None
     decorators: List['Decorator'] = field(default_factory=list)
+    is_const: bool = False
     node_type: NodeType = field(default=NodeType.ASSIGNMENT)
 
     def accept(self, visitor: 'ASTVisitor') -> Any:

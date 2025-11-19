@@ -231,20 +231,29 @@ class ExecutionContext:
             global_seed: Global random seed for deterministic execution
         """
         self.symbols: Dict[str, Any] = {}
+        self.const_symbols: set = set()  # Track which symbols are const
         self.double_buffers: Dict[str, tuple] = {}  # name -> (front, back)
         self.config: Dict[str, Any] = {}
         self.timestep: int = 0
         self.global_seed: int = global_seed
         self.dt: float = 0.01  # default timestep
 
-    def set_variable(self, name: str, value: Any) -> None:
+    def set_variable(self, name: str, value: Any, is_const: bool = False) -> None:
         """Set a variable in the symbol table.
 
         Args:
             name: Variable name
             value: Variable value
+            is_const: Whether this is a const variable
+
+        Raises:
+            RuntimeError: If trying to reassign a const variable
         """
+        if name in self.const_symbols:
+            raise RuntimeError(f"Cannot reassign const variable: {name}")
         self.symbols[name] = value
+        if is_const:
+            self.const_symbols.add(name)
 
     def get_variable(self, name: str) -> Any:
         """Get a variable from the symbol table.
@@ -426,7 +435,7 @@ class Runtime:
         value = self.execute_expression(assign.value)
 
         # Store in context (target is a string)
-        self.context.set_variable(assign.target, value)
+        self.context.set_variable(assign.target, value, is_const=assign.is_const)
 
     def execute_set_statement(self, call) -> None:
         """Execute a 'set' configuration statement.
@@ -494,7 +503,7 @@ class Runtime:
         """
         from ..ast.nodes import (
             Literal, Identifier, BinaryOp, UnaryOp, Call, FieldAccess, Tuple,
-            Lambda, IfElse, StructLiteral
+            Lambda, IfElse, Block, StructLiteral
         )
 
         if isinstance(expr, Literal):
@@ -524,6 +533,9 @@ class Runtime:
 
         elif isinstance(expr, IfElse):
             return self.execute_if_else(expr)
+
+        elif isinstance(expr, Block):
+            return self.execute_block(expr)
 
         elif isinstance(expr, StructLiteral):
             return self.execute_struct_literal(expr)
@@ -721,6 +733,29 @@ class Runtime:
             return self.execute_expression(if_else_node.then_expr)
         else:
             return self.execute_expression(if_else_node.else_expr)
+
+    def execute_block(self, block_node) -> Any:
+        """Execute a block expression ({ stmt1; stmt2; ... }).
+
+        Args:
+            block_node: Block AST node
+
+        Returns:
+            Value of last expression in block, or None
+        """
+        result = None
+        for stmt in block_node.statements:
+            # Execute statement - if it's an expression statement, capture its value
+            self.execute_statement(stmt)
+            # If the statement was an expression, get its value
+            from ..ast.nodes import ExpressionStatement, Return
+            if isinstance(stmt, ExpressionStatement):
+                result = self.execute_expression(stmt.expr)
+            elif isinstance(stmt, Return):
+                # Return statements will raise ReturnValue, so this won't be reached
+                # but we include it for completeness
+                pass
+        return result
 
     def execute_lambda(self, lambda_node) -> LambdaFunction:
         """Execute a lambda expression (create closure).

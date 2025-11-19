@@ -13,7 +13,8 @@ class TestKarplusStrong:
         exc = audio.noise(noise_type="white", seed=1, duration=0.01)
         string_sound = audio.string(exc, freq=220.0, t60=1.5, damping=0.3)
 
-        assert string_sound.num_samples == exc.num_samples
+        # String should ring out for t60 duration after excitation
+        assert string_sound.num_samples > exc.num_samples
         assert not np.any(np.isnan(string_sound.data))
 
     def test_string_pitch(self):
@@ -65,9 +66,10 @@ class TestKarplusStrong:
         mid = audio.string(exc, freq=220.0, t60=1.5, damping=0.3)
         high = audio.string(exc, freq=880.0, t60=1.5, damping=0.3)
 
-        assert low.num_samples == exc.num_samples
-        assert mid.num_samples == exc.num_samples
-        assert high.num_samples == exc.num_samples
+        # All should ring out for t60 duration
+        assert low.num_samples > exc.num_samples
+        assert mid.num_samples > exc.num_samples
+        assert high.num_samples > exc.num_samples
 
     def test_string_pluck_sound(self):
         """Test realistic pluck sound."""
@@ -88,9 +90,10 @@ class TestKarplusStrong:
         """Test string with invalid (zero) frequency."""
         exc = audio.noise(noise_type="white", seed=1, duration=0.01)
 
-        # Zero frequency should return original or handle gracefully
+        # Zero frequency should return excitation unchanged
         result = audio.string(exc, freq=0.0, t60=1.0, damping=0.3)
         assert result.num_samples == exc.num_samples
+        assert np.allclose(result.data, exc.data)
 
 
 class TestModalSynthesis:

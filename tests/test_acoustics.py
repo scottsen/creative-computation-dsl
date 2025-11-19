@@ -224,9 +224,9 @@ class TestHelmholtzResonator:
         )
 
         # Expected: f ≈ (343 / 2π) * sqrt(20e-4 / (500e-6 * 0.05))
-        # f ≈ 54.6 * sqrt(4e-3 / 25e-6) ≈ 54.6 * sqrt(160) ≈ 690 Hz
+        # f ≈ 54.6 * sqrt(0.002 / 0.000025) ≈ 54.6 * sqrt(80) ≈ 488 Hz
         assert f_res > 0
-        assert 500 < f_res < 1000  # Reasonable range
+        assert 450 < f_res < 550  # Reasonable range around 488 Hz
 
     def test_helmholtz_frequency_small_volume(self):
         """Test that smaller volume gives higher frequency."""

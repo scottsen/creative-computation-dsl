@@ -621,10 +621,13 @@ class AcousticsOperations:
         freqs = frequency_response.frequencies
 
         # Simple peak detection: local maxima above threshold
+        # Handle both sharp peaks and flat plateaus
         peaks = []
         for i in range(1, len(mag) - 1):
-            if mag[i] > threshold_db and mag[i] > mag[i - 1] and mag[i] > mag[i + 1]:
-                peaks.append(freqs[i])
+            if mag[i] > threshold_db and mag[i] >= mag[i - 1] and mag[i] >= mag[i + 1]:
+                # Only add if it's strictly greater than previous (avoid duplicates on plateaus)
+                if mag[i] > mag[i - 1] or (mag[i] == mag[i - 1] and mag[i] > mag[i + 1]):
+                    peaks.append(freqs[i])
 
         return np.array(peaks)
 
