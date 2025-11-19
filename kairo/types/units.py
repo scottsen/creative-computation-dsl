@@ -22,7 +22,7 @@ Examples:
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, Dict
+from typing import Optional, Dict, Union
 import re
 from fractions import Fraction
 
@@ -75,7 +75,7 @@ class Dimensions:
             luminosity=self.luminosity - other.luminosity,
         )
 
-    def __pow__(self, exponent: int | float | Fraction) -> 'Dimensions':
+    def __pow__(self, exponent: Union[int, float, Fraction]) -> 'Dimensions':
         """Raise dimensions to a power by multiplying exponents."""
         exp = Fraction(exponent) if not isinstance(exponent, Fraction) else exponent
         return Dimensions(
@@ -154,7 +154,7 @@ class Unit:
             scale=self.scale / other.scale,
         )
 
-    def __pow__(self, exponent: int | float) -> 'Unit':
+    def __pow__(self, exponent: Union[int, float]) -> 'Unit':
         """Raise unit to a power."""
         return Unit(
             name=f"{self.name}^{exponent}",

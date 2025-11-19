@@ -3,6 +3,7 @@
 
 # Core Kairo Dependencies (existing)
 numpy>=1.24.0
+scipy>=1.7.0
 
 # MLIR Python Bindings (v0.7.0 NEW)
 # Installation: pip install mlir -f https://github.com/makslevental/mlir-wheels/releases/expanded_assets/latest
