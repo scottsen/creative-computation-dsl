@@ -3,7 +3,7 @@
 import pytest
 import numpy as np
 from kairo.stdlib.agents import agents, particle_behaviors, Agents
-from kairo.stdlib.visual import visual
+from kairo.stdlib.visual import visual, Visual
 
 
 class TestParticleEmission:
@@ -84,7 +84,10 @@ class TestParticleEmission:
         assert 'temperature' in particles.properties
 
         colors = particles.get('color')
-        assert colors.shape == (50,)
+        assert colors.shape == (50, 3)  # 3-element RGB color per particle
+        assert np.all(colors[:, 0] == 1.0)  # Red channel
+        assert np.all(colors[:, 1] == 0.5)  # Green channel
+        assert np.all(colors[:, 2] == 0.0)  # Blue channel
 
     def test_emit_callable_position(self):
         """Test emission with position callback."""
@@ -383,7 +386,7 @@ class TestTrailManagement:
         particles = agents.update_trail(particles, trail_length=3)
 
         # Move particles
-        particles = agents.update('pos', particles.get('pos') + 10.0)
+        particles = particles.update('pos', particles.get('pos') + 10.0)
 
         # Update trail again
         particles = agents.update_trail(particles, trail_length=3)
@@ -463,7 +466,7 @@ class TestVisualParticleRendering:
             alpha_property='alpha'
         )
 
-        assert isinstance(vis, visual.Visual)
+        assert isinstance(vis, Visual)
         assert vis.width == 512
         assert vis.height == 512
 
@@ -482,7 +485,7 @@ class TestVisualParticleRendering:
             rotation_property='vel'
         )
 
-        assert isinstance(vis, visual.Visual)
+        assert isinstance(vis, Visual)
 
     def test_render_additive_blending(self):
         """Test rendering with additive blending."""
@@ -495,7 +498,7 @@ class TestVisualParticleRendering:
             blend_mode='additive'
         )
 
-        assert isinstance(vis, visual.Visual)
+        assert isinstance(vis, Visual)
 
 
 class TestDeterminism:

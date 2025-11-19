@@ -750,8 +750,13 @@ class AgentOperations:
                     if value.shape[0] != count:
                         raise ValueError(f"Property '{key}' has wrong shape: {value.shape}")
                     particle_props[key] = value.copy()
-                elif np.isscalar(value) or isinstance(value, (tuple, list)):
+                elif np.isscalar(value):
+                    # Scalar value - broadcast to all particles
                     particle_props[key] = np.full(count, value, dtype=np.float32)
+                elif isinstance(value, (tuple, list)):
+                    # Vector value - replicate for all particles
+                    value_array = np.array(value, dtype=np.float32)
+                    particle_props[key] = np.tile(value_array, (count, 1)) if value_array.ndim == 1 else np.array([value_array] * count)
                 else:
                     raise TypeError(f"Property '{key}' must be array or scalar, got {type(value)}")
 
