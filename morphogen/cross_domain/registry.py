@@ -197,6 +197,12 @@ def register_builtin_transforms():
         TerrainToFieldInterface,
         FieldToTerrainInterface,
         VisionToFieldInterface,
+        TimeToCepstralInterface,
+        CepstralToTimeInterface,
+        TimeToWaveletInterface,
+        SpatialAffineInterface,
+        CartesianToPolarInterface,
+        PolarToCartesianInterface,
         GraphToVisualInterface,
         CellularToFieldInterface,
     )
@@ -333,6 +339,90 @@ def register_builtin_transforms():
                 "CA state → PDE initial conditions",
                 "Game of Life → density field",
                 "Pattern state → field patterns"
+            ]
+        }
+    )
+
+    # Time-Frequency Domain Transforms
+    CrossDomainRegistry.register(
+        "time", "cepstral",
+        TimeToCepstralInterface,
+        metadata={
+            "description": "Time → Cepstral via DCT",
+            "use_cases": [
+                "Audio compression (MP3, AAC)",
+                "MFCC computation",
+                "Pitch detection",
+                "Speech feature extraction"
+            ]
+        }
+    )
+
+    CrossDomainRegistry.register(
+        "cepstral", "time",
+        CepstralToTimeInterface,
+        metadata={
+            "description": "Cepstral → Time via IDCT",
+            "use_cases": [
+                "Signal reconstruction from DCT coefficients",
+                "Audio decompression",
+                "Cepstral-based synthesis"
+            ]
+        }
+    )
+
+    CrossDomainRegistry.register(
+        "time", "wavelet",
+        TimeToWaveletInterface,
+        metadata={
+            "description": "Time → Wavelet via CWT",
+            "use_cases": [
+                "Non-stationary signal analysis",
+                "Multi-scale feature detection",
+                "Transient analysis",
+                "Time-frequency localization"
+            ]
+        }
+    )
+
+    # Spatial Domain Transforms
+    CrossDomainRegistry.register(
+        "spatial", "spatial",
+        SpatialAffineInterface,
+        metadata={
+            "description": "Spatial affine transformations (translate, rotate, scale, shear)",
+            "use_cases": [
+                "Image/field registration",
+                "Data augmentation",
+                "Coordinate alignment",
+                "Geometric transformations"
+            ]
+        }
+    )
+
+    CrossDomainRegistry.register(
+        "cartesian", "polar",
+        CartesianToPolarInterface,
+        metadata={
+            "description": "Cartesian → Polar coordinate conversion",
+            "use_cases": [
+                "Radial pattern analysis",
+                "Rotational symmetry detection",
+                "Circular data visualization",
+                "Fourier-Bessel transforms"
+            ]
+        }
+    )
+
+    CrossDomainRegistry.register(
+        "polar", "cartesian",
+        PolarToCartesianInterface,
+        metadata={
+            "description": "Polar → Cartesian coordinate conversion",
+            "use_cases": [
+                "Field reconstruction after radial processing",
+                "Polar data visualization",
+                "Inverse transforms"
             ]
         }
     )

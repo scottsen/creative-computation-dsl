@@ -1363,3 +1363,609 @@ class AcousticsToAudioInterface(DomainInterface):
 
     def get_output_interface(self) -> Dict[str, Type]:
         return {'audio_buffer': Any}  # AudioBuffer type
+
+
+# ==============================================================================
+# TIME-FREQUENCY DOMAIN TRANSFORMS
+# ==============================================================================
+
+
+class TimeToCepstralInterface(DomainInterface):
+    """
+    Time → Cepstral domain via Discrete Cosine Transform (DCT).
+
+    DCT is widely used for:
+    - Audio compression (e.g., MP3, AAC)
+    - MFCC computation (Mel-frequency cepstral coefficients)
+    - Cepstral analysis for pitch detection
+    - Feature extraction for speech recognition
+
+    Supports DCT types 1-4 with orthogonal normalization.
+    """
+
+    source_domain = "time"
+    target_domain = "cepstral"
+
+    def __init__(self, signal: np.ndarray, dct_type: int = 2,
+                 norm: str = "ortho", metadata: Optional[Dict] = None):
+        """
+        Initialize DCT transform.
+
+        Args:
+            signal: Time-domain signal (1D array)
+            dct_type: DCT type (1, 2, 3, or 4). Type-2 is most common.
+            norm: Normalization mode ("ortho" or None)
+            metadata: Optional metadata dict
+        """
+        super().__init__(signal, metadata)
+        self.dct_type = dct_type
+        self.norm = norm
+
+        if dct_type not in [1, 2, 3, 4]:
+            raise ValueError(f"DCT type must be 1-4, got {dct_type}")
+        if norm not in ["ortho", None]:
+            raise ValueError(f"Norm must be 'ortho' or None, got {norm}")
+
+    def transform(self, signal: np.ndarray) -> np.ndarray:
+        """
+        Apply DCT to transform time-domain signal to cepstral domain.
+
+        Args:
+            signal: Time-domain signal (1D array)
+
+        Returns:
+            Cepstral coefficients (1D array, same length as input)
+        """
+        from scipy.fft import dct
+
+        if signal.ndim != 1:
+            raise ValueError(f"Signal must be 1D, got shape {signal.shape}")
+
+        # Apply DCT
+        cepstral = dct(signal, type=self.dct_type, norm=self.norm)
+
+        return cepstral.astype(np.float32)
+
+    def validate(self) -> bool:
+        """Validate signal is 1D array."""
+        if self.source_data is None:
+            return True
+
+        if not isinstance(self.source_data, np.ndarray):
+            raise TypeError("Signal must be numpy array")
+
+        if self.source_data.ndim != 1:
+            raise ValueError("Signal must be 1D array")
+
+        return True
+
+    def get_input_interface(self) -> Dict[str, Type]:
+        return {'signal': np.ndarray}
+
+    def get_output_interface(self) -> Dict[str, Type]:
+        return {'cepstral_coefficients': np.ndarray}
+
+
+class CepstralToTimeInterface(DomainInterface):
+    """
+    Cepstral → Time domain via Inverse Discrete Cosine Transform (IDCT).
+
+    Reconstructs time-domain signal from DCT coefficients.
+    """
+
+    source_domain = "cepstral"
+    target_domain = "time"
+
+    def __init__(self, cepstral: np.ndarray, dct_type: int = 2,
+                 norm: str = "ortho", metadata: Optional[Dict] = None):
+        """
+        Initialize IDCT transform.
+
+        Args:
+            cepstral: Cepstral coefficients (1D array)
+            dct_type: DCT type used in forward transform (1, 2, 3, or 4)
+            norm: Normalization mode ("ortho" or None)
+            metadata: Optional metadata dict
+        """
+        super().__init__(cepstral, metadata)
+        self.dct_type = dct_type
+        self.norm = norm
+
+        if dct_type not in [1, 2, 3, 4]:
+            raise ValueError(f"DCT type must be 1-4, got {dct_type}")
+        if norm not in ["ortho", None]:
+            raise ValueError(f"Norm must be 'ortho' or None, got {norm}")
+
+    def transform(self, cepstral: np.ndarray) -> np.ndarray:
+        """
+        Apply IDCT to transform cepstral coefficients back to time domain.
+
+        Args:
+            cepstral: Cepstral coefficients (1D array)
+
+        Returns:
+            Time-domain signal (1D array, same length as input)
+        """
+        from scipy.fft import idct
+
+        if cepstral.ndim != 1:
+            raise ValueError(f"Cepstral coefficients must be 1D, got shape {cepstral.shape}")
+
+        # Apply IDCT
+        signal = idct(cepstral, type=self.dct_type, norm=self.norm)
+
+        return signal.astype(np.float32)
+
+    def validate(self) -> bool:
+        """Validate cepstral coefficients are 1D array."""
+        if self.source_data is None:
+            return True
+
+        if not isinstance(self.source_data, np.ndarray):
+            raise TypeError("Cepstral coefficients must be numpy array")
+
+        if self.source_data.ndim != 1:
+            raise ValueError("Cepstral coefficients must be 1D array")
+
+        return True
+
+    def get_input_interface(self) -> Dict[str, Type]:
+        return {'cepstral_coefficients': np.ndarray}
+
+    def get_output_interface(self) -> Dict[str, Type]:
+        return {'signal': np.ndarray}
+
+
+class TimeToWaveletInterface(DomainInterface):
+    """
+    Time → Wavelet domain via Continuous Wavelet Transform (CWT).
+
+    CWT provides time-scale representation of signals, useful for:
+    - Non-stationary signal analysis
+    - Feature detection at multiple scales
+    - Edge detection in images
+    - Transient analysis in audio
+
+    Uses scipy.signal.cwt with various mother wavelets (Morlet, Ricker, etc.)
+    """
+
+    source_domain = "time"
+    target_domain = "wavelet"
+
+    def __init__(self, signal: np.ndarray, scales: np.ndarray,
+                 wavelet: str = "morlet", metadata: Optional[Dict] = None):
+        """
+        Initialize CWT transform.
+
+        Args:
+            signal: Time-domain signal (1D array)
+            scales: Array of scales to use (e.g., np.arange(1, 128))
+            wavelet: Wavelet type ("morlet", "ricker", "mexh", "morl")
+            metadata: Optional metadata dict
+        """
+        super().__init__(signal, metadata)
+        self.scales = scales
+        self.wavelet = wavelet
+
+        valid_wavelets = ["morlet", "ricker", "mexh", "morl"]
+        if wavelet not in valid_wavelets:
+            raise ValueError(f"Wavelet must be one of {valid_wavelets}, got {wavelet}")
+
+    def transform(self, signal: np.ndarray) -> np.ndarray:
+        """
+        Apply CWT to transform signal to wavelet domain.
+
+        Args:
+            signal: Time-domain signal (1D array)
+
+        Returns:
+            Wavelet coefficients (2D array: scales × time)
+        """
+        if signal.ndim != 1:
+            raise ValueError(f"Signal must be 1D, got shape {signal.shape}")
+
+        # Apply CWT using convolution with scaled wavelets
+        # Generate Ricker wavelet (Mexican hat) for each scale
+        coefficients = []
+
+        for scale in self.scales:
+            # Generate Ricker wavelet
+            wavelet = self._ricker_wavelet(scale)
+
+            # Convolve signal with wavelet
+            coeff = np.convolve(signal, wavelet, mode='same')
+            coefficients.append(coeff)
+
+        coefficients = np.array(coefficients, dtype=np.float32)
+        return coefficients
+
+    def _ricker_wavelet(self, scale: float) -> np.ndarray:
+        """Generate Ricker (Mexican hat) wavelet at given scale."""
+        # Ricker wavelet: ψ(t) = (1 - t²) * exp(-t²/2)
+        # Scale determines the width
+        points = min(int(10 * scale), 100)  # Wavelet support, capped at 100
+        if points < 3:
+            points = 3  # Minimum wavelet size
+        if points % 2 == 0:
+            points += 1  # Make odd for symmetry
+        t = np.linspace(-5, 5, points)
+        wavelet = (1.0 - t**2) * np.exp(-t**2 / 2.0)
+        # Normalize
+        wavelet = wavelet / (np.sqrt(np.sum(wavelet**2)) + 1e-10)
+        return wavelet.astype(np.float32)
+
+    def validate(self) -> bool:
+        """Validate signal and scales."""
+        if self.source_data is None:
+            return True
+
+        if not isinstance(self.source_data, np.ndarray):
+            raise TypeError("Signal must be numpy array")
+
+        if self.source_data.ndim != 1:
+            raise ValueError("Signal must be 1D array")
+
+        if not isinstance(self.scales, np.ndarray):
+            raise TypeError("Scales must be numpy array")
+
+        return True
+
+    def get_input_interface(self) -> Dict[str, Type]:
+        return {'signal': np.ndarray, 'scales': np.ndarray}
+
+    def get_output_interface(self) -> Dict[str, Type]:
+        return {'wavelet_coefficients': np.ndarray}
+
+
+# ==============================================================================
+# SPATIAL DOMAIN TRANSFORMS
+# ==============================================================================
+
+
+class SpatialAffineInterface(DomainInterface):
+    """
+    Spatial → Spatial via Affine transformations (translate, rotate, scale, shear).
+
+    Affine transformations preserve:
+    - Points, straight lines, and planes
+    - Parallel lines remain parallel
+    - Ratios of distances along lines
+
+    Useful for:
+    - Image/geometry registration
+    - Data augmentation
+    - Coordinate system alignment
+    - Field transformations
+    """
+
+    source_domain = "spatial"
+    target_domain = "spatial"
+
+    def __init__(self, data: np.ndarray,
+                 translate: Optional[Tuple[float, float]] = None,
+                 rotate: Optional[float] = None,
+                 scale: Optional[Tuple[float, float]] = None,
+                 shear: Optional[float] = None,
+                 order: int = 1,
+                 metadata: Optional[Dict] = None):
+        """
+        Initialize affine transform.
+
+        Args:
+            data: 2D spatial data (image or field)
+            translate: Translation (dx, dy) in pixels
+            rotate: Rotation angle in degrees (counter-clockwise)
+            scale: Scale factors (sx, sy)
+            shear: Shear angle in degrees
+            order: Interpolation order (0=nearest, 1=linear, 3=cubic)
+            metadata: Optional metadata dict
+        """
+        super().__init__(data, metadata)
+        self.translate = translate or (0, 0)
+        self.rotate = rotate or 0
+        self.scale = scale or (1, 1)
+        self.shear = shear or 0
+        self.order = order
+
+    def transform(self, data: np.ndarray) -> np.ndarray:
+        """
+        Apply affine transformation to spatial data.
+
+        Args:
+            data: 2D spatial data
+
+        Returns:
+            Transformed spatial data (same shape as input)
+        """
+        from scipy.ndimage import affine_transform
+
+        if data.ndim not in [2, 3]:
+            raise ValueError(f"Data must be 2D or 3D (2D + channels), got shape {data.shape}")
+
+        # Get image center for rotation/scaling
+        height, width = data.shape[:2]
+        center_y, center_x = height / 2.0, width / 2.0
+
+        # Build transformation matrix (applies transformations in order: scale, rotate, shear, translate)
+        # We use homogeneous coordinates for easier composition
+
+        # Start with identity
+        matrix = np.eye(3)
+
+        # Translate to origin (for rotation/scaling around center)
+        T1 = np.array([
+            [1, 0, -center_x],
+            [0, 1, -center_y],
+            [0, 0, 1]
+        ])
+
+        # Apply scale
+        sx, sy = self.scale
+        S = np.array([
+            [sx, 0, 0],
+            [0, sy, 0],
+            [0, 0, 1]
+        ])
+
+        # Apply rotation (counter-clockwise)
+        angle_rad = np.radians(self.rotate)
+        cos_a = np.cos(angle_rad)
+        sin_a = np.sin(angle_rad)
+        R = np.array([
+            [cos_a, -sin_a, 0],
+            [sin_a, cos_a, 0],
+            [0, 0, 1]
+        ])
+
+        # Apply shear
+        shear_rad = np.radians(self.shear)
+        SH = np.array([
+            [1, np.tan(shear_rad), 0],
+            [0, 1, 0],
+            [0, 0, 1]
+        ])
+
+        # Translate back from origin
+        T2 = np.array([
+            [1, 0, center_x],
+            [0, 1, center_y],
+            [0, 0, 1]
+        ])
+
+        # Apply user translation
+        dx, dy = self.translate
+        T3 = np.array([
+            [1, 0, dx],
+            [0, 1, dy],
+            [0, 0, 1]
+        ])
+
+        # Compose transformations: T3 * T2 * SH * R * S * T1
+        matrix = T3 @ T2 @ SH @ R @ S @ T1
+
+        # Extract 2x2 matrix and offset for scipy
+        # Note: scipy uses (y, x) indexing, so we need to swap
+        M = matrix[:2, :2]
+        offset = matrix[:2, 2]
+
+        # scipy.ndimage.affine_transform uses inverse mapping (output -> input)
+        # So we need to invert the matrix
+        M_inv = np.linalg.inv(M)
+        # Compute inverse offset: -M_inv @ offset
+        offset_inv = -M_inv @ offset
+
+        # Apply transformation
+        if data.ndim == 2:
+            transformed = affine_transform(data, M_inv, offset=offset_inv,
+                                          order=self.order, mode='constant', cval=0)
+        else:
+            # Handle multi-channel data
+            channels = []
+            for i in range(data.shape[2]):
+                channel = affine_transform(data[:, :, i], M_inv, offset=offset_inv,
+                                          order=self.order, mode='constant', cval=0)
+                channels.append(channel)
+            transformed = np.stack(channels, axis=2)
+
+        return transformed.astype(data.dtype)
+
+    def validate(self) -> bool:
+        """Validate data is 2D or 3D array."""
+        if self.source_data is None:
+            return True
+
+        if not isinstance(self.source_data, np.ndarray):
+            raise TypeError("Data must be numpy array")
+
+        if self.source_data.ndim not in [2, 3]:
+            raise ValueError("Data must be 2D or 3D (2D + channels)")
+
+        return True
+
+    def get_input_interface(self) -> Dict[str, Type]:
+        return {'spatial_data': np.ndarray}
+
+    def get_output_interface(self) -> Dict[str, Type]:
+        return {'transformed_spatial_data': np.ndarray}
+
+
+class CartesianToPolarInterface(DomainInterface):
+    """
+    Cartesian → Polar coordinate conversion.
+
+    Converts (x, y) Cartesian coordinates to (r, theta) polar coordinates.
+
+    Useful for:
+    - Radial pattern analysis
+    - Rotational symmetry detection
+    - Circular/angular data visualization
+    - Fourier-Bessel transforms
+    """
+
+    source_domain = "cartesian"
+    target_domain = "polar"
+
+    def __init__(self, data: np.ndarray, center: Optional[Tuple[float, float]] = None,
+                 metadata: Optional[Dict] = None):
+        """
+        Initialize Cartesian to Polar transform.
+
+        Args:
+            data: 2D field in Cartesian coordinates
+            center: Origin for polar conversion (cx, cy). If None, uses image center.
+            metadata: Optional metadata dict
+        """
+        super().__init__(data, metadata)
+        self.center = center
+
+    def transform(self, data: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Convert Cartesian field to polar coordinates.
+
+        Args:
+            data: 2D field in Cartesian coordinates
+
+        Returns:
+            Tuple of (radius_array, angle_array) in polar coordinates
+        """
+        if data.ndim != 2:
+            raise ValueError(f"Data must be 2D, got shape {data.shape}")
+
+        height, width = data.shape
+
+        # Determine center
+        if self.center is None:
+            cx, cy = width / 2, height / 2
+        else:
+            cx, cy = self.center
+
+        # Create coordinate grids
+        y, x = np.indices(data.shape, dtype=np.float32)
+
+        # Convert to polar
+        dx = x - cx
+        dy = y - cy
+        r = np.sqrt(dx**2 + dy**2)
+        theta = np.arctan2(dy, dx)  # Range: [-pi, pi]
+
+        return r, theta
+
+    def validate(self) -> bool:
+        """Validate data is 2D array."""
+        if self.source_data is None:
+            return True
+
+        if not isinstance(self.source_data, np.ndarray):
+            raise TypeError("Data must be numpy array")
+
+        if self.source_data.ndim != 2:
+            raise ValueError("Data must be 2D array")
+
+        return True
+
+    def get_input_interface(self) -> Dict[str, Type]:
+        return {'cartesian_data': np.ndarray}
+
+    def get_output_interface(self) -> Dict[str, Type]:
+        return {'radius': np.ndarray, 'angle': np.ndarray}
+
+
+class PolarToCartesianInterface(DomainInterface):
+    """
+    Polar → Cartesian coordinate conversion.
+
+    Converts (r, theta) polar coordinates back to (x, y) Cartesian coordinates.
+
+    Useful for:
+    - Reconstructing fields after radial processing
+    - Visualization of polar data
+    - Inverse transforms after polar filtering
+    """
+
+    source_domain = "polar"
+    target_domain = "cartesian"
+
+    def __init__(self, radius: np.ndarray, angle: np.ndarray,
+                 output_shape: Tuple[int, int],
+                 center: Optional[Tuple[float, float]] = None,
+                 metadata: Optional[Dict] = None):
+        """
+        Initialize Polar to Cartesian transform.
+
+        Args:
+            radius: Radius values (2D array)
+            angle: Angle values in radians (2D array)
+            output_shape: Desired output shape (height, width)
+            center: Origin for conversion (cx, cy). If None, uses image center.
+            metadata: Optional metadata dict
+        """
+        super().__init__(radius, metadata)
+        self.angle = angle
+        self.output_shape = output_shape
+        self.center = center
+
+    def transform(self, data: np.ndarray) -> np.ndarray:
+        """
+        Convert polar field back to Cartesian coordinates.
+
+        Args:
+            data: Values in polar space (typically same shape as radius/angle)
+
+        Returns:
+            2D field in Cartesian coordinates
+        """
+        from scipy.interpolate import griddata
+
+        # Use source_data (radius) for coordinate conversion
+        radius = self.source_data if self.source_data is not None else data
+
+        if data.shape != radius.shape:
+            raise ValueError(f"Data shape {data.shape} must match radius shape {radius.shape}")
+
+        height, width = self.output_shape
+
+        # Determine center
+        if self.center is None:
+            cx, cy = width / 2, height / 2
+        else:
+            cx, cy = self.center
+
+        # Convert polar to Cartesian coordinates
+        x_polar = radius * np.cos(self.angle) + cx
+        y_polar = radius * np.sin(self.angle) + cy
+
+        # Flatten for interpolation
+        points = np.column_stack([x_polar.ravel(), y_polar.ravel()])
+        values = data.ravel()
+
+        # Create output grid
+        y_out, x_out = np.indices((height, width), dtype=np.float32)
+        grid_points = np.column_stack([x_out.ravel(), y_out.ravel()])
+
+        # Interpolate
+        cartesian = griddata(points, values, grid_points, method='linear', fill_value=0)
+        cartesian = cartesian.reshape(height, width)
+
+        return cartesian.astype(np.float32)
+
+    def validate(self) -> bool:
+        """Validate radius and angle arrays."""
+        if self.source_data is None:
+            return True
+
+        if not isinstance(self.source_data, np.ndarray):
+            raise TypeError("Radius must be numpy array")
+
+        if not isinstance(self.angle, np.ndarray):
+            raise TypeError("Angle must be numpy array")
+
+        if self.source_data.shape != self.angle.shape:
+            raise ValueError("Radius and angle must have same shape")
+
+        return True
+
+    def get_input_interface(self) -> Dict[str, Type]:
+        return {'radius': np.ndarray, 'angle': np.ndarray, 'values': np.ndarray}
+
+    def get_output_interface(self) -> Dict[str, Type]:
+        return {'cartesian_data': np.ndarray}
