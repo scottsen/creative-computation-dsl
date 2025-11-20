@@ -11,6 +11,26 @@ from .acoustics import (
 )
 from . import rigidbody
 
+# Fluid dynamics and multi-physics domains
+from .fluid_network import fluid_network, FluidNetworkOperations, Fluid, Tube, Junction, FlowNet
+from .thermal_ode import thermal_ode, ThermalODEOperations, ThermalSegment, WallTempModel, ThermalProfile
+from .fluid_jet import fluid_jet, FluidJetOperations, Jet, JetArray
+from .combustion_light import combustion_light, CombustionLightOperations, MixtureState, CombustionZone, SmokeIndex
+
+# Audio analysis and instrument modeling domains
+from .audio_analysis import audio_analysis, AudioAnalysisOperations, ModalModel, NoiseModel, ExcitationModel
+from .instrument_model import instrument, InstrumentModelOperations, InstrumentModel, InstrumentType, SynthParams
+
+# Chemistry domains
+from . import molecular
+from . import kinetics
+from . import qchem
+from . import transport
+from . import multiphase
+from . import thermo
+from . import catalysis
+from . import electrochem
+
 # Base-level domains
 from . import integrators
 from . import io_storage
@@ -55,6 +75,26 @@ __all__ = [
     "acoustics", "AcousticsOperations", "PipeGeometry", "WaveguideNetwork",
     "ReflectionCoeff", "FrequencyResponse", "create_pipe", "create_expansion_chamber",
     "rigidbody",
+
+    # Fluid dynamics and multi-physics domains
+    "fluid_network", "FluidNetworkOperations", "Fluid", "Tube", "Junction", "FlowNet",
+    "thermal_ode", "ThermalODEOperations", "ThermalSegment", "WallTempModel", "ThermalProfile",
+    "fluid_jet", "FluidJetOperations", "Jet", "JetArray",
+    "combustion_light", "CombustionLightOperations", "MixtureState", "CombustionZone", "SmokeIndex",
+
+    # Audio analysis and instrument modeling domains
+    "audio_analysis", "AudioAnalysisOperations", "ModalModel", "NoiseModel", "ExcitationModel",
+    "instrument", "InstrumentModelOperations", "InstrumentModel", "InstrumentType", "SynthParams",
+
+    # Chemistry domains
+    "molecular",
+    "kinetics",
+    "qchem",
+    "transport",
+    "multiphase",
+    "thermo",
+    "catalysis",
+    "electrochem",
 
     # Base-level domains
     "integrators",
