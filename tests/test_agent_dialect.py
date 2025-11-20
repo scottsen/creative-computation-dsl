@@ -5,7 +5,7 @@ These tests require MLIR Python bindings to be installed.
 """
 
 import pytest
-from morphogen.mlir.context import KairoMLIRContext, MLIR_AVAILABLE
+from morphogen.mlir.context import MorphogenMLIRContext, MLIR_AVAILABLE
 from morphogen.mlir.dialects.agent import (
     AgentType, AgentDialect,
     AgentSpawnOp, AgentUpdateOp, AgentQueryOp, AgentBehaviorOp
@@ -20,7 +20,7 @@ class TestAgentType:
         """Test creating f32 agent type."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx:
             f32 = ir.F32Type.get()
             agent_type = AgentType.get(f32, ctx.ctx)
@@ -34,7 +34,7 @@ class TestAgentType:
         """Test creating f64 agent type."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx:
             f64 = ir.F64Type.get()
             agent_type = AgentType.get(f64, ctx.ctx)
@@ -48,7 +48,7 @@ class TestAgentType:
         """Test agent type string representation contains element type."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx:
             f32 = ir.F32Type.get()
             agent_type = AgentType.get(f32, ctx.ctx)
@@ -66,7 +66,7 @@ class TestAgentSpawnOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test_spawn")
 
@@ -116,7 +116,7 @@ class TestAgentSpawnOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         agent_counts = [1, 10, 100, 1000, 10000]
 
         for count_val in agent_counts:
@@ -147,7 +147,7 @@ class TestAgentSpawnOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         positions = [(0.0, 0.0), (1.0, 2.0), (-5.0, 3.5), (100.0, 200.0)]
 
         for pos_x_val, pos_y_val in positions:
@@ -175,7 +175,7 @@ class TestAgentSpawnOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         velocities = [(0.0, 0.0), (0.1, 0.0), (0.0, 0.1), (0.5, 0.5), (-0.3, 0.2)]
 
         for vel_x_val, vel_y_val in velocities:
@@ -208,7 +208,7 @@ class TestAgentUpdateOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test_update")
 
@@ -245,7 +245,7 @@ class TestAgentUpdateOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -282,7 +282,7 @@ class TestAgentUpdateOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -324,7 +324,7 @@ class TestAgentQueryOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test_query")
 
@@ -359,7 +359,7 @@ class TestAgentQueryOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -393,7 +393,7 @@ class TestAgentQueryOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -432,7 +432,7 @@ class TestAgentBehaviorOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test_behavior")
 
@@ -464,7 +464,7 @@ class TestAgentBehaviorOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -500,7 +500,7 @@ class TestAgentBehaviorOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -550,7 +550,7 @@ class TestAgentDialect:
         """Test getting property index by name."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx:
             assert AgentDialect.get_property_index_constant("pos_x", ctx.ctx) == 0
             assert AgentDialect.get_property_index_constant("pos_y", ctx.ctx) == 1
@@ -562,7 +562,7 @@ class TestAgentDialect:
         """Test getting property index with invalid name raises error."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx:
             with pytest.raises(ValueError):
                 AgentDialect.get_property_index_constant("invalid_prop", ctx.ctx)
@@ -572,7 +572,7 @@ class TestAgentDialect:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -601,7 +601,7 @@ class TestAgentDialect:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -636,7 +636,7 @@ class TestAgentLowering:
         from mlir.dialects import arith
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         with ctx.ctx, ir.Location.unknown():
@@ -669,7 +669,7 @@ class TestAgentLowering:
         from mlir.dialects import arith
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         with ctx.ctx, ir.Location.unknown():
@@ -712,7 +712,7 @@ class TestAgentLowering:
         from mlir.dialects import arith
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         with ctx.ctx, ir.Location.unknown():
@@ -754,7 +754,7 @@ class TestAgentLowering:
         from mlir.dialects import arith
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         with ctx.ctx, ir.Location.unknown():
@@ -796,7 +796,7 @@ class TestAgentCompilerIntegration:
         """Test compiling agent program with spawn."""
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         operations = [
@@ -820,7 +820,7 @@ class TestAgentCompilerIntegration:
         """Test compiling agent program with spawn and behavior."""
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         operations = [
@@ -848,7 +848,7 @@ class TestAgentCompilerIntegration:
         """Test compiling agent program with update and query operations."""
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         operations = [
@@ -890,7 +890,7 @@ class TestAgentIntegrationWithOtherDialects:
         from mlir.dialects import arith
         from morphogen.mlir.dialects.temporal import TemporalDialect
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -926,7 +926,7 @@ class TestAgentIntegrationWithOtherDialects:
         from mlir.dialects import arith
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         with ctx.ctx, ir.Location.unknown():

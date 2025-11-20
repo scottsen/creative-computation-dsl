@@ -22,7 +22,7 @@ from pathlib import Path
 
 # Try to import MLIR components
 try:
-    from morphogen.mlir.context import KairoMLIRContext
+    from morphogen.mlir.context import MorphogenMLIRContext
     from morphogen.mlir.lowering import (
         SCFToLLVMPass,
         create_scf_to_llvm_pass,
@@ -58,7 +58,7 @@ pytestmark = pytest.mark.skipif(
 @pytest.fixture
 def context():
     """Create MLIR context."""
-    return KairoMLIRContext()
+    return MorphogenMLIRContext()
 
 
 @pytest.fixture

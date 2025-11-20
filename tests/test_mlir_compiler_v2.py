@@ -5,7 +5,7 @@ These tests will be skipped if MLIR is not installed.
 """
 
 import pytest
-from morphogen.mlir.context import KairoMLIRContext, MLIR_AVAILABLE
+from morphogen.mlir.context import MorphogenMLIRContext, MLIR_AVAILABLE
 from morphogen.mlir.compiler_v2 import MLIRCompilerV2, is_legacy_compiler
 from morphogen.ast.nodes import Literal
 
@@ -16,7 +16,7 @@ class TestMLIRCompilerV2:
 
     def test_compiler_creation(self):
         """Test that we can create a compiler instance."""
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
         assert compiler is not None
         assert compiler.context is ctx
@@ -26,7 +26,7 @@ class TestMLIRCompilerV2:
         """Test compiling a float literal."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         with ctx.ctx, ir.Location.unknown():
@@ -52,7 +52,7 @@ class TestMLIRCompilerV2:
         """Test compiling an integer literal."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         with ctx.ctx, ir.Location.unknown():
@@ -75,7 +75,7 @@ class TestMLIRCompilerV2:
         """Test compiling a boolean literal."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         with ctx.ctx, ir.Location.unknown():
@@ -100,7 +100,7 @@ class TestMLIRCompilerV2:
         """Test that compile_binary_op raises NotImplementedError."""
         from morphogen.ast.nodes import BinaryOp, Literal
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         binop = BinaryOp(op="+", left=Literal(3.0), right=Literal(4.0))
@@ -112,7 +112,7 @@ class TestMLIRCompilerV2:
         """Test that compile_program raises NotImplementedError."""
         from morphogen.ast.nodes import Program
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         program = Program(statements=[])
@@ -134,7 +134,7 @@ class TestCompilerAvailability:
     @pytest.mark.skipif(MLIR_AVAILABLE, reason="Test for when MLIR is NOT installed")
     def test_compiler_creation_fails_without_mlir(self):
         """Test that creating compiler fails gracefully without MLIR."""
-        # We can't create KairoMLIRContext without MLIR, so we can't test
+        # We can't create MorphogenMLIRContext without MLIR, so we can't test
         # the compiler initialization. Just verify the check works.
         assert is_legacy_compiler() is True
 
@@ -148,7 +148,7 @@ class TestMLIRCompilerIntegration:
         from mlir import ir
         from mlir.dialects import func, arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         # Build a simple function: () -> f32 that returns 3.0 + 4.0
