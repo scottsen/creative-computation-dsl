@@ -5,7 +5,7 @@ These tests require MLIR Python bindings to be installed.
 """
 
 import pytest
-from morphogen.mlir.context import KairoMLIRContext, MLIR_AVAILABLE
+from morphogen.mlir.context import MorphogenMLIRContext, MLIR_AVAILABLE
 from morphogen.mlir.dialects.temporal import (
     FlowType, StateType, TemporalDialect,
     FlowCreateOp, FlowRunOp, StateCreateOp, StateUpdateOp, StateQueryOp
@@ -20,7 +20,7 @@ class TestFlowType:
         """Test creating f32 flow type."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx:
             f32 = ir.F32Type.get()
             flow_type = FlowType.get(f32, ctx.ctx)
@@ -34,7 +34,7 @@ class TestFlowType:
         """Test creating f64 flow type."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx:
             f64 = ir.F64Type.get()
             flow_type = FlowType.get(f64, ctx.ctx)
@@ -53,7 +53,7 @@ class TestStateType:
         """Test creating f32 state type."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx:
             f32 = ir.F32Type.get()
             state_type = StateType.get(f32, ctx.ctx)
@@ -67,7 +67,7 @@ class TestStateType:
         """Test creating f64 state type."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx:
             f64 = ir.F64Type.get()
             state_type = StateType.get(f64, ctx.ctx)
@@ -87,7 +87,7 @@ class TestFlowCreateOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -121,7 +121,7 @@ class TestFlowCreateOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         configs = [
             (0.01, 100),
             (0.1, 10),
@@ -161,7 +161,7 @@ class TestStateCreateOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -195,7 +195,7 @@ class TestStateCreateOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         sizes = [10, 100, 1000]
 
         for size_val in sizes:
@@ -231,7 +231,7 @@ class TestStateUpdateOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -269,7 +269,7 @@ class TestStateQueryOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -304,7 +304,7 @@ class TestFlowRunOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -349,7 +349,7 @@ class TestTemporalDialect:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -383,7 +383,7 @@ class TestTemporalDialect:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -423,7 +423,7 @@ class TestTemporalLowering:
         from mlir.dialects import arith
         from morphogen.mlir.lowering import create_temporal_to_scf_pass
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -460,7 +460,7 @@ class TestTemporalLowering:
         from mlir.dialects import arith, memref
         from morphogen.mlir.lowering import create_temporal_to_scf_pass
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -510,7 +510,7 @@ class TestTemporalCompilerIntegration:
         """Test compiling a simple temporal program."""
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         # Define simple temporal program
@@ -530,7 +530,7 @@ class TestTemporalCompilerIntegration:
         """Test compiling a temporal program with flow execution."""
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         # Define temporal program with flow
@@ -553,7 +553,7 @@ class TestTemporalCompilerIntegration:
         """Test compiling a temporal program with state updates."""
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         # Define temporal program with state operations

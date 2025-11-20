@@ -6,7 +6,7 @@ These tests require MLIR Python bindings to be installed.
 
 import pytest
 import math
-from morphogen.mlir.context import KairoMLIRContext, MLIR_AVAILABLE
+from morphogen.mlir.context import MorphogenMLIRContext, MLIR_AVAILABLE
 from morphogen.mlir.dialects.audio import (
     AudioType, AudioDialect,
     AudioBufferCreateOp, AudioOscillatorOp, AudioEnvelopeOp,
@@ -22,7 +22,7 @@ class TestAudioType:
         """Test creating mono audio type (44.1kHz)."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx:
             audio_type = AudioType.get(44100, 1, ctx.ctx)
 
@@ -36,7 +36,7 @@ class TestAudioType:
         """Test creating stereo audio type."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx:
             audio_type = AudioType.get(48000, 2, ctx.ctx)
 
@@ -51,7 +51,7 @@ class TestAudioType:
         """Test audio types with various sample rates."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         sample_rates = [22050, 44100, 48000, 96000]
 
         for sr in sample_rates:
@@ -70,7 +70,7 @@ class TestAudioBufferCreateOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -107,7 +107,7 @@ class TestAudioBufferCreateOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         durations = [0.1, 0.5, 1.0, 2.0, 5.0]
 
         for dur in durations:
@@ -141,7 +141,7 @@ class TestAudioBufferCreateOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -177,7 +177,7 @@ class TestAudioOscillatorOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -217,7 +217,7 @@ class TestAudioOscillatorOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         frequencies = [220.0, 440.0, 880.0, 1760.0]  # A notes
 
         for freq in frequencies:
@@ -254,7 +254,7 @@ class TestAudioOscillatorOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         # 0=sine, 1=square, 2=saw, 3=triangle
         waveforms = [0, 1, 2, 3]
 
@@ -297,7 +297,7 @@ class TestAudioEnvelopeOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -341,7 +341,7 @@ class TestAudioEnvelopeOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         # (attack, decay, sustain, release)
         envelope_params = [
             (0.001, 0.05, 0.8, 0.1),   # Fast attack, short envelope
@@ -392,7 +392,7 @@ class TestAudioFilterOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -432,7 +432,7 @@ class TestAudioFilterOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         # 0=lowpass, 1=highpass, 2=bandpass
         filter_types = [0, 1, 2]
 
@@ -470,7 +470,7 @@ class TestAudioFilterOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         cutoffs = [100.0, 500.0, 1000.0, 5000.0, 10000.0]
 
         for co in cutoffs:
@@ -512,7 +512,7 @@ class TestAudioMixOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -550,7 +550,7 @@ class TestAudioMixOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         num_buffers = [2, 3, 4, 5]
 
         for n in num_buffers:
@@ -594,7 +594,7 @@ class TestAudioDialectHelper:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -638,7 +638,7 @@ class TestAudioCompilerIntegration:
         """Test compiling a simple audio program."""
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         operations = [
@@ -659,7 +659,7 @@ class TestAudioCompilerIntegration:
         """Test compiling oscillator program."""
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         operations = [
@@ -686,7 +686,7 @@ class TestAudioCompilerIntegration:
         """Test compiling envelope program."""
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         operations = [
@@ -716,7 +716,7 @@ class TestAudioCompilerIntegration:
         """Test compiling filter program."""
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         operations = [
@@ -746,7 +746,7 @@ class TestAudioCompilerIntegration:
         """Test compiling mix program."""
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         operations = [
@@ -783,7 +783,7 @@ class TestAudioCompilerIntegration:
         """Test compiling complex audio program with all operations."""
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         operations = [
@@ -842,7 +842,7 @@ class TestAudioLoweringPass:
         from morphogen.mlir.compiler_v2 import MLIRCompilerV2
         from morphogen.mlir.lowering import create_audio_to_scf_pass
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         compiler = MLIRCompilerV2(ctx)
 
         # Create a simple program

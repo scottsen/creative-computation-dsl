@@ -6,7 +6,7 @@ These tests will be skipped if MLIR is not installed.
 
 import pytest
 from morphogen.mlir.context import (
-    KairoMLIRContext,
+    MorphogenMLIRContext,
     get_mlir_context,
     is_mlir_available,
     MLIR_AVAILABLE,
@@ -14,30 +14,30 @@ from morphogen.mlir.context import (
 
 
 @pytest.mark.skipif(not MLIR_AVAILABLE, reason="MLIR Python bindings not installed")
-class TestKairoMLIRContext:
-    """Tests for KairoMLIRContext when MLIR is available."""
+class TestMorphogenMLIRContext:
+    """Tests for MorphogenMLIRContext when MLIR is available."""
 
     def test_context_creation(self):
         """Test that we can create an MLIR context."""
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         assert ctx is not None
         assert ctx.ctx is not None
 
     def test_context_manager(self):
         """Test context manager protocol."""
-        with KairoMLIRContext() as ctx:
+        with MorphogenMLIRContext() as ctx:
             assert ctx is not None
             assert ctx.ctx is not None
 
     def test_module_creation(self):
         """Test creating an MLIR module."""
-        with KairoMLIRContext() as ctx:
+        with MorphogenMLIRContext() as ctx:
             module = ctx.create_module()
             assert module is not None
 
     def test_named_module_creation(self):
         """Test creating a named MLIR module."""
-        with KairoMLIRContext() as ctx:
+        with MorphogenMLIRContext() as ctx:
             module = ctx.create_module("test_module")
             assert module is not None
             # Check that the module has the expected name
@@ -52,7 +52,7 @@ class TestKairoMLIRContext:
 
     def test_dialect_registration(self):
         """Test that standard dialects are registered."""
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         # Context should allow unregistered dialects during development
         assert ctx.ctx.allow_unregistered_dialects is True
 
@@ -70,7 +70,7 @@ class TestMLIRAvailability:
     def test_context_creation_fails_without_mlir(self):
         """Test that creating context fails gracefully without MLIR."""
         with pytest.raises(RuntimeError, match="MLIR Python bindings are required"):
-            KairoMLIRContext()
+            MorphogenMLIRContext()
 
 
 @pytest.mark.skipif(not MLIR_AVAILABLE, reason="MLIR Python bindings not installed")
@@ -82,7 +82,7 @@ class TestMLIRIntegration:
         from mlir import ir
         from mlir.dialects import func, arith
 
-        with KairoMLIRContext() as ctx:
+        with MorphogenMLIRContext() as ctx:
             module = ctx.create_module("add_test")
 
             with ctx.ctx, ir.Location.unknown():
@@ -114,7 +114,7 @@ class TestMLIRIntegration:
 
     def test_multiple_modules(self):
         """Test creating multiple independent modules."""
-        with KairoMLIRContext() as ctx:
+        with MorphogenMLIRContext() as ctx:
             module1 = ctx.create_module("module1")
             module2 = ctx.create_module("module2")
 

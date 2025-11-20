@@ -5,7 +5,7 @@ These tests require MLIR Python bindings to be installed.
 """
 
 import pytest
-from morphogen.mlir.context import KairoMLIRContext, MLIR_AVAILABLE
+from morphogen.mlir.context import MorphogenMLIRContext, MLIR_AVAILABLE
 from morphogen.mlir.dialects.field import (
     FieldType, FieldDialect,
     FieldCreateOp, FieldGradientOp, FieldLaplacianOp, FieldDiffuseOp
@@ -20,7 +20,7 @@ class TestFieldType:
         """Test creating f32 field type."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx:
             f32 = ir.F32Type.get()
             field_type = FieldType.get(f32, ctx.ctx)
@@ -34,7 +34,7 @@ class TestFieldType:
         """Test creating f64 field type."""
         from mlir import ir
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx:
             f64 = ir.F64Type.get()
             field_type = FieldType.get(f64, ctx.ctx)
@@ -54,7 +54,7 @@ class TestFieldCreateOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -92,7 +92,7 @@ class TestFieldCreateOp:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         fill_values = [0.0, 1.0, 42.5, -3.14]
 
         for fill_val in fill_values:
@@ -132,7 +132,7 @@ class TestFieldGradientOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -165,7 +165,7 @@ class TestFieldLaplacianOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -197,7 +197,7 @@ class TestFieldDiffuseOp:
         from mlir import ir
         from mlir.dialects import arith, memref
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -244,7 +244,7 @@ class TestFieldDialect:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -294,7 +294,7 @@ class TestFieldDialectIntegration:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
@@ -336,7 +336,7 @@ class TestFieldDialectIntegration:
         from mlir import ir
         from mlir.dialects import arith
 
-        ctx = KairoMLIRContext()
+        ctx = MorphogenMLIRContext()
         with ctx.ctx, ir.Location.unknown():
             module = ctx.create_module("test")
 
