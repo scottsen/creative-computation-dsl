@@ -1098,6 +1098,136 @@ class MLIRCompilerV2:
         pass_obj = create_audio_to_scf_pass(self.context)
         pass_obj.run(module)
 
+    # Phase 6: GPU Operations Support
+
+    def apply_gpu_lowering(self, module: Any, block_size: Optional[List[int]] = None) -> None:
+        """Apply SCF-to-GPU lowering pass to module.
+
+        This transforms SCF loops into GPU parallel operations using
+        MLIR's GPU dialect for parallel execution on GPUs.
+
+        Args:
+            module: MLIR module to transform (in-place)
+            block_size: GPU block size [x, y, z] (default: [256, 1, 1])
+
+        Example:
+            >>> compiler.apply_gpu_lowering(module, block_size=[16, 16, 1])
+            # SCF loops → GPU launch operations
+        """
+        from .lowering import create_scf_to_gpu_pass
+
+        pass_obj = create_scf_to_gpu_pass(self.context, block_size=block_size)
+        pass_obj.run(module)
+
+    def apply_field_to_gpu_lowering(
+        self,
+        module: Any,
+        block_size: Optional[List[int]] = None
+    ) -> None:
+        """Apply field-to-GPU lowering pass to module.
+
+        This is a combined pass that transforms field operations directly
+        to GPU execution, combining field-to-SCF and SCF-to-GPU passes.
+
+        Args:
+            module: MLIR module to transform (in-place)
+            block_size: GPU block size [x, y, z] (default: [16, 16, 1])
+
+        Example:
+            >>> compiler.apply_field_to_gpu_lowering(module)
+            # Field ops → GPU parallel operations
+        """
+        from .lowering import create_field_to_gpu_pass
+
+        pass_obj = create_field_to_gpu_pass(self.context, block_size=block_size)
+        pass_obj.run(module)
+
+    def compile_field_program_gpu(
+        self,
+        operations: List[Dict[str, Any]],
+        module_name: str = "field_program_gpu",
+        block_size: Optional[List[int]] = None
+    ) -> Any:
+        """Compile a sequence of field operations to GPU-accelerated MLIR module.
+
+        This method compiles field operations and applies GPU lowering passes
+        to generate GPU-accelerated code.
+
+        Args:
+            operations: List of operation dictionaries
+            module_name: Module name
+            block_size: GPU block size [x, y, z] (default: [16, 16, 1])
+
+        Returns:
+            MLIR Module with GPU-accelerated field operations
+
+        Example:
+            >>> ops = [
+            ...     {"op": "create", "args": {"width": 256, "height": 256, "fill": 0.0}},
+            ...     {"op": "gradient", "args": {"field": "field0"}},
+            ... ]
+            >>> module = compiler.compile_field_program_gpu(ops, block_size=[16, 16, 1])
+        """
+        # First compile as regular field program
+        with self.context.ctx, ir.Location.unknown():
+            module = self.context.create_module(module_name)
+
+            # Create a wrapper function
+            with ir.InsertionPoint(module.body):
+                f32 = ir.F32Type.get()
+                func_type = ir.FunctionType.get([], [])
+                func_op = func.FuncOp(name="main", type=func_type)
+                func_op.add_entry_block()
+
+                with ir.InsertionPoint(func_op.entry_block):
+                    loc = ir.Location.unknown()
+                    ip = ir.InsertionPoint(func_op.entry_block)
+
+                    # Process operations
+                    results = {}
+                    for i, operation in enumerate(operations):
+                        op_name = operation["op"]
+                        args = operation["args"]
+
+                        if op_name == "create":
+                            width_val = arith.ConstantOp(
+                                ir.IndexType.get(),
+                                ir.IntegerAttr.get(ir.IndexType.get(), args["width"])
+                            ).result
+                            height_val = arith.ConstantOp(
+                                ir.IndexType.get(),
+                                ir.IntegerAttr.get(ir.IndexType.get(), args["height"])
+                            ).result
+                            fill_val = arith.ConstantOp(
+                                f32,
+                                ir.FloatAttr.get(f32, args["fill"])
+                            ).result
+
+                            result = self.compile_field_create(
+                                width_val, height_val, fill_val, f32, loc, ip
+                            )
+                            results[f"field{i}"] = result
+
+                        elif op_name == "gradient":
+                            field_name = args["field"]
+                            field_val = results[field_name]
+                            result = self.compile_field_gradient(field_val, loc, ip)
+                            results[f"grad{i}"] = result
+
+                        elif op_name == "laplacian":
+                            field_name = args["field"]
+                            field_val = results[field_name]
+                            result = self.compile_field_laplacian(field_val, loc, ip)
+                            results[f"lapl{i}"] = result
+
+                    # Return
+                    func.ReturnOp([])
+
+            # Apply GPU lowering passes
+            self.apply_field_to_gpu_lowering(module, block_size=block_size)
+
+            return module
+
     def compile_audio_program(
         self,
         operations: List[Dict[str, Any]],

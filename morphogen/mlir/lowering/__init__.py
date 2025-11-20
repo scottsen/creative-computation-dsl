@@ -10,6 +10,8 @@ Passes:
 - TemporalToSCFPass: Lower temporal operations to SCF loops (Phase 3) ✅
 - AgentToSCFPass: Lower agent operations to memref arrays and loops (Phase 4) ✅
 - AudioToSCFPass: Lower audio operations to waveform generation loops (Phase 5) ✅
+- SCFToGPUPass: Lower SCF loops to GPU parallel execution (Phase 6) ✅
+- FieldToGPUPass: Lower field operations directly to GPU (Phase 6) ✅
 - SCFToLLVMPass: Lower SCF to LLVM dialect (Phase 6) ✅
 """
 
@@ -25,7 +27,13 @@ from .agent_to_scf import AgentToSCFPass, create_agent_to_scf_pass
 # Phase 5 passes
 from .audio_to_scf import AudioToSCFPass, create_audio_to_scf_pass
 
-# Phase 6 passes
+# Phase 6 passes - GPU
+from .scf_to_gpu import (
+    SCFToGPUPass, FieldToGPUPass,
+    create_scf_to_gpu_pass, create_field_to_gpu_pass
+)
+
+# Phase 6 passes - LLVM
 from .scf_to_llvm import SCFToLLVMPass, create_scf_to_llvm_pass, lower_to_llvm
 
 __all__ = [
@@ -45,7 +53,13 @@ __all__ = [
     "AudioToSCFPass",
     "create_audio_to_scf_pass",
 
-    # Phase 6
+    # Phase 6 - GPU
+    "SCFToGPUPass",
+    "FieldToGPUPass",
+    "create_scf_to_gpu_pass",
+    "create_field_to_gpu_pass",
+
+    # Phase 6 - LLVM
     "SCFToLLVMPass",
     "create_scf_to_llvm_pass",
     "lower_to_llvm",
