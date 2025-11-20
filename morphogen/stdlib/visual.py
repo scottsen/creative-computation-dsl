@@ -940,6 +940,590 @@ class VisualOperations:
 
         print(f"Video export complete: {path}")
 
+    # ========================================================================
+    # ADVANCED VISUALIZATIONS (v0.11.0)
+    # ========================================================================
+
+    @staticmethod
+    @operator(
+        domain="visual",
+        category=OpCategory.TRANSFORM,
+        signature="(signal: Union[AudioBuffer, np.ndarray], sample_rate: int, window_size: int, hop_size: int, palette: str, log_scale: bool, freq_range: Optional[Tuple[float, float]]) -> Visual",
+        deterministic=True,
+        doc="Generate spectrogram visualization from audio signal"
+    )
+    def spectrogram(signal, sample_rate: int = 44100, window_size: int = 2048,
+                   hop_size: int = 512, palette: str = "viridis",
+                   log_scale: bool = True,
+                   freq_range: Optional[Tuple[float, float]] = None) -> Visual:
+        """Generate spectrogram visualization from audio signal.
+
+        Args:
+            signal: Audio signal (AudioBuffer or numpy array)
+            sample_rate: Sample rate in Hz
+            window_size: FFT window size
+            hop_size: Hop size between windows
+            palette: Color palette for magnitude mapping
+            log_scale: Use logarithmic scale for magnitude (dB)
+            freq_range: (min_freq, max_freq) in Hz to display (None = full range)
+
+        Returns:
+            Visual representation of spectrogram (time on x-axis, frequency on y-axis)
+
+        Example:
+            # Visualize audio signal
+            audio = audio_io.read("sound.wav")
+            spec_vis = visual.spectrogram(audio, palette="fire", log_scale=True)
+            visual.output(spec_vis, "spectrogram.png")
+        """
+        from .audio import AudioBuffer
+
+        # Extract audio data
+        if isinstance(signal, AudioBuffer):
+            audio_data = signal.data
+            if signal.sample_rate is not None:
+                sample_rate = signal.sample_rate
+        elif isinstance(signal, np.ndarray):
+            audio_data = signal
+        else:
+            raise TypeError(f"Expected AudioBuffer or ndarray, got {type(signal)}")
+
+        # Flatten if stereo
+        if len(audio_data.shape) > 1:
+            audio_data = np.mean(audio_data, axis=0)
+
+        # Compute STFT
+        n_frames = (len(audio_data) - window_size) // hop_size + 1
+        n_freqs = window_size // 2 + 1
+
+        # Create spectrogram array
+        spectrogram_data = np.zeros((n_freqs, n_frames))
+
+        # Hann window
+        window = np.hanning(window_size)
+
+        for i in range(n_frames):
+            start = i * hop_size
+            end = start + window_size
+            if end > len(audio_data):
+                break
+
+            # Apply window and FFT
+            windowed = audio_data[start:end] * window
+            spectrum = np.fft.rfft(windowed)
+            magnitude = np.abs(spectrum)
+
+            spectrogram_data[:, i] = magnitude
+
+        # Apply frequency range filter if specified
+        if freq_range is not None:
+            min_freq, max_freq = freq_range
+            freq_bins = np.fft.rfftfreq(window_size, 1.0 / sample_rate)
+            min_bin = np.searchsorted(freq_bins, min_freq)
+            max_bin = np.searchsorted(freq_bins, max_freq)
+            spectrogram_data = spectrogram_data[min_bin:max_bin, :]
+
+        # Convert to dB scale if requested
+        if log_scale:
+            spectrogram_data = 20 * np.log10(spectrogram_data + 1e-10)  # Avoid log(0)
+            vmin, vmax = -80, 0  # dB range
+        else:
+            vmin, vmax = None, None
+
+        # Flip vertically (high frequencies at top)
+        spectrogram_data = np.flip(spectrogram_data, axis=0)
+
+        # Create Field2D for colorization
+        from .field import Field2D
+        spec_field = Field2D(spectrogram_data, dx=1.0, dy=1.0)
+
+        # Colorize using existing palette system
+        return VisualOperations.colorize(spec_field, palette=palette, vmin=vmin, vmax=vmax)
+
+    @staticmethod
+    @operator(
+        domain="visual",
+        category=OpCategory.TRANSFORM,
+        signature="(graph: Graph, width: int, height: int, node_size: float, node_color: tuple, edge_color: tuple, edge_width: float, layout: str, iterations: int, color_by_centrality: bool, palette: str, show_labels: bool, background: tuple) -> Visual",
+        deterministic=True,
+        doc="Visualize graph/network with force-directed layout"
+    )
+    def graph(graph, width: int = 800, height: int = 800,
+             node_size: float = 8.0, node_color: tuple = (0.3, 0.6, 1.0),
+             edge_color: tuple = (0.5, 0.5, 0.5), edge_width: float = 1.0,
+             layout: str = "force", iterations: int = 50,
+             color_by_centrality: bool = False, palette: str = "viridis",
+             show_labels: bool = False,
+             background: tuple = (0.0, 0.0, 0.0)) -> Visual:
+        """Visualize graph/network with force-directed layout.
+
+        Args:
+            graph: Graph instance to visualize
+            width: Output image width
+            height: Output image height
+            node_size: Node radius in pixels
+            node_color: Default node color (R, G, B) in [0, 1]
+            edge_color: Edge color (R, G, B) in [0, 1]
+            edge_width: Edge line width in pixels
+            layout: Layout algorithm ("force", "circular", "grid")
+            iterations: Number of force-directed iterations
+            color_by_centrality: Color nodes by degree centrality
+            palette: Palette for centrality coloring
+            show_labels: Show node labels (node IDs)
+            background: Background color (R, G, B) in [0, 1]
+
+        Returns:
+            Visual representation of the graph
+
+        Example:
+            # Create and visualize network
+            g = graph.create(10)
+            g = graph.add_edge(g, 0, 1, 1.0)
+            vis = visual.graph(g, color_by_centrality=True, palette="fire")
+            visual.output(vis, "network.png")
+        """
+        from .graph import Graph
+
+        if not isinstance(graph, Graph):
+            raise TypeError(f"Expected Graph, got {type(graph)}")
+
+        n_nodes = graph.n_nodes
+        if n_nodes == 0:
+            # Return blank image
+            img = np.zeros((height, width, 3), dtype=np.float32)
+            img[:, :, :] = background
+            return Visual(img)
+
+        # Compute layout
+        if layout == "force":
+            positions = VisualOperations._force_directed_layout(
+                graph, iterations=iterations, width=width, height=height
+            )
+        elif layout == "circular":
+            positions = VisualOperations._circular_layout(n_nodes, width, height)
+        elif layout == "grid":
+            positions = VisualOperations._grid_layout(n_nodes, width, height)
+        else:
+            raise ValueError(f"Unknown layout: {layout}")
+
+        # Create output image
+        img = np.zeros((height, width, 3), dtype=np.float32)
+        img[:, :, :] = background
+
+        # Draw edges first (so nodes appear on top)
+        for i in range(n_nodes):
+            for j in range(i + 1, n_nodes):
+                weight = graph.get_edge(i, j)
+                if weight > 0:
+                    x1, y1 = positions[i]
+                    x2, y2 = positions[j]
+                    VisualOperations._draw_line(
+                        img, int(x1), int(y1), int(x2), int(y2),
+                        edge_color, edge_width
+                    )
+
+        # Compute node colors
+        if color_by_centrality:
+            # Use degree centrality
+            degrees = np.sum(graph.adj > 0, axis=1)
+            max_degree = np.max(degrees) if np.max(degrees) > 0 else 1
+            centrality = degrees / max_degree
+
+            # Map to palette
+            palette_colors = np.array(VisualOperations.PALETTES[palette])
+            n_colors = len(palette_colors)
+
+            node_colors = np.zeros((n_nodes, 3))
+            for i in range(n_nodes):
+                idx = int(centrality[i] * (n_colors - 1))
+                idx = min(idx, n_colors - 1)
+                node_colors[i] = palette_colors[idx]
+        else:
+            node_colors = np.tile(node_color, (n_nodes, 1))
+
+        # Draw nodes
+        for i in range(n_nodes):
+            x, y = positions[i]
+            VisualOperations._draw_circle(
+                img, int(x), int(y), int(node_size), node_colors[i]
+            )
+
+        return Visual(img)
+
+    @staticmethod
+    def _force_directed_layout(graph, iterations: int = 50,
+                              width: int = 800, height: int = 800) -> np.ndarray:
+        """Compute force-directed graph layout using Fruchterman-Reingold algorithm."""
+        n_nodes = graph.n_nodes
+
+        # Initialize positions randomly
+        positions = np.random.rand(n_nodes, 2)
+        positions[:, 0] *= width
+        positions[:, 1] *= height
+
+        # Parameters
+        area = width * height
+        k = np.sqrt(area / n_nodes)  # Optimal distance
+        t = width / 10.0  # Temperature (decreases over time)
+
+        for iteration in range(iterations):
+            # Repulsive forces between all nodes
+            forces = np.zeros((n_nodes, 2))
+
+            for i in range(n_nodes):
+                for j in range(n_nodes):
+                    if i != j:
+                        delta = positions[i] - positions[j]
+                        distance = np.linalg.norm(delta) + 0.01  # Avoid division by zero
+                        repulsion = (k * k) / distance
+                        forces[i] += (delta / distance) * repulsion
+
+            # Attractive forces for connected nodes
+            for i in range(n_nodes):
+                for j in range(i + 1, n_nodes):
+                    if graph.get_edge(i, j) > 0:
+                        delta = positions[i] - positions[j]
+                        distance = np.linalg.norm(delta) + 0.01
+                        attraction = (distance * distance) / k
+                        force_vec = (delta / distance) * attraction
+                        forces[i] -= force_vec
+                        forces[j] += force_vec
+
+            # Update positions
+            for i in range(n_nodes):
+                force_mag = np.linalg.norm(forces[i])
+                if force_mag > 0:
+                    displacement = (forces[i] / force_mag) * min(force_mag, t)
+                    positions[i] += displacement
+
+                    # Keep within bounds
+                    positions[i, 0] = np.clip(positions[i, 0], 10, width - 10)
+                    positions[i, 1] = np.clip(positions[i, 1], 10, height - 10)
+
+            # Cool temperature
+            t *= 0.95
+
+        return positions
+
+    @staticmethod
+    def _circular_layout(n_nodes: int, width: int, height: int) -> np.ndarray:
+        """Arrange nodes in a circle."""
+        positions = np.zeros((n_nodes, 2))
+        radius = min(width, height) * 0.4
+        center_x, center_y = width / 2, height / 2
+
+        for i in range(n_nodes):
+            angle = 2 * np.pi * i / n_nodes
+            positions[i, 0] = center_x + radius * np.cos(angle)
+            positions[i, 1] = center_y + radius * np.sin(angle)
+
+        return positions
+
+    @staticmethod
+    def _grid_layout(n_nodes: int, width: int, height: int) -> np.ndarray:
+        """Arrange nodes in a grid."""
+        cols = int(np.ceil(np.sqrt(n_nodes)))
+        rows = int(np.ceil(n_nodes / cols))
+
+        positions = np.zeros((n_nodes, 2))
+        spacing_x = width / (cols + 1)
+        spacing_y = height / (rows + 1)
+
+        for i in range(n_nodes):
+            row = i // cols
+            col = i % cols
+            positions[i, 0] = spacing_x * (col + 1)
+            positions[i, 1] = spacing_y * (row + 1)
+
+        return positions
+
+    @staticmethod
+    def _draw_line(img: np.ndarray, x0: int, y0: int, x1: int, y1: int,
+                   color: tuple, width: float = 1.0):
+        """Draw line using Bresenham's algorithm."""
+        height, img_width, _ = img.shape
+
+        # Bresenham's line algorithm
+        dx = abs(x1 - x0)
+        dy = abs(y1 - y0)
+        sx = 1 if x0 < x1 else -1
+        sy = 1 if y0 < y1 else -1
+        err = dx - dy
+
+        x, y = x0, y0
+        while True:
+            # Draw point with thickness
+            for dy_offset in range(int(-width), int(width) + 1):
+                for dx_offset in range(int(-width), int(width) + 1):
+                    if dx_offset * dx_offset + dy_offset * dy_offset <= width * width:
+                        px, py = x + dx_offset, y + dy_offset
+                        if 0 <= px < img_width and 0 <= py < height:
+                            img[py, px] = color
+
+            if x == x1 and y == y1:
+                break
+
+            e2 = 2 * err
+            if e2 > -dy:
+                err -= dy
+                x += sx
+            if e2 < dx:
+                err += dx
+                y += sy
+
+    @staticmethod
+    def _draw_circle(img: np.ndarray, cx: int, cy: int, radius: int, color: tuple):
+        """Draw filled circle."""
+        height, width, _ = img.shape
+
+        for dy in range(-radius, radius + 1):
+            for dx in range(-radius, radius + 1):
+                if dx * dx + dy * dy <= radius * radius:
+                    x, y = cx + dx, cy + dy
+                    if 0 <= x < width and 0 <= y < height:
+                        img[y, x] = color
+
+    @staticmethod
+    @operator(
+        domain="visual",
+        category=OpCategory.TRANSFORM,
+        signature="(agents: Agents, position_property: str, velocity_property: str, width: int, height: int, color_property: Optional[str], palette: str, point_size: float, alpha: float, show_trajectories: bool, background: tuple) -> Visual",
+        deterministic=True,
+        doc="Visualize phase space diagram (position vs velocity)"
+    )
+    def phase_space(agents, position_property: str = 'pos',
+                   velocity_property: str = 'vel',
+                   width: int = 512, height: int = 512,
+                   color_property: Optional[str] = None,
+                   palette: str = "viridis",
+                   point_size: float = 2.0,
+                   alpha: float = 0.6,
+                   show_trajectories: bool = False,
+                   background: tuple = (0.0, 0.0, 0.0)) -> Visual:
+        """Visualize phase space diagram (position vs velocity).
+
+        Creates a scatter plot showing the relationship between position and velocity,
+        useful for analyzing dynamical systems and particle behaviors.
+
+        Args:
+            agents: Agents instance to visualize
+            position_property: Name of position property (must be 1D or 2D)
+            velocity_property: Name of velocity property (must match position dims)
+            width: Output image width
+            height: Output image height
+            color_property: Property to color points by (optional)
+            palette: Color palette for color_property mapping
+            point_size: Point radius in pixels
+            alpha: Point transparency [0, 1]
+            show_trajectories: Connect points in agent order
+            background: Background color (R, G, B) in [0, 1]
+
+        Returns:
+            Visual representation of phase space
+
+        Example:
+            # Visualize particle dynamics
+            particles = agents.create(1000, pos=np.random.randn(1000, 2))
+            particles = agents.set(particles, 'vel', np.random.randn(1000, 2))
+            vis = visual.phase_space(particles, color_property='energy', palette='fire')
+            visual.output(vis, "phase_space.png")
+        """
+        from .agents import Agents
+
+        if not isinstance(agents, Agents):
+            raise TypeError(f"Expected Agents, got {type(agents)}")
+
+        # Get position and velocity
+        positions = agents.get(position_property)
+        velocities = agents.get(velocity_property)
+
+        # Handle multi-dimensional data
+        if len(positions.shape) > 1:
+            # Use magnitude for 2D/3D
+            pos_values = np.linalg.norm(positions, axis=1)
+            vel_values = np.linalg.norm(velocities, axis=1)
+        else:
+            pos_values = positions
+            vel_values = velocities
+
+        # Create output image
+        img = np.zeros((height, width, 3), dtype=np.float32)
+        img[:, :, :] = background
+
+        # Normalize to image coordinates
+        pos_min, pos_max = np.min(pos_values), np.max(pos_values)
+        vel_min, vel_max = np.min(vel_values), np.max(vel_values)
+
+        # Add padding
+        pos_range = pos_max - pos_min if pos_max - pos_min > 1e-10 else 1.0
+        vel_range = vel_max - vel_min if vel_max - vel_min > 1e-10 else 1.0
+
+        pos_norm = (pos_values - pos_min) / pos_range
+        vel_norm = (vel_values - vel_min) / vel_range
+
+        px = (pos_norm * (width - 20) + 10).astype(int)
+        py = ((1.0 - vel_norm) * (height - 20) + 10).astype(int)
+
+        # Clip to bounds
+        px = np.clip(px, 0, width - 1)
+        py = np.clip(py, 0, height - 1)
+
+        # Determine colors
+        if color_property is not None:
+            color_values = agents.get(color_property)
+
+            if len(color_values.shape) > 1:
+                color_values = np.linalg.norm(color_values, axis=1)
+
+            # Normalize
+            vmin, vmax = np.min(color_values), np.max(color_values)
+            if vmax - vmin < 1e-10:
+                color_norm = np.zeros_like(color_values)
+            else:
+                color_norm = (color_values - vmin) / (vmax - vmin)
+
+            # Map to palette
+            palette_colors = np.array(VisualOperations.PALETTES[palette])
+            n_colors = len(palette_colors)
+
+            colors = np.zeros((len(agents.get(position_property)), 3))
+            for i in range(len(agents.get(position_property))):
+                idx = int(color_norm[i] * (n_colors - 1))
+                idx = min(idx, n_colors - 1)
+                colors[i] = palette_colors[idx]
+        else:
+            # Default color
+            colors = np.tile((1.0, 1.0, 1.0), (len(pos_values), 1))
+
+        # Draw trajectories if requested
+        if show_trajectories and len(px) > 1:
+            for i in range(len(px) - 1):
+                VisualOperations._draw_line(
+                    img, px[i], py[i], px[i + 1], py[i + 1],
+                    colors[i] * 0.3, 1.0
+                )
+
+        # Draw points
+        for i in range(len(px)):
+            x, y = px[i], py[i]
+            color = colors[i]
+
+            # Draw point with alpha blending
+            for dy in range(-int(point_size), int(point_size) + 1):
+                for dx in range(-int(point_size), int(point_size) + 1):
+                    if dx * dx + dy * dy <= point_size * point_size:
+                        nx, ny = x + dx, y + dy
+                        if 0 <= nx < width and 0 <= ny < height:
+                            img[ny, nx] = img[ny, nx] * (1 - alpha) + color * alpha
+
+        return Visual(img)
+
+    @staticmethod
+    @operator(
+        domain="visual",
+        category=OpCategory.TRANSFORM,
+        signature="(visual: Visual, metrics: dict, position: str, font_size: int, text_color: tuple, bg_color: tuple, bg_alpha: float) -> Visual",
+        deterministic=True,
+        doc="Overlay metrics dashboard on visualization"
+    )
+    def add_metrics(visual: Visual, metrics: dict,
+                   position: str = "top-left",
+                   font_size: int = 14,
+                   text_color: tuple = (1.0, 1.0, 1.0),
+                   bg_color: tuple = (0.0, 0.0, 0.0),
+                   bg_alpha: float = 0.7) -> Visual:
+        """Overlay metrics dashboard on visualization.
+
+        Args:
+            visual: Visual to add metrics to
+            metrics: Dictionary of metric name -> value pairs
+            position: Position ("top-left", "top-right", "bottom-left", "bottom-right")
+            font_size: Font size in pixels
+            text_color: Text color (R, G, B) in [0, 1]
+            bg_color: Background color (R, G, B) in [0, 1]
+            bg_alpha: Background transparency [0, 1]
+
+        Returns:
+            Visual with metrics overlay
+
+        Example:
+            # Add simulation metrics
+            metrics = {
+                "Frame": 42,
+                "FPS": 59.8,
+                "Agents": 1000,
+                "Temperature": 273.15
+            }
+            vis_with_metrics = visual.add_metrics(vis, metrics, position="top-left")
+        """
+        if not isinstance(visual, Visual):
+            raise TypeError(f"Expected Visual, got {type(visual)}")
+
+        # Create copy to avoid modifying original
+        result = visual.copy()
+        img = result.data
+
+        # Format metrics text
+        lines = []
+        for key, value in metrics.items():
+            if isinstance(value, float):
+                lines.append(f"{key}: {value:.2f}")
+            else:
+                lines.append(f"{key}: {value}")
+
+        # Calculate text dimensions (rough approximation)
+        char_width = font_size * 0.6
+        char_height = font_size * 1.2
+        line_height = int(char_height * 1.3)
+
+        max_line_length = max(len(line) for line in lines) if lines else 0
+        text_width = int(max_line_length * char_width) + 20
+        text_height = len(lines) * line_height + 10
+
+        # Determine position
+        height, width, _ = img.shape
+        if position == "top-left":
+            x_start, y_start = 10, 10
+        elif position == "top-right":
+            x_start, y_start = width - text_width - 10, 10
+        elif position == "bottom-left":
+            x_start, y_start = 10, height - text_height - 10
+        elif position == "bottom-right":
+            x_start, y_start = width - text_width - 10, height - text_height - 10
+        else:
+            raise ValueError(f"Unknown position: {position}")
+
+        # Draw background box with alpha blending
+        x_end = min(x_start + text_width, width)
+        y_end = min(y_start + text_height, height)
+
+        for y in range(y_start, y_end):
+            for x in range(x_start, x_end):
+                if 0 <= y < height and 0 <= x < width:
+                    img[y, x] = img[y, x] * (1 - bg_alpha) + np.array(bg_color) * bg_alpha
+
+        # Draw text (simple raster text)
+        for i, line in enumerate(lines):
+            y_pos = y_start + 5 + i * line_height
+            x_pos = x_start + 10
+
+            # Draw each character as a simple block (very basic text rendering)
+            for char_idx, char in enumerate(line):
+                char_x = x_pos + int(char_idx * char_width)
+                char_y = y_pos
+
+                # Draw character as small rectangle (simplified)
+                if char != ' ':
+                    for dy in range(int(char_height)):
+                        for dx in range(int(char_width * 0.8)):
+                            px, py = char_x + dx, char_y + dy
+                            if 0 <= py < height and 0 <= px < width:
+                                # Simple character rendering
+                                if dy % 2 == 0 or dx % 2 == 0:  # Create text-like pattern
+                                    img[py, px] = text_color
+
+        return result
+
 
 # Create singleton instance for use as 'visual' namespace
 visual = VisualOperations()
@@ -952,3 +1536,7 @@ agents = VisualOperations.agents
 display = VisualOperations.display
 output = VisualOperations.output
 video = VisualOperations.video
+spectrogram = VisualOperations.spectrogram
+graph = VisualOperations.graph
+phase_space = VisualOperations.phase_space
+add_metrics = VisualOperations.add_metrics
