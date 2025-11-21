@@ -252,7 +252,7 @@ flow(dt=0.01) {
 - Comma-separated syntax: `use domain1, domain2, domain3`
 - Makes 374+ operators available to your program
 - Type checking and unit validation across domains
-- See [LEVEL_3_TYPE_SYSTEM.md](LEVEL_3_TYPE_SYSTEM.md) for cross-domain type safety
+- See [Level 3 Type System](docs/specifications/level-3-type-system.md) for cross-domain type safety
 
 ---
 

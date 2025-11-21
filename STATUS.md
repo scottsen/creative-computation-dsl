@@ -1,4 +1,4 @@
-# Morphogen — Implementation Status
+# Kairo (Morphogen) — Implementation Status
 
 **Last Updated:** 2025-11-21
 **Current Version:** v0.11.0

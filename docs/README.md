@@ -35,9 +35,9 @@ Welcome to the Morphogen documentation! This guide will help you navigate the do
 **Note:** Architecture docs explain "how" to implement the principles from [Philosophy](#-philosophy).
 
 ### 📋 [Specifications](specifications/)
-Detailed technical specifications (20 documents)
-- **Language**: [KAX Language](specifications/kax-language.md), [Type System](specifications/type-system.md)
-- **Infrastructure**: [Graph IR](specifications/graph-ir.md), [MLIR Dialects](specifications/mlir-dialects.md), [Operator Registry](specifications/operator-registry.md), [Scheduler](specifications/scheduler.md), [Transform](specifications/transform.md), [Transform Composition](specifications/transform-composition.md) ⭐ **NEW**
+Detailed technical specifications (21 documents)
+- **Language**: [KAX Language](specifications/kax-language.md), [Type System](specifications/type-system.md), **[Level 3 Type System](specifications/level-3-type-system.md)** ⭐ **NEW** — Cross-domain type safety
+- **Infrastructure**: [Graph IR](specifications/graph-ir.md), [MLIR Dialects](specifications/mlir-dialects.md), [Operator Registry](specifications/operator-registry.md), [Scheduler](specifications/scheduler.md), [Transform](specifications/transform.md), [Transform Composition](specifications/transform-composition.md)
 - **Domains**: [Chemistry](specifications/chemistry.md), [Circuit](specifications/circuit.md), [Emergence](specifications/emergence.md), [Procedural Generation](specifications/procedural-generation.md), [Physics](specifications/physics-domains.md), [BI](specifications/bi-domain.md), [Video/Audio Encoding](specifications/video-audio-encoding.md)
 - **Other**: [Geometry](specifications/geometry.md), [Coordinate Frames](specifications/coordinate-frames.md), [Profiles](specifications/profiles.md), [Snapshot ABI](specifications/snapshot-abi.md), [Timbre Extraction](specifications/timbre-extraction.md)
 
@@ -92,6 +92,7 @@ Specific real-world applications
 
 ### 🗺️ [Roadmap](roadmap/)
 Planning and progress tracking
+- **[Language Features Roadmap](roadmap/language-features.md)** ⭐ **NEW** — Clear path to language 1.0, finalized vs planned features
 - [MVP Roadmap](roadmap/mvp.md)
 - [Morphogen Core v0.1 Roadmap](roadmap/v0.1.md)
 - [Implementation Progress](roadmap/implementation-progress.md)
@@ -106,6 +107,8 @@ Strategic planning documents and execution plans
 
 ### 🔬 [Analysis](analysis/)
 Technical analysis and integration guides
+- [Domain Validation Report](analysis/DOMAIN_VALIDATION_REPORT.md) — Implementation vs documentation alignment
+- [Kairo Rename Analysis](analysis/KAIRO_RENAME_ANALYSIS.md) — Comprehensive rename impact analysis
 - [Agents Domain Analysis](analysis/AGENTS_DOMAIN_ANALYSIS.md)
 - [Agents-VFX Integration Guide](analysis/AGENTS_VFX_INTEGRATION_GUIDE.md)
 - [Cross-Domain Implementation Summary](analysis/CROSS_DOMAIN_IMPLEMENTATION_SUMMARY.md)
@@ -130,6 +133,8 @@ Deprecated CCDSL v0.2.2 documentation (for historical reference)
 - **Understand Morphogen's architecture** → Start with [Architecture Overview](architecture/overview.md), then [Domain Architecture](architecture/domain-architecture.md)
 - **Understand transformations intuitively** → Read [Mathematical Transformation Metaphors](reference/math-transformation-metaphors.md)
 - **See the complete ecosystem** → Check [ECOSYSTEM_MAP.md](../ECOSYSTEM_MAP.md) for all domains and roadmap
+- **Understand language roadmap** → Read [Language Features Roadmap](roadmap/language-features.md) ⭐ — Path to 1.0, finalized vs planned features
+- **Understand cross-domain type safety** → Check [Level 3 Type System](specifications/level-3-type-system.md)
 - **Implement a new domain** → Read [Domain Implementation Guide](guides/domain-implementation.md) and relevant [ADRs](adr/)
 - **Learn about a specific domain** → Check [Specifications](specifications/) for the domain spec, then related [ADRs](adr/)
 - **See Morphogen in action** → Browse [Examples](examples/) and [Use Cases](use-cases/)
@@ -142,7 +147,25 @@ Deprecated CCDSL v0.2.2 documentation (for historical reference)
 
 ## Recent Changes
 
-**2025-11-21: Documentation Improvements & Clarifications**
+**2025-11-21: Major Documentation Reorganization & Language Roadmap**
+- ✅ **Documentation Organization** - Consolidated and clarified documentation structure:
+  - Moved analysis docs from root to `docs/analysis/` (DOMAIN_VALIDATION_REPORT, KAIRO_RENAME_ANALYSIS)
+  - Moved type system spec to `docs/specifications/level-3-type-system.md`
+  - Consolidated archives: moved `archive/historical/` and `archive/root-level-docs/` to `docs/archive/`
+  - All documentation now properly organized in `docs/` subdirectories
+- ✅ **Language Features Roadmap** ⭐ **NEW** - Created comprehensive [Language Features Roadmap](roadmap/language-features.md):
+  - Clear path to language 1.0 (target: 2026 Q2)
+  - Production-ready vs planned features (physical units, cross-domain types, MLIR optimization)
+  - Features under discussion (macros, effect system, ownership, pattern matching)
+  - Decision framework for accepting new features
+  - Community input process
+- ✅ **Enhanced Navigation** - Updated docs README with:
+  - Links to newly organized documents
+  - Language roadmap in prominent position
+  - Cross-domain type system specification
+- ✅ **Version Consistency** - Updated STATUS.md header to clarify "Kairo (Morphogen)"
+
+**2025-11-21: Documentation Improvements & Clarifications** (earlier today)
 - ✅ **Enhanced Reference Section** - Created comprehensive [Reference README](reference/README.md) with:
   - Navigation by task and experience level
   - Document relationships and cross-references
@@ -151,7 +174,6 @@ Deprecated CCDSL v0.2.2 documentation (for historical reference)
   - [Universal DSL Principles](philosophy/universal-dsl-principles.md) (the "why" - design philosophy)
   - [DSL Framework Design](architecture/dsl-framework-design.md) (the "how" - implementation vision)
 - ✅ **Improved Navigation** - Added "WHY" vs "HOW" labels to Philosophy and Architecture sections
-- ✅ **Updated Main README** - Enhanced descriptions with document sizes and clearer organization
 
 **2025-11-21: New Theoretical Foundation Documents (~150KB)**
 - 🆕 **Philosophy Section** - Comprehensive theoretical framework:
