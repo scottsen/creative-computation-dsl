@@ -22,8 +22,8 @@
 
 2. **Explore project structure**
    ```bash
-   reveal --level 1 morphogen/stdlib/     # See all 40 domains
-   reveal --level 2 docs/architecture/overview.md  # Architecture overview
+   ./scripts/reveal.sh 1 morphogen/stdlib/     # See all 40 domains
+   ./scripts/reveal.sh 2 docs/architecture/overview.md  # Architecture overview
    ```
 
 3. **Run an example**
@@ -35,9 +35,9 @@
 
 4. **Understand a domain**
    ```bash
-   reveal --level 1 morphogen/stdlib/audio.py        # See operators
-   pytest tests/test_audio_basic.py -v               # Verify tests pass
-   cat examples/audio/karplus_strong.py              # See example
+   ./scripts/reveal.sh 1 morphogen/stdlib/audio.py        # See operators
+   pytest tests/test_audio_basic.py -v                    # Verify tests pass
+   cat examples/audio/karplus_strong.py                   # See example
    ```
 
 5. **Make a change and test**
@@ -282,32 +282,28 @@ pip install -e ".[viz]"
 
 ## Tools Available
 
-### reveal - Progressive File Explorer
+### reveal.sh / reveal.py - Progressive File Explorer
 
 **Purpose**: Explore large files incrementally to manage token usage and understand structure before diving into full content.
 
-**Install**:
-```bash
-# From gist: https://gist.github.com/scottsen/ee3fff354a79032f1c6d9d46991c8400
-pip install reveal-cli
-```
+**Location**: `scripts/reveal.sh` (wrapper) and `scripts/reveal.py` (local Python implementation)
 
 **Usage**:
 ```bash
 # Level 0: Metadata only (filename, size, type, line count, hash)
-reveal --level 0 src/morphogen/domains/audio.py
+./scripts/reveal.sh 0 morphogen/stdlib/audio.py
 
 # Level 1: Structure (imports, classes, functions for Python files)
-reveal --level 1 src/morphogen/domains/audio.py
+./scripts/reveal.sh 1 morphogen/stdlib/audio.py
 
 # Level 2: Preview (representative sample with context)
-reveal --level 2 docs/specifications/SPEC-AUDIO.md
+./scripts/reveal.sh 2 docs/specifications/chemistry.md
 
-# Level 3: Full content (with line numbers, optional paging)
-reveal --level 3 --page-size 50 SPECIFICATION.md
+# Level 3: Full content (with line numbers)
+./scripts/reveal.sh 3 SPECIFICATION.md
 
-# Grep filtering (works at any level)
-reveal --level 1 --grep "class.*Analyzer" src/morphogen/compiler/
+# Direct Python usage
+python scripts/reveal.py 1 morphogen/stdlib/audio.py
 ```
 
 **When to Use reveal**:
@@ -319,10 +315,10 @@ reveal --level 1 --grep "class.*Analyzer" src/morphogen/compiler/
 
 **File Type Support**:
 - **Python**: AST analysis (imports, classes, functions, docstrings)
-- **YAML**: Key structure, nesting depth, anchors/aliases
-- **JSON**: Object/array counts, max depth, value types
 - **Markdown**: Heading hierarchy, code blocks, lists
 - **Text**: Generic line/word counts
+
+**Documentation**: See `scripts/README.md` for complete usage guide
 
 ## Working with Morphogen
 
@@ -330,22 +326,22 @@ reveal --level 1 --grep "class.*Analyzer" src/morphogen/compiler/
 
 **1. Adding a New Domain**
 See `docs/guides/domain-implementation.md` for complete guide:
-1. Create domain module in `src/morphogen/domains/`
+1. Create domain module in `morphogen/stdlib/`
 2. Define operators (functions with type signatures)
 3. Add to operator registry
-4. Write tests in `tests/domains/`
+4. Write tests in `tests/`
 5. Document in `docs/specifications/`
 
 **2. Understanding Existing Domains**
 ```bash
 # Get domain structure first
-reveal --level 1 src/morphogen/domains/audio.py
+./scripts/reveal.sh 1 morphogen/stdlib/audio.py
 
 # See what tests exist
-reveal --level 1 tests/domains/test_audio.py
+./scripts/reveal.sh 1 tests/test_audio_basic.py
 
 # Check specification
-reveal --level 2 docs/specifications/SPEC-AUDIO.md
+./scripts/reveal.sh 2 docs/specifications/chemistry.md
 ```
 
 **3. Running Tests**
@@ -354,10 +350,10 @@ reveal --level 2 docs/specifications/SPEC-AUDIO.md
 pytest tests/
 
 # Specific domain
-pytest tests/domains/test_audio.py -v
+pytest tests/test_audio_basic.py -v
 
 # With coverage
-pytest tests/ --cov=src/morphogen --cov-report=html
+pytest tests/ --cov=morphogen --cov-report=html
 ```
 
 **4. Exploring Documentation**
@@ -381,7 +377,7 @@ git push -u origin <claude-branch-name>
 ```
 
 ### Before Making Changes
-1. **Check structure** with reveal at level 1
+1. **Check structure** with `./scripts/reveal.sh 1 <file>` first
 2. **Read selectively** using Read tool for specific files
 3. **Search strategically** with Grep for patterns
 4. **Test changes** with pytest
