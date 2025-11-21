@@ -22,11 +22,15 @@ This document maps Morphogen's existing architecture to universal domain framewo
 - [Operator Foundations](operator-foundations.md) — Operator-theoretic view
 
 **Related:**
+- **[DSL Framework Design](../architecture/dsl-framework-design.md)** ⭐ — Vision for domain reasoning language (gaps and future extensions)
 - [Cross-Domain Architectural Patterns](../adr/002-cross-domain-architectural-patterns.md) — Practical patterns
 - [Philosophy README](README.md) — Overview of philosophical foundations
 
+**Note:** This document describes the *current implementation*. For the vision of future language extensions (declarative domains, first-class translations, composition operators), see [DSL Framework Design](../architecture/dsl-framework-design.md).
+
 ---
 
+## Table of Contents
 ## Table of Contents
 
 1. [Morphogen as a Category](#1-morphogen-as-a-category)

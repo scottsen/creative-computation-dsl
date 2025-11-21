@@ -12,7 +12,12 @@ The Transform Dialect makes **domain changes** a first-class operation in Morpho
 
 **Design Principle:** FFT is not special — it's one instance of `transform.to(domain="frequency")`. All transforms follow the same pattern.
 
-**For Intuitive Understanding:** See [Mathematical Transformation Metaphors](../reference/math-transformation-metaphors.md) for pedagogical frameworks and mental models that make these transformations more intuitive.
+**Related Documentation:**
+- **[DSL Framework Design](../architecture/dsl-framework-design.md)** - Vision for first-class translations with declarative syntax
+- [Mathematical Transformation Metaphors](../reference/math-transformation-metaphors.md) - Pedagogical frameworks and intuitive understanding
+- [Morphogen Categorical Structure](../architecture/morphogen-categorical-structure.md) - Functorial semantics of transforms
+
+**Note:** This document describes the current procedural transform API (`transform.to/from`). For the future vision of declarative translation definitions with structure preservation and operator mappings, see the DSL Framework Design document.
 
 ---
 

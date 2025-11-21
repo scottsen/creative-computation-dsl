@@ -1217,7 +1217,9 @@ Morphogen's unified multi-domain architecture addresses fundamental problems acr
 **Architecture & Vision**
 - **[Architecture](ARCHITECTURE.md)** ⭐ — The Morphogen Stack: kernel, frontends, Graph IR, MLIR compilation
 - **[Ecosystem Map](ECOSYSTEM_MAP.md)** ⭐ — Complete map of all domains, modules, and expansion roadmap
+- **[DSL Framework Design](docs/architecture/dsl-framework-design.md)** ⭐ — Vision for domain reasoning language (first-class domains, translations, composition)
 - **[Domain Architecture](docs/architecture/domain-architecture.md)** — Deep technical vision (2,266 lines, 20+ domains)
+- **[Categorical Structure](docs/architecture/morphogen-categorical-structure.md)** — Category theory foundations and functorial semantics
 
 **Getting Started**
 - **[Getting Started Guide](docs/getting-started.md)** — Installation, first program, core concepts
