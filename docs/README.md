@@ -7,8 +7,9 @@ Welcome to the Morphogen documentation! This guide will help you navigate the do
 ## Quick Start
 
 - **New to Morphogen?** Start with [Getting Started](getting-started.md) for installation and your first program
-- **Understand the architecture?** Read [Architecture Overview](architecture/overview.md) or the main [ARCHITECTURE.md](../ARCHITECTURE.md)
+- **Understand the architecture?** Read [Architecture Overview](architecture/overview.md)
 - **See the full ecosystem?** Check [ECOSYSTEM_MAP.md](../ECOSYSTEM_MAP.md) for all domains and roadmap
+- **Browse all documentation?** See [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) ⭐ — Complete map with reveal tool usage
 - **Need help?** Check [Troubleshooting](troubleshooting.md)
 
 ## Documentation Structure
@@ -127,6 +128,8 @@ Deprecated CCDSL v0.2.2 documentation (for historical reference)
 
 **I want to...**
 
+- **Browse all documentation** → See [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) ⭐ — Complete index with navigation tips
+- **Explore documents incrementally** → Use `../scripts/reveal.sh` ([see docs](../scripts/README.md#revealsh--revealpy---progressive-file-explorer))
 - **Understand why formalization matters** → Read [Formalization and Knowledge](philosophy/formalization-and-knowledge.md) ⭐
 - **Understand Morphogen's mathematical foundations** → See [Philosophy](philosophy/) section
 - **Understand Morphogen's vision and impact** → Read the main [README.md](../README.md)
