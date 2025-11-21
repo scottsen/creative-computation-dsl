@@ -858,16 +858,471 @@ audio_inputs = CrossDomainRegistry.list_transforms("audio", direction="target")
 
 ---
 
-## Future Extensions
+## Domain Translation Gap Analysis
 
-Planned cross-domain transforms (v0.12+):
+### Current Translation Coverage
+
+**Total Implemented: 18 Transforms**
+
+| Source | Target | Status | Use Case |
+|--------|--------|--------|----------|
+| Field | Agent | ✅ | Flow field → particle forces |
+| Agent | Field | ✅ | Particles → density field |
+| Physics | Audio | ✅ | Collision forces → percussion |
+| Audio | Visual | ✅ | FFT spectrum → colors |
+| Field | Audio | ✅ | Temperature → synthesis |
+| Terrain | Field | ✅ | Heightmap → scalar field |
+| Field | Terrain | ✅ | Field → landscape generation |
+| Vision | Field | ✅ | Edge detection → field |
+| Graph | Visual | ✅ | Network → visualization |
+| Cellular | Field | ✅ | Game of Life → PDE init |
+| Time | Cepstral | ✅ | Audio → DCT (MP3/AAC) |
+| Cepstral | Time | ✅ | DCT → audio reconstruction |
+| Time | Wavelet | ✅ | Signal → time-frequency |
+| Spatial | Spatial | ✅ | Affine transformations |
+| Cartesian | Polar | ✅ | Coordinate conversion |
+| Polar | Cartesian | ✅ | Coordinate conversion |
+| Fluid | Acoustics | ✅ | Pressure → acoustic waves |
+| Acoustics | Audio | ✅ | Acoustic → waveform |
+
+**Registered Domains (24+):**
+field, agent, audio, visual, rigidbody, acoustics, geometry, circuit, terrain, cellular, signal, noise, temporal, optimization, graph, vision, image, color, palette, io_storage, sparse_linalg, neural, genetic, statemachine, integrators
+
+### Critical Missing Translations
+
+#### 1. Geometry Domain (High Priority)
+**Status:** Domain exists, no translations implemented
 
 - **Geometry → Physics**: Mesh → collision geometry
-- **Optimization → Any**: Parameter tuning interface
-- **Signal → Audio**: Direct signal conversion
-- **Pattern → Audio**: Euclidean rhythms → audio events
-- **ML → Geometry**: GAN → procedural 3D shapes
-- **Circuit → Audio**: Circuit simulation → audio synthesis
+  - *Use Case:* CAD models → rigid body simulation
+  - *Impact:* Enables design-to-simulation workflow
+
+- **Geometry → Field**: SDF generation from mesh
+  - *Use Case:* Mesh → signed distance field for PDEs
+  - *Impact:* Enables geometry-driven fluid simulation
+
+- **Geometry → Visual**: Mesh → renderable scene
+  - *Use Case:* Parametric shapes → 3D visualization
+  - *Impact:* Complete CAD visualization pipeline
+
+- **Geometry → Agent**: Mesh vertices → spawn points
+  - *Use Case:* Surface sampling for particle systems
+  - *Impact:* Geometry-driven particle placement
+
+#### 2. Circuit Domain (Medium Priority)
+**Status:** Domain mentioned, no translations
+
+- **Circuit → Audio**: Analog circuit modeling
+  - *Use Case:* Virtual analog synthesis (Moog, 303)
+  - *Impact:* Physics-based audio synthesis
+  - *Unique Value:* Impossible in traditional audio engines
+
+- **Circuit → Field**: Voltage/current fields
+  - *Use Case:* Circuit simulation visualization
+  - *Impact:* Educational and analysis tools
+
+#### 3. Neural Domain (High Priority)
+**Status:** Domain registered, no translations
+
+- **Neural → Geometry**: GAN → 3D shapes
+  - *Use Case:* AI-generated procedural models
+  - *Impact:* ML-driven design
+
+- **Visual → Neural**: Feature extraction
+  - *Use Case:* Image → embeddings
+  - *Impact:* Vision-based control systems
+
+- **Audio → Neural**: Audio embeddings
+  - *Use Case:* Music analysis, classification
+  - *Impact:* ML-driven audio processing
+
+#### 4. Temporal/Optimization Domains
+**Status:** Domains registered, no translations
+
+- **Temporal → Audio**: Time series → sound
+  - *Use Case:* Data sonification
+  - *Impact:* Accessible data analysis
+
+- **Optimization → Geometry**: Optimal shapes
+  - *Use Case:* Topology optimization results
+  - *Impact:* Engineering applications
+
+#### 5. Missing Reverse Translations
+
+- **Audio → Field**: Reverse of Field → Audio
+  - *Use Case:* Music → simulation initial conditions
+  - *Impact:* Audio-driven generative art
+
+- **Visual → Audio**: Reverse of Audio → Visual
+  - *Use Case:* Image sonification
+  - *Impact:* Accessibility, data exploration
+
+- **Agent → Audio**: Swarm sonification
+  - *Use Case:* Collective behavior → sound
+  - *Impact:* Complex system monitoring
+
+- **Physics → Field**: Rigid bodies → fields
+  - *Use Case:* Particle positions → density/velocity fields
+  - *Impact:* Hybrid particle-field simulation
+
+#### 6. Color/Palette Domain
+**Status:** Domain registered, no translations
+
+- **Field → Color**: Data → color mapping
+  - *Use Case:* Scientific visualization
+  - *Impact:* Better data interpretation
+
+- **Audio → Color**: Spectrum → palette
+  - *Use Case:* Synesthesia visualization
+  - *Impact:* Audio-visual art
+
+---
+
+## Multi-Hop Translation Chains
+
+### The Power of Composition
+
+Multi-hop translations enable **emergent capabilities** that are impossible with single transforms. The composition system automatically finds paths between domains, creating workflows that were previously impossible.
+
+### Killer Demo Chains
+
+#### 1. **Fluid → Acoustics → Audio** (3-Domain Physics Sonification)
+```python
+# Already implemented - the "killer demo"
+pipeline = composer.compose_path("fluid", "audio", via=["acoustics"])
+```
+
+**Workflow:**
+1. CFD pressure field → acoustic wave propagation
+2. Acoustic waves → audio waveform synthesis
+3. Result: Physical sound synthesis from fluid dynamics
+
+**Unique Value:** Aeroacoustic simulation in a single pipeline - impossible in traditional systems where CFD and audio are separate worlds.
+
+**Applications:**
+- Wind noise simulation
+- Fluid instrument modeling (flutes, organ pipes)
+- Environmental sound design
+
+---
+
+#### 2. **Geometry → Field → Audio → Visual** (4-Domain Shape Sonification)
+```python
+pipeline = composer.compose_path("geometry", "visual", via=["field", "audio"])
+```
+
+**Workflow:**
+1. Mesh → signed distance field
+2. Field statistics → audio parameters (mean → freq, std → amplitude)
+3. Audio spectrum → visual colors/particles
+
+**Unique Value:** "See the sound of shape" - morphological sonification with visual feedback
+
+**Applications:**
+- Shape comparison through sound
+- Accessibility tools for 3D modeling
+- Generative art exploring form/sound relationships
+
+---
+
+#### 3. **Vision → Field → Terrain → Physics → Audio** (5-Domain Image-to-Sound)
+```python
+pipeline = composer.compose_path("vision", "audio",
+                                via=["field", "terrain", "physics"])
+```
+
+**Workflow:**
+1. Image edge detection → scalar field
+2. Field → 3D terrain heightmap
+3. Terrain → rigid body collision geometry
+4. Physics collisions → percussion synthesis
+
+**Unique Value:** Transform images into physically simulated soundscapes
+
+**Applications:**
+- Image-driven sound design
+- Data sonification with spatial meaning
+- Artistic exploration of visual/sonic textures
+
+---
+
+#### 4. **Genetic → Agent → Field → Visual** (Evolutionary Visualization)
+```python
+# Requires: Genetic → Agent translation (not yet implemented)
+pipeline = composer.compose_path("genetic", "visual", via=["agent", "field"])
+```
+
+**Workflow:**
+1. Evolution parameters → agent behavior
+2. Agent swarms → density fields
+3. Field → heat map visualization
+
+**Unique Value:** Real-time visualization of evolutionary dynamics
+
+**Applications:**
+- Genetic algorithm monitoring
+- Swarm intelligence research
+- Evolutionary computation visualization
+
+---
+
+#### 5. **Audio → Visual → Field → Terrain** (Music-Generated Worlds)
+```python
+# Requires: Visual → Field translation (not yet implemented)
+pipeline = composer.compose_path("audio", "terrain", via=["visual", "field"])
+```
+
+**Workflow:**
+1. Music FFT → spectrum visualization
+2. Visual → scalar field
+3. Field → terrain landscape
+
+**Unique Value:** Generate explorable 3D worlds from music
+
+**Applications:**
+- Music visualization in 3D
+- Procedural generation driven by audio
+- VR experiences from songs
+
+---
+
+#### 6. **Circuit → Audio → Visual → Agent** (Analog-Driven Particles)
+```python
+# Requires: Circuit → Audio, Visual → Agent translations
+pipeline = composer.compose_path("circuit", "agent", via=["audio", "visual"])
+```
+
+**Workflow:**
+1. Virtual analog circuit → audio waveform
+2. Audio spectrum → visual parameters
+3. Visual features → agent behavior
+
+**Unique Value:** Physics-based synthesis driving generative systems
+
+**Applications:**
+- Modular synthesis visualization
+- Circuit-driven art installations
+- Educational tools for analog synthesis
+
+---
+
+#### 7. **Temporal → Field → Acoustics → Audio** (Data Sonification via Physics)
+```python
+# Requires: Temporal → Field translation
+pipeline = composer.compose_path("temporal", "audio", via=["field", "acoustics"])
+```
+
+**Workflow:**
+1. Time series → pressure field
+2. Pressure → acoustic wave propagation
+3. Acoustic → audio waveform
+
+**Unique Value:** Physically-grounded data sonification
+
+**Applications:**
+- Scientific data listening
+- Stock market sonification
+- Climate data audification
+
+---
+
+#### 8. **Neural → Geometry → Field → Agent** (AI-Driven Swarms)
+```python
+# Requires: Neural → Geometry, Geometry → Field, Field → Agent translations
+pipeline = composer.compose_path("neural", "agent", via=["geometry", "field"])
+```
+
+**Workflow:**
+1. GAN generates 3D shape
+2. Shape → SDF guidance field
+3. Field gradients → agent navigation
+
+**Unique Value:** ML-generated forms driving collective behavior
+
+**Applications:**
+- AI-designed swarm behaviors
+- Procedural animation from neural nets
+- Evolved guidance fields
+
+---
+
+#### 9. **Cellular → Field → Terrain → Physics** (CA-Generated Worlds)
+```python
+pipeline = composer.compose_path("cellular", "physics", via=["field", "terrain"])
+```
+
+**Workflow:**
+1. Game of Life state → scalar field
+2. Field → terrain heightmap
+3. Terrain → rigid body physics
+
+**Unique Value:** Emergent patterns become physical spaces
+
+**Applications:**
+- Procedurally generated landscapes
+- Pattern-based level design
+- Physics playgrounds from cellular automata
+
+---
+
+#### 10. **Optimization → Geometry → Physics → Audio** (Optimal Sound)
+```python
+# Requires: Optimization → Geometry translation
+pipeline = composer.compose_path("optimization", "audio",
+                                via=["geometry", "physics"])
+```
+
+**Workflow:**
+1. Topology optimization → optimal shape
+2. Shape → collision geometry
+3. Physics collisions → percussion
+
+**Unique Value:** Hear the sound of optimized structures
+
+**Applications:**
+- Engineering design sonification
+- Structural acoustics
+- Form-finding through audio feedback
+
+---
+
+### Composition Patterns
+
+#### Pattern 1: Bidirectional Loops
+Create feedback systems with bidirectional transforms:
+
+```python
+# Field ↔ Agent feedback loop
+field → agent (sample)
+agent → field (deposit)
+# Iterative coupling for emergent behavior
+```
+
+**Enabled by:**
+- Field ↔ Agent (implemented ✅)
+- Field ↔ Terrain (implemented ✅)
+- Time ↔ Cepstral (implemented ✅)
+- Cartesian ↔ Polar (implemented ✅)
+
+**Future Loops:**
+- Audio ↔ Visual (needs Visual → Audio)
+- Geometry ↔ Field (needs Geometry → Field)
+- Neural ↔ Optimization (needs both directions)
+
+---
+
+#### Pattern 2: Domain Convergence
+Multiple sources → single target:
+
+```python
+# Multiple paths to audio
+field → audio (direct)
+physics → audio (events)
+circuit → audio (synthesis)
+temporal → audio (sonification)
+
+# Result: Unified audio output from diverse sources
+```
+
+**Applications:**
+- Multi-source sonification
+- Hybrid synthesis (physical + circuit models)
+- Data-driven music generation
+
+---
+
+#### Pattern 3: Domain Divergence
+Single source → multiple targets:
+
+```python
+# Field as hub
+field → agent (forces)
+field → audio (parameters)
+field → terrain (landscape)
+field → visual (color mapping)
+
+# Result: Synchronized multi-modal outputs
+```
+
+**Applications:**
+- Synchronized AV performances
+- Multi-sensory simulations
+- Cross-modal data exploration
+
+---
+
+### Implementation Priorities
+
+Based on unique value and multi-hop enablement:
+
+**Priority 1 (Highest Impact):**
+1. **Geometry → Field** - Unlocks 8+ new chains
+2. **Visual → Audio** - Completes Audio ↔ Visual bidirectionality
+3. **Neural → Geometry** - Enables ML-driven workflows
+4. **Circuit → Audio** - Unique physical modeling capability
+
+**Priority 2 (High Value):**
+5. **Geometry → Physics** - CAD-to-simulation workflow
+6. **Agent → Audio** - Swarm sonification
+7. **Temporal → Field** - Data-driven simulation
+8. **Field → Color** - Better scientific visualization
+
+**Priority 3 (Nice to Have):**
+9. **Optimization → Geometry** - Engineering workflows
+10. **Genetic → Agent** - Evolutionary visualization
+
+---
+
+## Automatic Path Finding
+
+The composition system uses BFS to find shortest paths:
+
+```python
+from morphogen.cross_domain import find_transform_path
+
+# Automatic routing
+path = find_transform_path("terrain", "audio", max_hops=3)
+print(path)  # ['terrain', 'field', 'audio']
+
+# Create and execute
+pipeline = composer.compose_path("terrain", "audio")
+result = pipeline(terrain_data)
+```
+
+**Path Caching:** Frequently used paths are cached for performance.
+
+**Path Validation:** Ensures type compatibility at each hop.
+
+**Path Visualization:**
+```python
+print(pipeline.visualize())  # "terrain → field → audio"
+print(f"Pipeline length: {pipeline.length}")  # 2 hops
+```
+
+---
+
+## Future Extensions
+
+### Near-Term (v0.12)
+
+- **Geometry → Physics**: Mesh → collision geometry
+- **Geometry → Field**: SDF generation
+- **Visual → Audio**: Image sonification
+- **Circuit → Audio**: Analog modeling
+
+### Mid-Term (v0.13)
+
+- **Neural → Geometry**: GAN → 3D shapes
+- **Optimization → Geometry**: Optimal forms
+- **Temporal → Audio**: Time series sonification
+- **Agent → Audio**: Swarm sonification
+
+### Long-Term (v1.0+)
+
+- **Pattern → Audio**: Euclidean rhythms → events
+- **ML → Any**: Neural operator integration
+- **Quantum → Field**: Quantum simulation visualization
+- **Financial → Visual**: Market data visualization
 
 ---
 
@@ -878,9 +1333,10 @@ Planned cross-domain transforms (v0.12+):
 - **examples/cross_domain/**: Complete working examples
   - `01_transform_composition.py`: Pipeline composition and path finding
   - `02_audio_reactive_visuals.py`: Audio analysis for visual generation
+  - `fluid_acoustics_audio.py`: 3-domain killer demo
 
 ---
 
-**Last Updated:** 2025-11-16 (Phase 2 Complete)
+**Last Updated:** 2025-11-21 (Multi-Hop Analysis Complete)
 **Maintainer:** Morphogen Development Team
 **Version:** v0.11.0 (Cross-Domain Infrastructure Phase 2)
