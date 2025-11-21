@@ -2,15 +2,26 @@
 
 This directory contains strategic planning documents, execution roadmaps, and project direction.
 
-## 🎯 Canonical Roadmap (START HERE)
+## 🎯 The Plan (START HERE)
 
-**[ROADMAP_2025_Q4.md](./ROADMAP_2025_Q4.md)** ⭐ **OFFICIAL**
-- **Status:** ✅ Active and Authoritative
+**[MORPHOGEN_RELEASE_PLAN.md](./MORPHOGEN_RELEASE_PLAN.md)** 🚀 **THE EXECUTION PLAN** (NEW!)
+- **Status:** ✅ **READY TO EXECUTE**
 - **Date:** 2025-11-21
-- **Scope:** Complete 12-week strategic roadmap for Q4 2025
-- **Content:** Executive summary, current state, strategic priorities, tactical roadmap, success metrics, risk assessment
+- **Timeline:** 24 weeks to Morphogen v1.0
+- **Scope:** Three-track strategy (Language + Domains + Adoption)
+- **Content:** Week-by-week plan, deliverables, success criteria, risk management, launch strategy
 
-**This is the single source of truth for Morphogen's strategic direction.** All other planning documents have been consolidated into this roadmap or archived.
+**This is THE plan. Everything else supports this.**
+
+### Supporting Strategic Documents
+
+**[ROADMAP_2025_Q4.md](./ROADMAP_2025_Q4.md)** - Strategic Overview
+- Background analysis, current state, strategic priorities
+- **Use:** Context for why we're executing the release plan
+
+**[MORPHOGEN_SELECTIVE_EVOLUTION.md](./MORPHOGEN_SELECTIVE_EVOLUTION.md)** - Language Evolution Details
+- Detailed technical design for Path 2.5 (Track 1 of release plan)
+- **Use:** Implementation reference for language features
 
 ---
 

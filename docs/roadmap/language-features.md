@@ -1,4 +1,4 @@
-# Kairo Language Features Roadmap
+# Morphogen Language Features Roadmap
 
 **Version:** 1.0
 **Last Updated:** 2025-11-21
@@ -8,7 +8,7 @@
 
 ## Overview
 
-This document provides a clear path toward the final language specification for Kairo (Morphogen), outlining what features are **production-ready**, what features are **planned**, and what decisions are **finalized** vs **still under consideration**.
+This document provides a clear path toward the final language specification for Morphogen, outlining what features are **production-ready**, what features are **planned**, and what decisions are **finalized** vs **still under consideration**.
 
 ---
 
@@ -58,7 +58,7 @@ These features are **stable**, **documented**, and **implemented**:
 
 ### The Vision: "One Language, Many Domains"
 
-Kairo is committed to being a **unified multi-domain platform** with:
+Morphogen is committed to being a **unified multi-domain platform** with:
 1. **Cross-domain composition** — Different domains interact seamlessly
 2. **Deterministic execution** — Reproducible results across platforms
 3. **MLIR compilation** — High-performance GPU/CPU code generation
@@ -243,8 +243,8 @@ case shape of
 - `/ECOSYSTEM_MAP.md` — Domain ecosystem overview
 
 **Organized in `/docs/`:**
-- **philosophy/** — Why Kairo exists (formalization, DSL principles)
-- **architecture/** — How Kairo is built (domain architecture, MLIR)
+- **philosophy/** — Why Morphogen exists (formalization, DSL principles)
+- **architecture/** — How Morphogen is built (domain architecture, MLIR)
 - **specifications/** — Technical specs for all domains
 - **roadmap/** — Implementation progress and planning
 - **guides/** — How-to guides for implementers

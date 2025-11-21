@@ -47,6 +47,48 @@ import morphogen
 
 ## [Unreleased]
 
+### 🚀 Morphogen v1.0 Release Plan - 2025-11-21
+
+**Aggressive 24-week execution strategy to Morphogen v1.0 (2026-Q2)**
+
+**Added:**
+- **Planning Documents:**
+  - [Morphogen v1.0 Release Plan](docs/planning/MORPHOGEN_RELEASE_PLAN.md) ⭐ **THE PLAN** — Unified 24-week execution strategy
+  - [Morphogen Selective Evolution](docs/planning/MORPHOGEN_SELECTIVE_EVOLUTION.md) — Language evolution strategy (Path 2.5)
+  - Updated [Planning README](docs/planning/README.md) — Clear navigation to active plans
+
+**Three-Track Strategy:**
+1. **Track 1 - Language Evolution** (13 weeks): Symbolic execution, transform tracking, category theory optimization, plugin system
+2. **Track 2 - Critical Domains** (12 weeks): Circuit domain, Fluid dynamics, Chemistry Phase 2, 50+ domains total
+3. **Track 3 - Adoption & Polish** (ongoing): PyPI release, showcase examples, tutorials, community
+
+**Key Milestones:**
+- Week 4: PyPI alpha release (v0.12.0-alpha)
+- Week 22: Beta release (v0.99.0)
+- Week 24: **v1.0 LAUNCH** 🎉
+
+**Unique v1.0 Features:**
+- Symbolic + numeric execution (first platform to combine both)
+- Circuit → Audio coupling (design circuits, hear sound instantly)
+- Category theory optimization (verified composition, automatic fusion)
+- User extensibility (plugin system for custom domains)
+- 50+ integrated domains
+
+**Documentation Updates:**
+- Updated root [README.md](README.md) with v1.0 roadmap section
+- Updated [STATUS.md](STATUS.md) with v1.0 timeline
+- Updated [docs/README.md](docs/README.md) with release plan callout
+- Updated [docs/roadmap/README.md](docs/roadmap/README.md) to point to unified plan
+- Marked old roadmaps as superseded
+
+**Why This Matters:**
+- Clear, unified execution plan (no conflicting docs)
+- Aggressive but achievable timeline
+- Continuous delivery every 2-4 weeks
+- All tracks run in parallel for maximum velocity
+
+---
+
 ### 📚 Philosophy & Universal DSL Documentation - 2025-11-21
 
 **Major Documentation Expansion**: Created comprehensive theoretical foundations for universal cross-domain DSLs.

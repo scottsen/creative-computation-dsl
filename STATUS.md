@@ -1,8 +1,8 @@
-# Kairo (Morphogen) — Implementation Status
+# Morphogen — Implementation Status & v1.0 Roadmap
 
 **Last Updated:** 2025-11-21
-**Current Version:** v0.11.0
-**Status:** Production-Ready - 40 Computational Domains Implemented ✅
+**Current Version:** v0.11.0 → v1.0 (2026-Q2)
+**Status:** Production-Ready - 40 Domains Implemented ✅ | [**v1.0 Release Plan →**](docs/planning/MORPHOGEN_RELEASE_PLAN.md)
 
 ---
 
@@ -1091,6 +1091,9 @@ The foundation is solid, the architecture is sound, and the path forward is clea
 
 ---
 
-**Last Updated:** 2025-11-19
-**Version:** 0.10.0
-**Status:** Beta - 26 Computational Domains Implemented, 423+ Operators, 900+ Tests
+**Last Updated:** 2025-11-21
+**Version:** v0.11.0 → v1.0 Release Plan Active
+**Current Status:** Production-Ready - 40 Domains, 500+ Operators, 900+ Tests
+**Target:** v1.0 (2026-Q2)
+
+🚀 **[View v1.0 Release Plan](docs/planning/MORPHOGEN_RELEASE_PLAN.md)** - 24-week roadmap to production release

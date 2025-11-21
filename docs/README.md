@@ -13,6 +13,25 @@ Welcome to the Morphogen documentation! This guide will help you navigate the do
 - **Explore efficiently?** Use the [reveal tool](../scripts/README.md) (`./scripts/reveal.sh`) for incremental documentation exploration
 - **Need help?** Check [Troubleshooting](troubleshooting.md)
 
+---
+
+## 🚀 **v1.0 Release Plan Active**
+
+**Morphogen is on an aggressive 24-week path to v1.0!**
+
+📋 **[Read the Complete Release Plan](planning/MORPHOGEN_RELEASE_PLAN.md)** ⭐
+
+**Three-track strategy:**
+- **Track 1:** Language evolution (symbolic execution, category theory optimization)
+- **Track 2:** Critical domains (Circuit, Fluid, 50+ domains total)
+- **Track 3:** Adoption (PyPI, examples, community)
+
+**Timeline:** v0.11.0 → v1.0 (2026-Q2)
+
+See [Planning](planning/) for detailed week-by-week execution plan.
+
+---
+
 ## Documentation Structure
 
 ### 🧠 [Philosophy](philosophy/)
