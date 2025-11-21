@@ -12,6 +12,26 @@ This document distills the core design principles for building a **universal dom
 
 These principles emerged from analyzing what makes domains fundamentally different, how they can interoperate, and what patterns enable reliable cross-domain translation.
 
+### 📖 Document Purpose & Scope
+
+**This document answers: "WHY should a universal DSL be designed this way?"**
+
+This is a **design brief** focused on foundational principles and theoretical insights. It establishes the "why" behind design decisions, extracting universal patterns from cross-domain analysis.
+
+**Contrast with complementary documents:**
+- **This doc (Universal DSL Principles):** Design philosophy, theoretical principles, the "why"
+- **[DSL Framework Design](../architecture/dsl-framework-design.md):** Implementation vision, syntax proposals, the "how"
+- **Current Implementation:** What Morphogen already has today (see [Architecture Overview](../architecture/overview.md))
+
+**Think of it this way:**
+```
+Universal DSL Principles (philosophy)
+    ↓ informs ↓
+DSL Framework Design (architecture vision)
+    ↓ guides ↓
+Current Implementation (code & specs)
+```
+
 **Purpose:**
 - Establish design principles for universal cross-domain DSLs
 - Guide Morphogen's evolution toward true domain universality
@@ -24,7 +44,7 @@ These principles emerged from analyzing what makes domains fundamentally differe
 - [Universal Domain Frameworks](../reference/universal-domain-frameworks.md) — Theoretical foundations
 
 **Related:**
-- [DSL Framework Design](../architecture/dsl-framework-design.md) ⭐ — Future vision for domain reasoning language
+- [DSL Framework Design](../architecture/dsl-framework-design.md) ⭐ — Future vision for domain reasoning language (implementation)
 - [Continuous-Discrete Semantics](../architecture/continuous-discrete-semantics.md) — Technical implementation
 - [Transform Composition](../specifications/transform-composition.md) — Composable transforms specification
 - [Universal Domain Translation](../adr/012-universal-domain-translation.md) — ADR for translation framework
