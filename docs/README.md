@@ -10,6 +10,7 @@ Welcome to the Morphogen documentation! This guide will help you navigate the do
 - **Understand the architecture?** Read [Architecture Overview](architecture/overview.md)
 - **See the full ecosystem?** Check [ECOSYSTEM_MAP.md](../ECOSYSTEM_MAP.md) for all domains and roadmap
 - **Browse all documentation?** See [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) ⭐ — Complete map with reveal tool usage
+- **Explore efficiently?** Use the [reveal tool](../scripts/README.md) (`./scripts/reveal.sh`) for incremental documentation exploration
 - **Need help?** Check [Troubleshooting](troubleshooting.md)
 
 ## Documentation Structure
@@ -129,7 +130,9 @@ Deprecated CCDSL v0.2.2 documentation (for historical reference)
 **I want to...**
 
 - **Browse all documentation** → See [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) ⭐ — Complete index with navigation tips
-- **Explore documents incrementally** → Use `../scripts/reveal.sh` ([see docs](../scripts/README.md#revealsh--revealpy---progressive-file-explorer))
+- **Explore documents incrementally** → Use `../scripts/reveal.sh` ([see docs](../scripts/README.md)) for token-efficient exploration
+  - Quick preview: `./scripts/reveal.sh 1 <file>` (structure only)
+  - Sample content: `./scripts/reveal.sh 2 <file>` (representative preview)
 - **Understand why formalization matters** → Read [Formalization and Knowledge](philosophy/formalization-and-knowledge.md) ⭐
 - **Understand Morphogen's mathematical foundations** → See [Philosophy](philosophy/) section
 - **Understand Morphogen's vision and impact** → Read the main [README.md](../README.md)
@@ -208,3 +211,38 @@ Deprecated CCDSL v0.2.2 documentation (for historical reference)
 - ✅ Moved patterns catalog out of ADRs to reference section
 
 All file history has been preserved using `git mv`.
+
+---
+
+## Documentation Best Practices
+
+### Using the Reveal Tool for Efficient Exploration
+
+The reveal tool (`scripts/reveal.sh`) is designed for incremental documentation exploration, saving time and tokens:
+
+```bash
+# Start with structure (level 1) - see headings without full content
+./scripts/reveal.sh 1 docs/architecture/domain-architecture.md
+
+# Preview sample content (level 2) - representative sections
+./scripts/reveal.sh 2 docs/specifications/chemistry.md
+
+# Full content (level 3) - only when you need complete details
+./scripts/reveal.sh 3 docs/guides/domain-implementation.md
+```
+
+**Recommended workflow:**
+1. **Survey first**: Use level 1 to see document structure
+2. **Sample strategically**: Use level 2 to preview interesting sections
+3. **Read selectively**: Only read full docs (level 3 or direct read) when needed
+
+**Token savings**: Level 1 uses ~5-10% of tokens, level 2 uses ~20-30%, versus 100% for full reads.
+
+See [scripts/README.md](../scripts/README.md) for complete reveal tool documentation.
+
+### Cross-Referencing Conventions
+
+- **Philosophy vs Architecture**: Philosophy docs explain "WHY" (design principles), Architecture docs explain "HOW" (implementation approach)
+- **ADRs reference specs**: Check ADRs to understand design decisions, then read related specifications for implementation details
+- **Examples reference specs**: Working examples in `examples/` demonstrate concepts from `specifications/`
+- **Guides reference everything**: Implementation guides in `guides/` tie together philosophy, architecture, specs, and ADRs

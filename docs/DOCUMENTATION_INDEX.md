@@ -1,13 +1,16 @@
 # Morphogen Documentation Index
 
 **Generated**: 2025-11-21
+**Updated**: 2025-11-21
 **Purpose**: Comprehensive index of all documentation with structure and navigation
 
-> 💡 **Tip**: Use `scripts/reveal.sh` to explore any document incrementally:
+> 💡 **Tip**: Use `./scripts/reveal.sh` to explore any document incrementally:
 > - Level 0: Metadata (size, lines, type)
-> - Level 1: Structure (headings, functions, classes)
-> - Level 2: Preview (sample content)
-> - Level 3: Full content
+> - Level 1: Structure (headings, functions, classes) — **Most useful for initial exploration**
+> - Level 2: Preview (sample content) — **Good for getting a feel for the content**
+> - Level 3: Full content — **Use when you need complete details**
+>
+> **Token savings**: Level 1 = ~5-10% of tokens | Level 2 = ~20-30% | Level 3 = 100%
 
 ## Root-Level Documentation
 
@@ -376,14 +379,38 @@ done
 
 1. **Start with README.md** for project overview
 2. **Read docs/README.md** for documentation navigation
-3. **Use reveal tool** to explore incrementally (`scripts/reveal.sh 1 <file>`)
+3. **Use reveal tool** to explore incrementally:
+   - `./scripts/reveal.sh 1 <file>` — Structure first (recommended starting point)
+   - `./scripts/reveal.sh 2 <file>` — Preview sample content
+   - Only read full docs when you need complete details
 4. **Check SPECIFICATION.md** for language reference
 5. **Browse docs/specifications/** for domain details
 6. **Read ADRs** to understand key decisions
 7. **Use DOCUMENTATION_INDEX.md** (this file) as your map
 
+**Efficient exploration workflow:**
+```bash
+# Survey a directory (structure of all files)
+for f in docs/specifications/*.md; do
+    ./scripts/reveal.sh 1 "$f" | head -40
+done
+
+# Preview interesting files
+./scripts/reveal.sh 2 docs/guides/domain-implementation.md
+
+# Read full content only when needed
+./scripts/reveal.sh 3 SPECIFICATION.md
+```
+
 ---
 
 **Generated**: 2025-11-21
+**Updated**: 2025-11-21
 **Tool**: `scripts/reveal.py` and custom documentation mapping
 **Maintenance**: Regenerate when documentation structure changes significantly
+
+**Related Resources:**
+- [docs/README.md](README.md) — Navigation guide with task-based finding
+- [scripts/README.md](../scripts/README.md) — Complete reveal tool documentation
+- [claude.md](../claude.md) — Claude AI assistant context and quick reference
+- [../README.md](../README.md) — Project overview and getting started
