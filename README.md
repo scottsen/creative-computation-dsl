@@ -1,9 +1,9 @@
 ---
-project: kairo
+project: morphogen
 type: software
 status: active
 beth_topics:
-- kairo
+- morphogen
 - creative-computation
 - dsl
 - mlir
@@ -161,8 +161,53 @@ flow(dt=0.01, steps=500) {
 Run it:
 
 ```bash
-kairo run hello.kairo
+morphogen run hello.kairo
 ```
+
+---
+
+## 🚀 Project Status & v1.0 Roadmap
+
+**Current Status (v0.11.0):**
+- ✅ 40 production-ready computational domains
+- ✅ 900+ comprehensive tests (all passing)
+- ✅ MLIR compilation pipeline complete (6 phases)
+- ✅ Python runtime with NumPy backend
+- ✅ Zero technical debt
+
+**v1.0 Release Plan (24 weeks):**
+
+Morphogen is on an aggressive path to v1.0 with a three-track strategy:
+
+1. **Track 1 - Language Evolution** (13 weeks)
+   - Symbolic + numeric execution (SymPy integration)
+   - Transform space tracking with functorial translations
+   - Algebraic composition (`∘` operator) + category theory optimization
+   - Domain plugin system for user extensibility
+
+2. **Track 2 - Critical Domains** (12 weeks)
+   - Circuit domain with audio coupling ⭐ **Unique differentiator**
+   - Fluid dynamics (Navier-Stokes)
+   - Chemistry Phase 2 expansion
+   - **Target: 50+ domains**
+
+3. **Track 3 - Adoption & Polish** (ongoing)
+   - PyPI release (alpha in week 4)
+   - 5 showcase examples with videos
+   - 7 progressive tutorials
+   - Complete API documentation
+   - Active community infrastructure
+
+**Read the full plan:** [**Morphogen v1.0 Release Plan**](docs/planning/MORPHOGEN_RELEASE_PLAN.md)
+
+**What makes v1.0 special:**
+- 🔬 Symbolic + numeric execution (first platform to combine both)
+- 🎵 Circuit → Audio coupling (design pedal circuits, hear sound instantly)
+- 📐 Category theory optimization (verified composition, automatic fusion)
+- 🔌 User extensibility (plugin system for custom domains)
+- 🎯 50+ integrated domains (audio, physics, chemistry, graphics, AI)
+
+**Timeline:** Current v0.11.0 → v1.0 release in 2026-Q2
 
 ---
 
@@ -1328,4 +1373,6 @@ MIT License - see [LICENSE](LICENSE) for details
 
 ---
 
-**Status:** v0.11.0 - Complete Multi-Domain Platform | **Current Version:** 0.11.0 | **Last Updated:** 2025-11-21
+**Status:** v0.11.0 → v1.0 Release Plan Active | **Current Version:** 0.11.0 | **Target:** v1.0 (2026-Q2) | **Last Updated:** 2025-11-21
+
+**🚀 [View v1.0 Release Plan](docs/planning/MORPHOGEN_RELEASE_PLAN.md)** - 24-week roadmap to production release
