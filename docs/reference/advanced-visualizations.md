@@ -733,9 +733,17 @@ See [Palette Domain](./palette-domain.md) for custom palette creation.
 
 ## See Also
 
+### Related Documentation
+- [Mathematical Transformation Metaphors](./math-transformation-metaphors.md) - Intuitive frameworks for understanding transforms
+- [Visualization Ideas by Domain](./visualization-ideas-by-domain.md) - Comprehensive visualization catalog
+- [Transform Specification](../specifications/transform.md) - Technical transform details
+
+### Domain Documentation
 - [Visual Domain](./visual-scene-domain.md) - Core visualization architecture
 - [Field Operations](./field-operations.md) - Field-based visualizations
 - [Agents Domain](./agents-domain.md) - Agent visualization
 - [Audio Domain](./audio-domain.md) - Audio synthesis and analysis
 - [Graph Domain](./graph-domain.md) - Network algorithms
+
+### Examples
 - [Examples](../../examples/) - Complete demonstration programs
