@@ -4,46 +4,59 @@ Developer tools and utilities for the Morphogen project.
 
 ## Available Tools
 
-### reveal.sh - Progressive File Explorer
+### reveal.sh + reveal.py - Progressive File Explorer
 
 **Purpose**: Explore large files incrementally at 4 levels of detail to manage token usage and understand structure before reading full content.
 
-**Installation**:
+**Components**:
+- `reveal.py` - Local Python implementation (no installation required)
+- `reveal.sh` - Wrapper script (tries external reveal, falls back to reveal.py)
+
+**No Installation Needed**: The local `reveal.py` works out of the box with Python 3.
+
+**Optional External Tool**:
 ```bash
+# Only if you want the full-featured gist version
 pip install git+https://gist.github.com/scottsen/ee3fff354a79032f1c6d9d46991c8400
 ```
 
 **Usage**:
 ```bash
 # Level 0: Metadata (filename, size, type, line count, hash)
-./scripts/reveal.sh 0 src/morphogen/domains/audio.py
+./scripts/reveal.sh 0 morphogen/domains/audio.py
 
-# Level 1: Structure (imports, classes, functions)
-./scripts/reveal.sh 1 src/morphogen/domains/audio.py
+# Level 1: Structure (imports, classes, functions for .py; headings for .md)
+./scripts/reveal.sh 1 morphogen/domains/audio.py
 
-# Level 2: Preview (representative sample)
-./scripts/reveal.sh 2 docs/specifications/SPEC-AUDIO.md
+# Level 2: Preview (representative sample with beginning/middle/end)
+./scripts/reveal.sh 2 docs/specifications/chemistry.md
 
-# Level 3: Full content (with line numbers, paging)
-./scripts/reveal.sh 3 SPECIFICATION.md --page-size 50
+# Level 3: Full content (with line numbers)
+./scripts/reveal.sh 3 SPECIFICATION.md
 
-# With grep filtering
-./scripts/reveal.sh 1 src/morphogen/compiler/ --grep "class.*Analyzer"
+# Or use reveal.py directly
+python3 scripts/reveal.py --level 1 README.md
 ```
 
 **When to Use**:
-- Before reading large files (2000+ lines)
+- Before reading large files (1000+ lines)
 - Surveying domain implementations
 - Understanding documentation structure
 - Exploring test file organization
 - Conserving tokens (get 80% info at 20% token cost)
+- Creating documentation maps and indexes
 
-**Supported File Types**:
-- **Python**: AST analysis (imports, classes, functions, docstrings)
-- **YAML**: Key structure, nesting depth
-- **JSON**: Object/array counts, max depth
-- **Markdown**: Heading hierarchy, code blocks
-- **Text**: Generic line/word counts
+**Supported File Types** (reveal.py):
+- **Python** (.py): Imports, classes, functions with line numbers
+- **Markdown** (.md): Heading hierarchy, code blocks, lists
+- **All others**: Generic preview with line numbers
+
+**reveal.py Features**:
+- Level 0: Metadata (size, lines, hash)
+- Level 1: Structure (imports, classes, functions, headings)
+- Level 2: Preview (beginning + middle + end samples)
+- Level 3: Full content with line numbers
+- No external dependencies (pure Python 3 stdlib)
 
 ---
 
@@ -98,17 +111,28 @@ tia-gh p 38 m                       # Merge PR
 
 1. **Start with structure** (Level 1):
    ```bash
-   ./scripts/reveal.sh 1 src/morphogen/domains/audio.py
+   ./scripts/reveal.sh 1 morphogen/domains/audio.py
    ```
 
 2. **Preview if needed** (Level 2):
    ```bash
-   ./scripts/reveal.sh 2 src/morphogen/domains/audio.py
+   ./scripts/reveal.sh 2 morphogen/domains/audio.py
    ```
 
 3. **Read full content** only when necessary (Level 3):
    ```bash
-   ./scripts/reveal.sh 3 src/morphogen/domains/audio.py
+   ./scripts/reveal.sh 3 morphogen/domains/audio.py
+   ```
+
+4. **Explore documentation**:
+   ```bash
+   # Map all specifications
+   for f in docs/specifications/*.md; do
+       ./scripts/reveal.sh 1 "$f"
+   done
+
+   # See complete documentation index
+   ./scripts/reveal.sh 1 docs/DOCUMENTATION_INDEX.md
    ```
 
 ### Working with Issues
@@ -168,22 +192,38 @@ set -euo pipefail
 
 ---
 
-## Tips for Claude
+## Tips for Claude (and Humans!)
 
-When Claude is working with this codebase:
+When working with this codebase:
 
 - **Use reveal for exploration**: Check file structure before reading full content
+- **Level 0 for quick checks**: File size, line count, type detection
 - **Level 1 is often enough**: Imports, classes, and functions give good context
 - **Level 2 for sampling**: Get representative content without full file
 - **Level 3 sparingly**: Only when you need complete file contents
-- **Grep across levels**: Filter output to find specific patterns
 
 **Token Conservation Strategy**:
 ```bash
 # Instead of reading 2000-line file directly:
-reveal --level 1 large_file.py              # Structure only (20% tokens)
-reveal --level 1 large_file.py --grep "Foo" # Find what you need
-# Then read specific sections with regular Read tool
+./scripts/reveal.sh 1 large_file.py         # Structure only (~5-10% tokens)
+./scripts/reveal.sh 2 large_file.py         # Preview (~20-30% tokens)
+# Then read specific sections with regular Read tool if needed
+```
+
+**Documentation Exploration**:
+```bash
+# Map all specifications
+for f in docs/specifications/*.md; do
+    ./scripts/reveal.sh 1 "$f" | grep -E "(File:|STRUCTURE|headings)"
+done
+
+# Find large documents
+for f in docs/**/*.md; do
+    ./scripts/reveal.sh 0 "$f" 2>/dev/null | grep "Lines:"
+done | sort -t: -k2 -n
+
+# Use the comprehensive documentation index
+./scripts/reveal.sh 1 docs/DOCUMENTATION_INDEX.md
 ```
 
 ---

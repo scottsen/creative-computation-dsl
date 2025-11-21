@@ -131,22 +131,22 @@ pytest tests/ --cov=src/morphogen --cov-report=html
 
 **4. Exploring Documentation**
 Start with `docs/README.md` for navigation, then:
-- `ARCHITECTURE.md` - System design
+- `docs/architecture/overview.md` - System architecture
 - `ECOSYSTEM_MAP.md` - All domains mapped
 - `SPECIFICATION.md` - Language reference
-- `docs/architecture/domain-architecture.md` - Deep domain specs
+- `docs/architecture/domain-architecture.md` - Deep domain specs (2,266 lines)
 
 ## Development Workflow
 
 ### Current Branch
-**Branch**: `claude/document-tools-capabilities-01FMGmWoo35SWwRuXmLvKA63`
+Working branch varies by task/session.
 
 ### Git Practices
 ```bash
-# Always push to the claude/* branch
+# Always push to the claude/* branch for the current session
 git add .
-git commit -m "docs: Document reveal tool integration"
-git push -u origin claude/document-tools-capabilities-01FMGmWoo35SWwRuXmLvKA63
+git commit -m "docs: Descriptive commit message"
+git push -u origin <claude-branch-name>
 ```
 
 ### Before Making Changes
@@ -224,11 +224,13 @@ flow(dt=0.1ms) {
 ## Quick Reference
 
 ### Important Files
-- `ARCHITECTURE.md` - System architecture overview
+- `README.md` - Project overview and getting started
 - `SPECIFICATION.md` - Complete language reference
-- `AUDIO_SPECIFICATION.md` - Audio DSL reference
 - `ECOSYSTEM_MAP.md` - All domains mapped
+- `STATUS.md` - Current implementation status
+- `docs/architecture/overview.md` - System architecture
 - `docs/architecture/domain-architecture.md` - Deep domain specs (2,266 lines)
+- `docs/specifications/ambient-music.md` - Audio DSL specification
 - `docs/DOMAIN_VALUE_ANALYSIS.md` - Strategic analysis
 
 ### Running Examples
