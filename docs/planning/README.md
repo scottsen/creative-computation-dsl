@@ -4,13 +4,19 @@ This directory contains strategic planning documents, execution roadmaps, and pr
 
 ## 🎯 Canonical Roadmap (START HERE)
 
-**[ROADMAP_2025_Q4.md](./ROADMAP_2025_Q4.md)** ⭐ **OFFICIAL**
+**[ROADMAP_2025_Q4.md](./ROADMAP_2025_Q4.md)** ⭐ **STRATEGIC OVERVIEW**
 - **Status:** ✅ Active and Authoritative
 - **Date:** 2025-11-21
 - **Scope:** Complete 12-week strategic roadmap for Q4 2025
 - **Content:** Executive summary, current state, strategic priorities, tactical roadmap, success metrics, risk assessment
 
-**This is the single source of truth for Morphogen's strategic direction.** All other planning documents have been consolidated into this roadmap or archived.
+**[MORPHOGEN_SELECTIVE_EVOLUTION.md](./MORPHOGEN_SELECTIVE_EVOLUTION.md)** ⭐ **LANGUAGE EVOLUTION PLAN** (NEW!)
+- **Status:** ✅ Recommended Approach (Path 2.5)
+- **Date:** 2025-11-21
+- **Scope:** Language enhancement strategy (4 phases, 13 weeks)
+- **Content:** Symbolic execution, transform tracking, algebraic composition, category theory benefits, plugin system
+
+**These two documents together define Morphogen's strategic direction.** The roadmap covers domain priorities, the evolution plan covers language improvements.
 
 ---
 
