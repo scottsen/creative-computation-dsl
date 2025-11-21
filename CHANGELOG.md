@@ -47,6 +47,39 @@ import morphogen
 
 ## [Unreleased]
 
+### 📚 Philosophy & Universal DSL Documentation - 2025-11-21
+
+**Major Documentation Expansion**: Created comprehensive theoretical foundations for universal cross-domain DSLs.
+
+**Added:**
+- **Philosophy Section** (`docs/philosophy/`)
+  - [Formalization and Knowledge](docs/philosophy/formalization-and-knowledge.md) — Historical pattern of formalization from intuition to symbols (Probability, Logic, Geometry, Evolution) and Morphogen's role
+  - [Universal DSL Principles](docs/philosophy/universal-dsl-principles.md) ⭐ — Eight core design principles for cross-domain DSLs (continuous/discrete, hybrid systems, transform spaces, translation semantics)
+  - [Operator Foundations](docs/philosophy/operator-foundations.md) — Mathematical operator theory and spectral methods (moved from root)
+  - [Categorical Structure](docs/philosophy/categorical-structure.md) — Category-theoretic formalization (moved from architecture)
+
+- **Architecture Specifications**
+  - [Continuous-Discrete Semantics](docs/architecture/continuous-discrete-semantics.md) — Dual computational models, hybrid systems, multi-rate scheduling
+
+- **Language Specifications**
+  - [Transform Composition](docs/specifications/transform-composition.md) — Composable named transforms with automatic inversion
+
+- **ADRs**
+  - [ADR 012: Universal Domain Translation](docs/adr/012-universal-domain-translation.md) — Framework for explicit domain translation with invariant preservation
+
+**Changed:**
+- Reorganized philosophical documentation into dedicated `docs/philosophy/` directory
+- Updated all documentation indices and cross-references
+- Enhanced philosophical docs with reading paths for different audiences
+
+**Why This Matters:**
+- Establishes Morphogen as continuation of formalization tradition (Euclid, Boole, Turing)
+- Defines eight principles guiding universal DSL design
+- Formalizes cross-domain translation with explicit invariant semantics
+- Enables composable, named transform pipelines
+
+---
+
 ### 🎯 Geometry Domain Implementation - Comprehensive 2D/3D Spatial Operations
 
 **Date:** 2025-11-17

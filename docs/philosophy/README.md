@@ -61,7 +61,28 @@ This directory contains the **philosophical and theoretical foundations** that u
 
 ---
 
-### 3. [Categorical Structure: Theory in Practice](categorical-structure.md)
+### 3. [Universal DSL Principles: Design Brief](universal-dsl-principles.md) ⭐ **NEW**
+
+**The design principles for universal cross-domain DSLs**
+
+**Key Ideas:**
+- Domains differ fundamentally in continuity (continuous vs. discrete)
+- Every domain has signals, states, and operators (universal triad)
+- Transform spaces make problems solvable
+- Hybrid systems must be first-class
+- Translation semantics must be explicit
+
+**Read this if you want to understand:**
+- Core design principles extracted from cross-domain analysis
+- Why Morphogen is designed the way it is
+- How to think about universal computational substrates
+- Guidelines for implementing new domains and translations
+
+**Audience:** Language designers, domain implementers, researchers
+
+---
+
+### 4. [Categorical Structure: Theory in Practice](categorical-structure.md)
 
 **The category-theoretic formalization**
 
