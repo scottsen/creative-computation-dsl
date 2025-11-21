@@ -17,6 +17,14 @@ tags:
 - deterministic
 ---
 
+# ⚠️ ARCHIVED - Development Moved to [morphogen](https://github.com/scottsen/morphogen)
+
+**This repository is archived.** All active development has moved to **https://github.com/scottsen/morphogen**
+
+See [ARCHIVE_NOTICE.md](ARCHIVE_NOTICE.md) for details.
+
+---
+
 # Morphogen
 
 > *Where computation becomes composition*
@@ -130,13 +138,13 @@ See [docs/use-cases/2-stroke-muffler-modeling.md](docs/use-cases/2-stroke-muffle
 
 ```bash
 git clone https://github.com/scottsen/morphogen.git
-cd kairo
+cd morphogen
 pip install -e .
 ```
 
 ### Your First Program
 
-Create `hello.kairo`:
+Create `hello.kairo` (Morphogen source files use `.kairo` extension):
 
 ```morphogen
 # hello.kairo - Heat diffusion
@@ -1368,8 +1376,8 @@ MIT License - see [LICENSE](LICENSE) for details
 
 ## Contact
 
-- **GitHub**: https://github.com/scottsen/kairo
-- **Issues**: https://github.com/scottsen/kairo/issues
+- **GitHub**: https://github.com/scottsen/morphogen
+- **Issues**: https://github.com/scottsen/morphogen/issues
 
 ---
 
