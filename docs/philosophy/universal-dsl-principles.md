@@ -24,6 +24,7 @@ These principles emerged from analyzing what makes domains fundamentally differe
 - [Universal Domain Frameworks](../reference/universal-domain-frameworks.md) — Theoretical foundations
 
 **Related:**
+- [DSL Framework Design](../architecture/dsl-framework-design.md) ⭐ — Future vision for domain reasoning language
 - [Continuous-Discrete Semantics](../architecture/continuous-discrete-semantics.md) — Technical implementation
 - [Transform Composition](../specifications/transform-composition.md) — Composable transforms specification
 - [Universal Domain Translation](../adr/012-universal-domain-translation.md) — ADR for translation framework

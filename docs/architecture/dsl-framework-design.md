@@ -14,10 +14,22 @@ This document outlines a comprehensive vision for Kairo as a **domain reasoning 
 **Core Philosophy:** Most programming languages make objects and functions first-class, but domains and cross-domain translations are ad-hoc. Kairo fixes this by elevating domain reasoning to a fundamental language construct.
 
 **Related Documentation:**
-- [Morphogen Categorical Structure](./morphogen-categorical-structure.md) - Theory in practice
-- [Transform Specification](../specifications/transform.md) - Current implementation
-- [Domain Architecture](./domain-architecture.md) - Domain taxonomy
-- [Universal Domain Frameworks](../reference/universal-domain-frameworks.md) - Theoretical foundations
+
+**Philosophical Foundations:**
+- [Universal DSL Principles](../philosophy/universal-dsl-principles.md) ⭐ — Eight core design principles for universal DSLs
+- [Formalization and Knowledge](../philosophy/formalization-and-knowledge.md) — Historical context of formalization
+- [Categorical Structure](../philosophy/categorical-structure.md) — Category theory in practice
+- [Operator Foundations](../philosophy/operator-foundations.md) — Mathematical operator theory
+
+**Technical Specifications:**
+- [Continuous-Discrete Semantics](continuous-discrete-semantics.md) ⭐ — Dual computational models
+- [Transform Composition](../specifications/transform-composition.md) ⭐ — Composable named transforms
+- [Transform Specification](../specifications/transform.md) — Current transform implementation
+- [Domain Architecture](./domain-architecture.md) — Domain taxonomy
+- [Universal Domain Frameworks](../reference/universal-domain-frameworks.md) — Theoretical foundations
+
+**ADRs:**
+- [Universal Domain Translation](../adr/012-universal-domain-translation.md) ⭐ — Translation framework with invariants
 
 ---
 

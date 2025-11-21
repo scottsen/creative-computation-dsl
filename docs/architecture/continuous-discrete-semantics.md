@@ -24,6 +24,7 @@ This document specifies:
 - [Operator Foundations](../philosophy/operator-foundations.md) — Mathematical background
 
 **Related:**
+- [DSL Framework Design](dsl-framework-design.md) ⭐ — Future vision for domain reasoning language
 - [Transform Composition](../specifications/transform-composition.md) — Cross-representation transformations
 - [Universal Domain Translation](../adr/012-universal-domain-translation.md) — Translation framework
 
