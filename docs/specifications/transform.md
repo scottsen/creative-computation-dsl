@@ -12,6 +12,8 @@ The Transform Dialect makes **domain changes** a first-class operation in Morpho
 
 **Design Principle:** FFT is not special — it's one instance of `transform.to(domain="frequency")`. All transforms follow the same pattern.
 
+**For Intuitive Understanding:** See [Mathematical Transformation Metaphors](../reference/math-transformation-metaphors.md) for pedagogical frameworks and mental models that make these transformations more intuitive.
+
 ---
 
 ## Core Operations
@@ -1003,7 +1005,12 @@ Transforms are the bridge between Morphogen's multi-domain vision and practical 
 
 ## References
 
-- **TiaCAD v3.x** — Deterministic transform model, explicit origins
+### Morphogen Documentation
+- [Mathematical Transformation Metaphors](../reference/math-transformation-metaphors.md) — Pedagogical frameworks and intuitive understanding
+- [Advanced Visualizations](../reference/advanced-visualizations.md) — Visualization techniques for transforms
 - **coordinate-frames.md** — Frame/anchor system
 - **geometry.md** — Geometric operators
 - **operator-registry.md** — Layer 2 (transforms)
+
+### External References
+- **TiaCAD v3.x** — Deterministic transform model, explicit origins

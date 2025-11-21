@@ -56,6 +56,8 @@ Specific real-world applications
 
 ### 📚 [Reference](reference/)
 Catalogs, operator references, and domain overviews
+- **Conceptual Frameworks**: [Mathematical Transformation Metaphors](reference/math-transformation-metaphors.md) - Intuitive frameworks for understanding transforms
+- **Visualization**: [Advanced Visualizations](reference/advanced-visualizations.md), [Visualization Ideas by Domain](reference/visualization-ideas-by-domain.md)
 - **Operator Catalogs**: [Emergence](reference/emergence-operators.md), [Procedural](reference/procedural-operators.md), [Genetic Algorithms](reference/genetic-algorithm-operators.md), [Optimization](reference/optimization-algorithms.md), [Time Alignment](reference/time-alignment-operators.md)
 - **Patterns**: [Multiphysics Success Patterns](reference/multiphysics-success-patterns.md) - 12 battle-tested architectural patterns
 - **Domain Overviews**: [Procedural Graphics Domains](reference/procedural-graphics-domains.md), [Professional Domains](reference/professional-domains.md), [Visual Scene Domain](reference/visual-scene-domain.md), [Visual Domain Quick Reference](reference/visual-domain-quickref.md)
@@ -97,6 +99,7 @@ Deprecated CCDSL v0.2.2 documentation (for historical reference)
 
 - **Understand Morphogen's vision and impact** → Read the main [README.md](../README.md) and [Professional Applications](reference/professional-domains.md)
 - **Understand Morphogen's architecture** → Start with [Architecture Overview](architecture/overview.md), then [Domain Architecture](architecture/domain-architecture.md)
+- **Understand transformations intuitively** → Read [Mathematical Transformation Metaphors](reference/math-transformation-metaphors.md)
 - **See the complete ecosystem** → Check [ECOSYSTEM_MAP.md](../ECOSYSTEM_MAP.md) for all domains and roadmap
 - **Implement a new domain** → Read [Domain Implementation Guide](guides/domain-implementation.md) and relevant [ADRs](adr/)
 - **Learn about a specific domain** → Check [Specifications](specifications/) for the domain spec, then related [ADRs](adr/)

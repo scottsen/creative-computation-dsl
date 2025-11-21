@@ -2,6 +2,11 @@
 
 A comprehensive catalog of visualization concepts that leverage Morphogen's unique cross-domain capabilities. This document organizes visualization ideas by computational domain and highlights powerful cross-domain compositions.
 
+**Related Documentation:**
+- [Mathematical Transformation Metaphors](./math-transformation-metaphors.md) - Intuitive frameworks for understanding the transforms behind these visualizations
+- [Advanced Visualizations](./advanced-visualizations.md) - Implemented visualization techniques
+- [Transform Specification](../specifications/transform.md) - Technical details of domain transformations
+
 **Status Legend:**
 - ✅ **Fully Implemented** - Ready to use now
 - 🚧 **Partially Implemented** - Some components available
