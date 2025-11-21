@@ -572,6 +572,222 @@ def fractional_fft_animation():
 
 ---
 
+## Connections to Formal Frameworks
+
+Each metaphor corresponds to rigorous mathematical frameworks that formalize domain transformations.
+
+### Metaphor → Theory Mapping
+
+| Metaphor | Formal Framework | Mathematical Structure |
+|----------|------------------|------------------------|
+| **Rotations in Hidden Dimensions** | **Spectral Theory** | Unitary operators, orthonormal basis changes |
+| **Shadow Casting** | **Functional Analysis** | Inner products, projection operators |
+| **Fluid Flow** | **PDE Theory** | Flows on function spaces, Green's functions |
+| **Energy Tilting** | **Convex Analysis** | Legendre transforms, duality maps |
+| **Resonant Shapes** | **Spectral Theory** | Sturm-Liouville theory, eigenfunction expansions |
+| **Coordinate Maps** | **Differential Geometry** | Coordinate charts, metric tensors |
+| **Rubber Sheet** | **Symplectic Geometry** | Canonical transformations, Poisson brackets |
+| **Puzzle Pieces** | **Information Theory** | Sparsity, compressibility, optimal encoding |
+| **Cognitive Lenses** | **Category Theory** | Functors between categories, natural transformations |
+| **Transmorphing Maps** | **Interpolation Theory** | Continuous families of operators, fractional transforms |
+
+### Detailed Connections
+
+#### 1. Rotations → Spectral Theory
+
+**Mathematical foundation:**
+- Fourier transform = rotation to frequency eigenbasis
+- Unitary operators preserve inner products: `⟨U(f), U(g)⟩ = ⟨f, g⟩`
+- Spectral theorem: normal operators diagonalize in orthonormal basis
+
+**Formal statement:**
+```
+ℱ: L²(ℝ) → L²(ℝ) is a unitary operator
+ℱ*ℱ = ℱℱ* = I
+```
+
+**See:** [Universal Domain Frameworks](./universal-domain-frameworks.md#8-spectral-theory-linear-transformations)
+
+---
+
+#### 2. Shadow Casting → Functional Analysis
+
+**Mathematical foundation:**
+- Projection onto subspace: `P_V(x) = ⟨x, v₁⟩v₁ + ⟨x, v₂⟩v₂ + ...`
+- Radon transform (tomography): projects 3D object onto 2D plane
+- Orthogonal decomposition theorem
+
+**Formal statement:**
+```
+V ⊕ V⊥ = H (Hilbert space decomposition)
+P_V: H → V (orthogonal projection)
+```
+
+**See:** Riesz representation theorem, Projection theorem
+
+---
+
+#### 3. Fluid Flow → PDE Theory
+
+**Mathematical foundation:**
+- Convolution = Green's function propagation
+- Heat equation: `∂u/∂t = α∇²u` describes diffusive flow
+- Hamiltonian flow preserves phase space volume (Liouville's theorem)
+
+**Formal statement:**
+```
+∂u/∂t + ∇·(u𝐯) = 0  (Continuity equation)
+Hamiltonian flow: dq/dt = ∂H/∂p, dp/dt = -∂H/∂q
+```
+
+**See:** [Universal Domain Frameworks](./universal-domain-frameworks.md#5-domain-theory-partial-information-and-computation)
+
+---
+
+#### 4. Energy Tilting → Convex Analysis
+
+**Mathematical foundation:**
+- Legendre transform: `f*(p) = sup_x (px - f(x))`
+- Duality in optimization: primal ↔ dual
+- Fenchel conjugate
+
+**Formal statement:**
+```
+f**: H → ℝ (convex function)
+f* = Legendre transform of f
+f** = f (involution for convex functions)
+```
+
+**See:** Rockafellar's "Convex Analysis"
+
+---
+
+#### 5. Resonant Shapes → Spectral Theory
+
+**Mathematical foundation:**
+- Sturm-Liouville eigenvalue problems
+- Quantum mechanics: energy eigenstates
+- Graph Laplacian eigenvectors = vibrational modes
+
+**Formal statement:**
+```
+Lu = λu  (Eigenvalue problem)
+L = -∇² + V(x)  (Schrödinger operator)
+```
+
+**See:** [Universal Domain Frameworks](./universal-domain-frameworks.md#8-spectral-theory-linear-transformations)
+
+---
+
+#### 6. Coordinate Maps → Differential Geometry
+
+**Mathematical foundation:**
+- Coordinate charts: `φ: U ⊆ M → ℝⁿ`
+- Metric tensor: `g_ij = ⟨∂_i, ∂_j⟩`
+- Change of coordinates: Jacobian matrix
+
+**Formal statement:**
+```
+x' = φ(x)  (Coordinate transformation)
+dx' = (∂φ/∂x) dx  (Differential transformation)
+```
+
+**See:** Do Carmo's "Differential Geometry of Curves and Surfaces"
+
+---
+
+#### 7. Rubber Sheet → Symplectic Geometry
+
+**Mathematical foundation:**
+- Symplectic form: `ω = dp ∧ dq`
+- Canonical transformations preserve `ω`
+- Poisson brackets: `{f, g} = ∂f/∂q ∂g/∂p - ∂f/∂p ∂g/∂q`
+
+**Formal statement:**
+```
+Φ: (M, ω) → (M, ω)  (Symplectomorphism)
+Φ*ω = ω  (Preserves symplectic form)
+```
+
+**See:** Arnold's "Mathematical Methods of Classical Mechanics"
+
+---
+
+#### 8. Puzzle Pieces → Information Theory
+
+**Mathematical foundation:**
+- Sparse representation: minimize `||x||₀` subject to `Ax = b`
+- Rate-distortion theory: optimal compression
+- Mutual information: `I(X;Y) = H(X) - H(X|Y)`
+
+**Formal statement:**
+```
+min ||x||₁ subject to ||Ax - b||₂ < ε  (Compressed sensing)
+R(D) = min_{P(x̂|x): E[d(x,x̂)]≤D} I(X;X̂)  (Rate-distortion)
+```
+
+**See:** [Universal Domain Frameworks](./universal-domain-frameworks.md#7-information-theory-probabilistic-domains)
+
+---
+
+#### 9. Cognitive Lenses → Category Theory
+
+**Mathematical foundation:**
+- Functors: `F: 𝒞 → 𝒟` map structure-preserving between categories
+- Natural transformations: coherent maps between functors
+- Adjunctions: optimal correspondences
+
+**Formal statement:**
+```
+F: 𝒞 → 𝒟  (Functor)
+F(g ∘ f) = F(g) ∘ F(f)  (Preserves composition)
+η: F ⇒ G  (Natural transformation)
+```
+
+**See:** [Universal Domain Frameworks](./universal-domain-frameworks.md#1-category-theory-the-universal-framework)
+
+---
+
+#### 10. Transmorphing Maps → Interpolation Theory
+
+**Mathematical foundation:**
+- Fractional Fourier transform: `ℱᵅ` where `α ∈ [0,1]`
+- Continuous wavelet transform: parametrized by scale
+- Interpolation of operators: `T(α) = (1-α)T₀ + αT₁`
+
+**Formal statement:**
+```
+ℱᵅ = rotation by angle α in time-frequency plane
+ℱ⁰ = identity
+ℱ¹ = Fourier transform
+ℱᵅ ∘ ℱᵝ = ℱᵅ⁺ᵝ  (Group structure)
+```
+
+**See:** Ozaktas et al., "The Fractional Fourier Transform"
+
+---
+
+### Universal Framework Summary
+
+All metaphors can be unified under **Category Theory**, where:
+
+- **Objects** = Domains (time, frequency, space, etc.)
+- **Morphisms** = Transformations (Fourier, Laplace, coordinate changes, etc.)
+- **Functors** = Domain translations (mappings between categories)
+- **Natural transformations** = Coherent maps between domain translations
+
+**This provides:**
+1. **Rigorous semantics** for all transformations
+2. **Compositional structure** (transforms compose predictably)
+3. **Universal language** (applies across all domains)
+4. **Proven correctness** (functor laws guarantee properties)
+
+**See comprehensive theory:**
+- [Universal Domain Frameworks](./universal-domain-frameworks.md)
+- [Morphogen's Categorical Structure](../architecture/morphogen-categorical-structure.md)
+
+---
+
 ## Contributing
 
 When adding new metaphors:
@@ -580,6 +796,7 @@ When adding new metaphors:
 2. **Provide concrete examples** - Show how it applies to specific transforms
 3. **Link to visualizations** - Reference existing or planned visual demonstrations
 4. **Note limitations** - Where does the metaphor break down?
+5. **Connect to formal frameworks** - Which mathematical theory formalizes the metaphor?
 
 ---
 
