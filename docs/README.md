@@ -14,21 +14,25 @@ Welcome to the Morphogen documentation! This guide will help you navigate the do
 ## Documentation Structure
 
 ### 🧠 [Philosophy](philosophy/)
-**Theoretical foundations and epistemological context**
+**Theoretical foundations and epistemological context** (answers "WHY")
 - [Formalization and Knowledge](philosophy/formalization-and-knowledge.md) ⭐ — How formalization transforms human knowledge
-- [Universal DSL Principles](philosophy/universal-dsl-principles.md) ⭐ **NEW** — Design brief for cross-domain DSLs
+- [Universal DSL Principles](philosophy/universal-dsl-principles.md) ⭐ **NEW** — Design brief for cross-domain DSLs (the "why")
 - [Operator Foundations](philosophy/operator-foundations.md) — Mathematical operator theory and spectral methods
 - [Categorical Structure](philosophy/categorical-structure.md) — Category-theoretic formalization
 - [Philosophy README](philosophy/README.md) — Overview of philosophical foundations
 
+**Note:** Philosophy docs establish "why" Morphogen is designed this way. For "how" to implement it, see [Architecture](#-architecture).
+
 ### 📐 [Architecture](architecture/)
-High-level design and architectural principles
+**High-level design and architectural principles** (answers "HOW")
 - [Overview](architecture/overview.md) - Core Morphogen architecture
 - [Continuous-Discrete Semantics](architecture/continuous-discrete-semantics.md) ⭐ **NEW** — Dual computational models
-- **[DSL Framework Design](architecture/dsl-framework-design.md)** ⭐ - Vision for domain reasoning language (first-class domains, translations, composition)
+- **[DSL Framework Design](architecture/dsl-framework-design.md)** ⭐ **NEW** - Vision for domain reasoning language (the "how" - first-class domains, translations, composition)
 - [Domain Architecture](architecture/domain-architecture.md) - How domains fit together (110KB - comprehensive!)
 - [GPU & MLIR Principles](architecture/gpu-mlir-principles.md) - GPU execution and MLIR integration
 - [Interactive Visualization](architecture/interactive-visualization.md) - Visualization approach
+
+**Note:** Architecture docs explain "how" to implement the principles from [Philosophy](#-philosophy).
 
 ### 📋 [Specifications](specifications/)
 Detailed technical specifications (20 documents)
@@ -69,13 +73,22 @@ Specific real-world applications
 - [Chemistry Unified Framework](use-cases/chemistry-unified-framework.md)
 
 ### 📚 [Reference](reference/)
-Catalogs, operator references, and domain overviews
-- **Conceptual Frameworks**: [Mathematical Transformation Metaphors](reference/math-transformation-metaphors.md) - Intuitive frameworks for understanding transforms
-- **Visualization**: [Advanced Visualizations](reference/advanced-visualizations.md), [Visualization Ideas by Domain](reference/visualization-ideas-by-domain.md)
-- **Operator Catalogs**: [Emergence](reference/emergence-operators.md), [Procedural](reference/procedural-operators.md), [Genetic Algorithms](reference/genetic-algorithm-operators.md), [Optimization](reference/optimization-algorithms.md), [Time Alignment](reference/time-alignment-operators.md)
-- **Patterns**: [Multiphysics Success Patterns](reference/multiphysics-success-patterns.md) - 12 battle-tested architectural patterns
-- **Domain Overviews**: [Procedural Graphics Domains](reference/procedural-graphics-domains.md), [Professional Domains](reference/professional-domains.md), [Visual Scene Domain](reference/visual-scene-domain.md), [Visual Domain Quick Reference](reference/visual-domain-quickref.md)
-- [Operator Registry Expansion](reference/operator-registry-expansion.md)
+**Catalogs, operator references, and domain overviews** (~420KB across 18 documents)
+
+**📖 Start here:** [Reference README](reference/README.md) ⭐ — Comprehensive index with navigation by task and experience level
+
+**Key sections:**
+- **Operator Catalogs** (~154KB): Complete implementation-ready operator libraries
+- **Visualization & Sonification** (~115KB): Comprehensive visualization and sonification techniques
+- **Theoretical Frameworks** (~84KB): Mathematical foundations and pedagogical metaphors
+- **Patterns & Best Practices** (~72KB): Battle-tested architectural patterns
+- **Domain Overviews** (~40KB): High-level domain capabilities
+
+**Quick links:**
+- [Multiphysics Success Patterns](reference/multiphysics-success-patterns.md) ⭐ - 12 battle-tested patterns
+- [Visualization Ideas by Domain](reference/visualization-ideas-by-domain.md) ⭐ - Comprehensive catalog (56K)
+- [Universal Domain Frameworks](reference/universal-domain-frameworks.md) ⭐ - Mathematical foundations (28K)
+- [Mathematical Transformation Metaphors](reference/math-transformation-metaphors.md) - Intuitive understanding (25K)
 
 ### 🗺️ [Roadmap](roadmap/)
 Planning and progress tracking
@@ -113,7 +126,7 @@ Deprecated CCDSL v0.2.2 documentation (for historical reference)
 
 - **Understand why formalization matters** → Read [Formalization and Knowledge](philosophy/formalization-and-knowledge.md) ⭐
 - **Understand Morphogen's mathematical foundations** → See [Philosophy](philosophy/) section
-- **Understand Morphogen's vision and impact** → Read the main [README.md](../README.md) and [Professional Applications](reference/professional-domains.md)
+- **Understand Morphogen's vision and impact** → Read the main [README.md](../README.md)
 - **Understand Morphogen's architecture** → Start with [Architecture Overview](architecture/overview.md), then [Domain Architecture](architecture/domain-architecture.md)
 - **Understand transformations intuitively** → Read [Mathematical Transformation Metaphors](reference/math-transformation-metaphors.md)
 - **See the complete ecosystem** → Check [ECOSYSTEM_MAP.md](../ECOSYSTEM_MAP.md) for all domains and roadmap
@@ -129,6 +142,30 @@ Deprecated CCDSL v0.2.2 documentation (for historical reference)
 
 ## Recent Changes
 
+**2025-11-21: Documentation Improvements & Clarifications**
+- ✅ **Enhanced Reference Section** - Created comprehensive [Reference README](reference/README.md) with:
+  - Navigation by task and experience level
+  - Document relationships and cross-references
+  - Statistics and breakdown by category (~420KB total)
+- ✅ **Clarified Overlapping Docs** - Added purpose sections to distinguish:
+  - [Universal DSL Principles](philosophy/universal-dsl-principles.md) (the "why" - design philosophy)
+  - [DSL Framework Design](architecture/dsl-framework-design.md) (the "how" - implementation vision)
+- ✅ **Improved Navigation** - Added "WHY" vs "HOW" labels to Philosophy and Architecture sections
+- ✅ **Updated Main README** - Enhanced descriptions with document sizes and clearer organization
+
+**2025-11-21: New Theoretical Foundation Documents (~150KB)**
+- 🆕 **Philosophy Section** - Comprehensive theoretical framework:
+  - [Formalization and Knowledge](philosophy/formalization-and-knowledge.md) (13K) - Historical context
+  - [Operator Foundations](philosophy/operator-foundations.md) (18K) - Mathematical operator theory
+  - [Categorical Structure](philosophy/categorical-structure.md) (26K) - Category-theoretic formalization
+  - [Universal DSL Principles](philosophy/universal-dsl-principles.md) (18K) - 8 design principles
+  - [Philosophy README](philosophy/README.md) (11K) - Section index
+- 🆕 **Architecture Documents**:
+  - [DSL Framework Design](architecture/dsl-framework-design.md) (23K) - Implementation vision
+  - [Continuous-Discrete Semantics](architecture/continuous-discrete-semantics.md) - Dual computational models
+- 🆕 **New ADR**: [012: Universal Domain Translation](adr/012-universal-domain-translation.md) (14K)
+- 🆕 **New Spec**: [Transform Composition](specifications/transform-composition.md) (15K) - Composable transforms
+
 **2025-11-16: Major Documentation Reorganization**
 - ✅ Created `planning/` and `analysis/` directories for better organization
 - ✅ Moved strategic planning docs from root to `docs/planning/`
@@ -138,8 +175,6 @@ Deprecated CCDSL v0.2.2 documentation (for historical reference)
 - ✅ Fixed inconsistencies across README, STATUS, and SPECIFICATION
 
 **2025-11-15: Initial Documentation Reorganization**
-- Key improvements:
-
 - ✅ Consistent lowercase naming throughout
 - ✅ Logical grouping by user intent (why/what/how/how-to)
 - ✅ Fixed ADR numbering (resolved duplicate 003 and 005 issues)

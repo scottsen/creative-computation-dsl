@@ -13,10 +13,38 @@ This document outlines a comprehensive vision for Kairo as a **domain reasoning 
 
 **Core Philosophy:** Most programming languages make objects and functions first-class, but domains and cross-domain translations are ad-hoc. Kairo fixes this by elevating domain reasoning to a fundamental language construct.
 
+### 📖 Document Purpose & Scope
+
+**This document answers: "HOW should we implement first-class domains and translations?"**
+
+This is an **implementation vision** with concrete syntax proposals, gap analysis, and roadmap. It bridges theory (from philosophy docs) with practice (current implementation) and charts a path forward.
+
+**Contrast with complementary documents:**
+- **[Universal DSL Principles](../philosophy/universal-dsl-principles.md):** Design philosophy, theoretical principles, the "why"
+- **This doc (DSL Framework Design):** Implementation vision, syntax proposals, the "how"
+- **Current Implementation:** What Morphogen already has today (see [Architecture Overview](./overview.md))
+
+**Think of it this way:**
+```
+Universal DSL Principles (philosophy)
+    ↓ informs ↓
+DSL Framework Design (this doc - architecture vision)
+    ↓ guides ↓
+Current Implementation (code & specs)
+```
+
+**What you'll find here:**
+1. **Vision:** Ideal language features (Section 1)
+2. **Current State:** What we have today (Section 2)
+3. **Gap Analysis:** What's missing (Section 3)
+4. **Proposed Extensions:** Concrete syntax proposals (Section 4)
+5. **Implementation Roadmap:** 5-phase plan to v0.16.0 (Section 5)
+6. **Examples:** Before/after comparisons (Section 6)
+
 **Related Documentation:**
 
 **Philosophical Foundations:**
-- [Universal DSL Principles](../philosophy/universal-dsl-principles.md) ⭐ — Eight core design principles for universal DSLs
+- [Universal DSL Principles](../philosophy/universal-dsl-principles.md) ⭐ — Eight core design principles for universal DSLs (the "why")
 - [Formalization and Knowledge](../philosophy/formalization-and-knowledge.md) — Historical context of formalization
 - [Categorical Structure](../philosophy/categorical-structure.md) — Category theory in practice
 - [Operator Foundations](../philosophy/operator-foundations.md) — Mathematical operator theory
